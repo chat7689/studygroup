@@ -43,7 +43,41 @@
             justify-content: center;
             align-items: center;
             transition: all 0.3s ease;
+            position: relative;
         }
+
+        /* Secret background squares */
+        .bg-square {
+            position: fixed;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1;
+            border-radius: 8px;
+        }
+
+        .bg-square:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.1);
+        }
+
+        .bg-square.clicked {
+            background: rgba(0, 122, 255, 0.3);
+            animation: pulse 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .bg-square.top-left { top: 20px; left: 20px; }
+        .bg-square.top-right { top: 20px; right: 20px; }
+        .bg-square.bottom-left { bottom: 20px; left: 20px; }
+        .bg-square.bottom-right { bottom: 20px; right: 20px; }
         
         .messages-container-wrapper {
             background: var(--chat-bg);
@@ -57,6 +91,8 @@
             overflow: hidden;
             transition: all 0.3s ease;
             border: 1px solid var(--border-color);
+            z-index: 10;
+            position: relative;
         }
         
         .messages-header {
@@ -551,6 +587,130 @@
             display: none;
         }
 
+        /* Flappy Bird Game Styles */
+        .game-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .game-container {
+            background: #70c5ce;
+            width: 400px;
+            height: 600px;
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .game-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            background: linear-gradient(180deg, #70c5ce 0%, #b8e6e8 100%);
+        }
+
+        .game-ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            color: white;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .game-score {
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .game-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff3b30;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+            text-align: center;
+        }
+
+        .game-over-content {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .game-over-score {
+            font-size: 36px;
+            margin: 20px 0;
+            color: #ffd700;
+        }
+
+        .game-restart-btn {
+            background: #007aff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+        .game-restart-btn:hover {
+            opacity: 0.8;
+        }
+
+        /* Leaderboard */
+        .leaderboard {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 16px;
+            margin: 4px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .leaderboard-item.current-user {
+            background: rgba(0, 122, 255, 0.3);
+        }
+
         /* iPhone style scrollbar */
         ::-webkit-scrollbar {
             width: 4px;
@@ -576,6 +736,12 @@
     </style>
 </head>
 <body data-theme="dark">
+    <!-- Background squares for secret game -->
+    <div class="bg-square top-left" data-position="top-left"></div>
+    <div class="bg-square top-right" data-position="top-right"></div>
+    <div class="bg-square bottom-left" data-position="bottom-left"></div>
+    <div class="bg-square bottom-right" data-position="bottom-right"></div>
+
     <div class="messages-container-wrapper">
         <div class="messages-header">
             <button class="theme-toggle" onclick="toggleTheme()">☀️</button>
@@ -671,6 +837,30 @@
         </div>
     </div>
 
+    <!-- Flappy Bird Game -->
+    <div class="game-overlay" id="gameOverlay">
+        <div class="game-container">
+            <button class="game-close" onclick="closeGame()">&times;</button>
+            <div class="game-ui">
+                <div class="game-score" id="gameScore">0</div>
+            </div>
+            <canvas class="game-canvas" id="gameCanvas" width="400" height="600"></canvas>
+            <div class="game-over-screen" id="gameOverScreen">
+                <div class="game-over-content">
+                    <h2>Game Over!</h2>
+                    <div class="game-over-score" id="finalScore">0</div>
+                    <p id="scoreMessage">Great job!</p>
+                    <button class="game-restart-btn" onclick="restartGame()">Play Again</button>
+                    <button class="game-restart-btn" onclick="closeGame()">Back to Chat</button>
+                    <div class="leaderboard" id="leaderboard">
+                        <h3>Leaderboard</h3>
+                        <div id="leaderboardList">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-compat.js"></script>
 
@@ -703,6 +893,17 @@
         let isAdmin = false;
         let currentTab = 'login';
 
+        // Secret game variables
+        let secretSequence = [];
+        let secretTimeout = null;
+        const REQUIRED_SEQUENCE = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+        const SEQUENCE_TIMEOUT = 10000; // 10 seconds
+
+        // Game variables
+        let game = null;
+        let gameCanvas = null;
+        let gameCtx = null;
+
         // DOM elements
         const authScreen = document.getElementById('authScreen');
         const chatMain = document.getElementById('chatMain');
@@ -722,6 +923,430 @@
         } else {
             status.style.display = 'block';
             status.innerHTML = '⚠️ Please replace the Firebase configuration in the code';
+        }
+
+        // Initialize secret squares on page load
+        window.addEventListener('load', () => {
+            loadTheme();
+            document.getElementById('loginUsername').focus();
+            initializeSecretSquares();
+        });
+
+        // Initialize secret background squares
+        function initializeSecretSquares() {
+            const squares = document.querySelectorAll('.bg-square');
+            
+            squares.forEach(square => {
+                square.addEventListener('click', handleSecretClick);
+            });
+        }
+
+        // Handle secret square clicks
+        function handleSecretClick(event) {
+            // Only work if user is logged in
+            if (!currentUser) {
+                return;
+            }
+            
+            const position = event.target.getAttribute('data-position');
+            
+            // Add visual feedback
+            event.target.classList.add('clicked');
+            setTimeout(() => {
+                event.target.classList.remove('clicked');
+            }, 500);
+            
+            // Add to sequence
+            secretSequence.push(position);
+            
+            // Clear timeout and set new one
+            if (secretTimeout) {
+                clearTimeout(secretTimeout);
+            }
+            
+            secretTimeout = setTimeout(() => {
+                secretSequence = [];
+            }, SEQUENCE_TIMEOUT);
+            
+            // Check if sequence is complete
+            if (secretSequence.length === REQUIRED_SEQUENCE.length) {
+                const isCorrect = secretSequence.every((pos, index) => pos === REQUIRED_SEQUENCE[index]);
+                
+                if (isCorrect) {
+                    // Unlock the game!
+                    secretSequence = [];
+                    clearTimeout(secretTimeout);
+                    unlockFlappyBird();
+                } else {
+                    // Wrong sequence, reset
+                    secretSequence = [];
+                }
+            }
+        }
+
+        // Unlock Flappy Bird game
+        function unlockFlappyBird() {
+            showSuccess('🎮 Secret game unlocked! Get ready to flap!');
+            setTimeout(() => {
+                startFlappyBird();
+            }, 1500);
+        }
+
+        // Start Flappy Bird game
+        function startFlappyBird() {
+            document.getElementById('gameOverlay').style.display = 'flex';
+            gameCanvas = document.getElementById('gameCanvas');
+            gameCtx = gameCanvas.getContext('2d');
+            
+            // Initialize game
+            game = new FlappyBirdGame();
+            game.start();
+        }
+
+        // Close game
+        function closeGame() {
+            document.getElementById('gameOverlay').style.display = 'none';
+            if (game) {
+                game.stop();
+                game = null;
+            }
+        }
+
+        // Restart game
+        function restartGame() {
+            document.getElementById('gameOverScreen').style.display = 'none';
+            if (game) {
+                game.restart();
+            }
+        }
+
+        // Flappy Bird Game Class
+        class FlappyBirdGame {
+            constructor() {
+                this.bird = {
+                    x: 100,
+                    y: 300,
+                    width: 30,
+                    height: 30,
+                    velocity: 0,
+                    gravity: 0.5,
+                    jump: -8,
+                    color: '#ffd700'
+                };
+                
+                this.pipes = [];
+                this.score = 0;
+                this.gameRunning = false;
+                this.gameStarted = false;
+                this.pipeGap = 120;
+                this.pipeWidth = 50;
+                this.pipeSpeed = 2;
+                
+                this.ground = {
+                    y: gameCanvas.height - 50,
+                    color: '#228b22'
+                };
+                
+                this.setupEventListeners();
+            }
+            
+            setupEventListeners() {
+                // Handle clicks and spacebar
+                gameCanvas.addEventListener('click', () => this.flap());
+                document.addEventListener('keydown', (e) => {
+                    if (e.code === 'Space' && this.gameRunning) {
+                        e.preventDefault();
+                        this.flap();
+                    }
+                });
+            }
+            
+            start() {
+                this.gameRunning = true;
+                this.gameStarted = false;
+                this.gameLoop();
+                this.drawStartScreen();
+            }
+            
+            stop() {
+                this.gameRunning = false;
+            }
+            
+            restart() {
+                this.bird.y = 300;
+                this.bird.velocity = 0;
+                this.pipes = [];
+                this.score = 0;
+                this.gameStarted = false;
+                document.getElementById('gameScore').textContent = '0';
+                this.start();
+            }
+            
+            flap() {
+                if (!this.gameRunning) return;
+                
+                if (!this.gameStarted) {
+                    this.gameStarted = true;
+                }
+                
+                this.bird.velocity = this.bird.jump;
+            }
+            
+            update() {
+                if (!this.gameStarted) return;
+                
+                // Update bird
+                this.bird.velocity += this.bird.gravity;
+                this.bird.y += this.bird.velocity;
+                
+                // Generate pipes
+                if (this.pipes.length === 0 || this.pipes[this.pipes.length - 1].x < gameCanvas.width - 200) {
+                    this.addPipe();
+                }
+                
+                // Update pipes
+                this.pipes.forEach(pipe => {
+                    pipe.x -= this.pipeSpeed;
+                });
+                
+                // Remove off-screen pipes
+                this.pipes = this.pipes.filter(pipe => pipe.x + this.pipeWidth > 0);
+                
+                // Check for scoring
+                this.pipes.forEach(pipe => {
+                    if (!pipe.scored && pipe.x + this.pipeWidth < this.bird.x) {
+                        pipe.scored = true;
+                        this.score++;
+                        document.getElementById('gameScore').textContent = this.score;
+                    }
+                });
+                
+                // Check collisions
+                if (this.checkCollisions()) {
+                    this.gameOver();
+                }
+            }
+            
+            addPipe() {
+                const minHeight = 50;
+                const maxHeight = gameCanvas.height - this.ground.y - this.pipeGap - minHeight;
+                const topHeight = Math.random() * (maxHeight - minHeight) + minHeight;
+                
+                this.pipes.push({
+                    x: gameCanvas.width,
+                    topHeight: topHeight,
+                    bottomY: topHeight + this.pipeGap,
+                    scored: false
+                });
+            }
+            
+            checkCollisions() {
+                // Ground collision
+                if (this.bird.y + this.bird.height >= this.ground.y) {
+                    return true;
+                }
+                
+                // Ceiling collision
+                if (this.bird.y <= 0) {
+                    return true;
+                }
+                
+                // Pipe collisions
+                for (let pipe of this.pipes) {
+                    if (this.bird.x + this.bird.width > pipe.x && 
+                        this.bird.x < pipe.x + this.pipeWidth) {
+                        
+                        if (this.bird.y < pipe.topHeight || 
+                            this.bird.y + this.bird.height > pipe.bottomY) {
+                            return true;
+                        }
+                    }
+                }
+                
+                return false;
+            }
+            
+            gameOver() {
+                this.gameRunning = false;
+                this.saveScore();
+                this.showGameOverScreen();
+            }
+            
+            saveScore() {
+                if (!database || !currentUser) return;
+                
+                // Save score to Firebase
+                const scoreData = {
+                    username: currentUser,
+                    score: this.score,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                };
+                
+                database.ref('gameScores').push(scoreData);
+            }
+            
+            showGameOverScreen() {
+                document.getElementById('finalScore').textContent = this.score;
+                
+                // Set score message
+                let message = "Try again!";
+                if (this.score >= 20) message = "Amazing! You're a flappy master!";
+                else if (this.score >= 15) message = "Incredible skills!";
+                else if (this.score >= 10) message = "Great job!";
+                else if (this.score >= 5) message = "Not bad!";
+                
+                document.getElementById('scoreMessage').textContent = message;
+                
+                // Load and display leaderboard
+                this.loadLeaderboard();
+                
+                document.getElementById('gameOverScreen').style.display = 'flex';
+            }
+            
+            loadLeaderboard() {
+                if (!database) return;
+                
+                database.ref('gameScores').orderByChild('score').limitToLast(10).once('value', (snapshot) => {
+                    const scores = [];
+                    snapshot.forEach(child => {
+                        scores.push(child.val());
+                    });
+                    
+                    // Sort by score descending
+                    scores.sort((a, b) => b.score - a.score);
+                    
+                    const leaderboardList = document.getElementById('leaderboardList');
+                    
+                    if (scores.length === 0) {
+                        leaderboardList.innerHTML = '<p>No scores yet!</p>';
+                        return;
+                    }
+                    
+                    leaderboardList.innerHTML = scores.map((score, index) => {
+                        const isCurrentUser = score.username === currentUser;
+                        return `
+                            <div class="leaderboard-item ${isCurrentUser ? 'current-user' : ''}">
+                                <span>#${index + 1} ${escapeHtml(score.username)}</span>
+                                <span>${score.score}</span>
+                            </div>
+                        `;
+                    }).join('');
+                });
+            }
+            
+            draw() {
+                // Clear canvas
+                gameCtx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+                
+                // Draw background
+                const gradient = gameCtx.createLinearGradient(0, 0, 0, gameCanvas.height);
+                gradient.addColorStop(0, '#70c5ce');
+                gradient.addColorStop(1, '#b8e6e8');
+                gameCtx.fillStyle = gradient;
+                gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+                
+                // Draw clouds
+                this.drawClouds();
+                
+                // Draw pipes
+                this.pipes.forEach(pipe => {
+                    // Top pipe
+                    gameCtx.fillStyle = '#228b22';
+                    gameCtx.fillRect(pipe.x, 0, this.pipeWidth, pipe.topHeight);
+                    
+                    // Bottom pipe
+                    gameCtx.fillRect(pipe.x, pipe.bottomY, this.pipeWidth, this.ground.y - pipe.bottomY);
+                    
+                    // Pipe caps
+                    gameCtx.fillStyle = '#32cd32';
+                    gameCtx.fillRect(pipe.x - 5, pipe.topHeight - 20, this.pipeWidth + 10, 20);
+                    gameCtx.fillRect(pipe.x - 5, pipe.bottomY, this.pipeWidth + 10, 20);
+                });
+                
+                // Draw ground
+                gameCtx.fillStyle = this.ground.color;
+                gameCtx.fillRect(0, this.ground.y, gameCanvas.width, gameCanvas.height - this.ground.y);
+                
+                // Draw bird
+                gameCtx.fillStyle = this.bird.color;
+                gameCtx.beginPath();
+                gameCtx.arc(
+                    this.bird.x + this.bird.width / 2,
+                    this.bird.y + this.bird.height / 2,
+                    this.bird.width / 2,
+                    0,
+                    Math.PI * 2
+                );
+                gameCtx.fill();
+                
+                // Bird eye
+                gameCtx.fillStyle = 'black';
+                gameCtx.beginPath();
+                gameCtx.arc(
+                    this.bird.x + this.bird.width / 2 + 5,
+                    this.bird.y + this.bird.height / 2 - 3,
+                    3,
+                    0,
+                    Math.PI * 2
+                );
+                gameCtx.fill();
+                
+                // Bird beak
+                gameCtx.fillStyle = '#ff8c00';
+                gameCtx.beginPath();
+                gameCtx.moveTo(this.bird.x + this.bird.width, this.bird.y + this.bird.height / 2);
+                gameCtx.lineTo(this.bird.x + this.bird.width + 10, this.bird.y + this.bird.height / 2 - 3);
+                gameCtx.lineTo(this.bird.x + this.bird.width + 10, this.bird.y + this.bird.height / 2 + 3);
+                gameCtx.fill();
+            }
+            
+            drawClouds() {
+                gameCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                
+                // Simple clouds
+                const clouds = [
+                    {x: 50, y: 100, size: 20},
+                    {x: 200, y: 80, size: 25},
+                    {x: 320, y: 120, size: 18}
+                ];
+                
+                clouds.forEach(cloud => {
+                    gameCtx.beginPath();
+                    gameCtx.arc(cloud.x, cloud.y, cloud.size, 0, Math.PI * 2);
+                    gameCtx.arc(cloud.x + cloud.size, cloud.y, cloud.size * 0.8, 0, Math.PI * 2);
+                    gameCtx.arc(cloud.x + cloud.size * 0.5, cloud.y - cloud.size * 0.5, cloud.size * 0.6, 0, Math.PI * 2);
+                    gameCtx.fill();
+                });
+            }
+            
+            drawStartScreen() {
+                if (this.gameStarted) return;
+                
+                gameCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+                
+                gameCtx.fillStyle = 'white';
+                gameCtx.font = 'bold 24px Arial';
+                gameCtx.textAlign = 'center';
+                gameCtx.fillText('Flappy Bird', gameCanvas.width / 2, gameCanvas.height / 2 - 50);
+                
+                gameCtx.font = '16px Arial';
+                gameCtx.fillText('Click or press SPACE to flap', gameCanvas.width / 2, gameCanvas.height / 2);
+                gameCtx.fillText('Avoid the pipes!', gameCanvas.width / 2, gameCanvas.height / 2 + 30);
+            }
+            
+            gameLoop() {
+                if (!this.gameRunning) return;
+                
+                this.update();
+                this.draw();
+                
+                if (!this.gameStarted) {
+                    this.drawStartScreen();
+                }
+                
+                requestAnimationFrame(() => this.gameLoop());
+            }
         }
 
         // Auto-resize textarea
@@ -894,6 +1519,13 @@
                     
                     // Login successful
                     currentUser = username;
+                    
+                    // Check if user is admin
+                    if (username === 'Tobin Malone') {
+                        isAdmin = true;
+                        document.getElementById('adminBadge').style.display = 'block';
+                    }
+                    
                     enterChat();
                 });
             });
@@ -1048,8 +1680,8 @@
             
             const timeStr = msg.timestamp ? timeAgo(msg.timestamp) : 'now';
             
-            // Show delete button for own messages or admin for all messages
-            const canDelete = (msg.username === currentUser) || isAdmin;
+            // Show delete button for admin only (since regular users can't delete their own messages)
+            const canDelete = isAdmin;
             const deleteButton = canDelete ? `<button class="message-delete" onclick="deleteMessage('${msg.id}')" title="Delete message">×</button>` : '';
             
             messageDiv.innerHTML = `
@@ -1190,131 +1822,6 @@
             updateChatStats();
         }
 
-        // Reply functions
-        function replyToMessage(messageId, username, message) {
-            replyingTo = {
-                id: messageId,
-                username: username,
-                message: message
-            };
-            
-            document.getElementById('replyPreview').style.display = 'block';
-            document.getElementById('replyContent').innerHTML = `
-                <strong>Replying to ${escapeHtml(username)}:</strong><br>
-                ${escapeHtml(message.substring(0, 60))}${message.length > 60 ? '...' : ''}
-            `;
-            
-            messageInput.focus();
-        }
-
-        function cancelReply() {
-            replyingTo = null;
-            document.getElementById('replyPreview').style.display = 'none';
-        }
-
-        // Poll functions
-        function createPoll() {
-            if (!isAdmin) return;
-            
-            const question = document.getElementById('pollQuestion').value.trim();
-            const option1 = document.getElementById('pollOption1').value.trim();
-            const option2 = document.getElementById('pollOption2').value.trim();
-            const option3 = document.getElementById('pollOption3').value.trim();
-            const option4 = document.getElementById('pollOption4').value.trim();
-            
-            if (!question || !option1 || !option2) {
-                showError('Please fill in question and at least 2 options');
-                return;
-            }
-            
-            const options = [option1, option2];
-            if (option3) options.push(option3);
-            if (option4) options.push(option4);
-            
-            const pollData = {
-                type: 'poll',
-                username: currentUser,
-                question: question,
-                options: options,
-                votes: {},
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            };
-            
-            database.ref('messages').push(pollData).then(() => {
-                // Clear poll form
-                document.getElementById('pollQuestion').value = '';
-                document.getElementById('pollOption1').value = '';
-                document.getElementById('pollOption2').value = '';
-                document.getElementById('pollOption3').value = '';
-                document.getElementById('pollOption4').value = '';
-                showError('Poll created successfully!');
-            });
-        }
-
-        function displayPoll(poll) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${poll.username === currentUser ? 'own' : ''}`;
-            messageDiv.setAttribute('data-message-id', poll.id);
-            
-            const timeStr = poll.timestamp ? timeAgo(poll.timestamp) : 'now';
-            
-            // Calculate vote counts
-            const voteCounts = {};
-            const totalVotes = Object.keys(poll.votes || {}).length;
-            
-            poll.options.forEach(option => {
-                voteCounts[option] = 0;
-            });
-            
-            Object.values(poll.votes || {}).forEach(vote => {
-                if (voteCounts.hasOwnProperty(vote)) {
-                    voteCounts[vote]++;
-                }
-            });
-            
-            // Check if current user has voted
-            const userVote = poll.votes ? poll.votes[currentUser] : null;
-            
-            // Delete button for admin only
-            const deleteButton = isAdmin ? `<button class="poll-creator" onclick="deleteMessage('${poll.id}')" title="Delete poll">×</button>` : '';
-            
-            const optionsHtml = poll.options.map(option => {
-                const votes = voteCounts[option];
-                const percentage = totalVotes > 0 ? (votes / totalVotes) * 100 : 0;
-                const isVoted = userVote === option;
-                
-                return `
-                    <div class="poll-option ${isVoted ? 'voted' : ''}" onclick="voteOnPoll('${poll.id}', '${option}')">
-                        <div class="poll-progress" style="width: ${percentage}%"></div>
-                        <div class="poll-option-text">
-                            <span>${escapeHtml(option)}</span>
-                            <span class="poll-votes">${votes} vote${votes !== 1 ? 's' : ''}</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            messageDiv.innerHTML = `
-                <div class="message-header">${escapeHtml(poll.username)}</div>
-                <div class="poll-container">
-                    ${deleteButton}
-                    <div class="poll-question">📊 ${escapeHtml(poll.question)}</div>
-                    ${optionsHtml}
-                    <div class="poll-footer">${totalVotes} total vote${totalVotes !== 1 ? 's' : ''}</div>
-                </div>
-                <div class="message-time">${timeStr}</div>
-            `;
-            
-            messagesContainer.appendChild(messageDiv);
-        }
-
-        function voteOnPoll(pollId, option) {
-            if (!database) return;
-            
-            // Update user's vote
-            database.ref(`messages/${pollId}/votes/${currentUser}`).set(option);
-        }
-
         function closeAdminPanel() {
             document.getElementById('adminPanel').style.display = 'none';
         }
@@ -1435,12 +1942,6 @@
                 document.getElementById('adminOnlineCount').textContent = Object.keys(users).length;
             });
         }
-
-        // Load theme and focus on page load
-        window.addEventListener('load', () => {
-            loadTheme();
-            document.getElementById('loginUsername').focus();
-        });
     </script>
 </body>
 </html>
