@@ -15,6 +15,7 @@
             --border-color: #38383a;
             --input-bg: #1c1c1e;
             --header-bg: #1c1c1e;
+            --safe-text: #ffffff;
         }
 
         [data-theme="light"] {
@@ -27,6 +28,7 @@
             --border-color: #d1d1d6;
             --input-bg: #f2f2f7;
             --header-bg: #f9f9f9;
+            --safe-text: #000000;
         }
 
         * {
@@ -106,7 +108,7 @@
         
         .messages-header {
             background: var(--header-bg);
-            color: var(--text-color);
+            color: var(--safe-text);
             padding: 20px 25px;
             text-align: center;
             font-size: 18px;
@@ -116,13 +118,13 @@
             backdrop-filter: blur(20px);
         }
 
-        .theme-toggle {
+        .settings-toggle {
             position: absolute;
             top: 20px;
-            left: 25px;
+            right: 25px;
             background: none;
             border: none;
-            color: var(--text-color);
+            color: var(--safe-text);
             cursor: pointer;
             font-size: 18px;
             padding: 0;
@@ -131,16 +133,25 @@
         .online-count {
             position: absolute;
             top: 20px;
-            right: 25px;
-            color: var(--text-color);
+            left: 25px;
+            color: var(--safe-text);
             font-size: 14px;
             font-weight: 500;
+        }
+
+        .user-level {
+            position: absolute;
+            top: 45px;
+            left: 25px;
+            color: var(--safe-text);
+            font-size: 12px;
+            font-weight: 600;
         }
 
         .admin-badge {
             position: absolute;
             top: 45px;
-            left: 25px;
+            right: 25px;
             background: #ff3b30;
             color: white;
             padding: 4px 8px;
@@ -160,7 +171,7 @@
         }
         
         .auth-screen h2 {
-            color: var(--text-color);
+            color: var(--safe-text);
             margin-bottom: 25px;
             font-weight: 700;
             font-size: 24px;
@@ -177,7 +188,7 @@
 
         .auth-tab {
             background: transparent;
-            color: var(--text-color);
+            color: var(--safe-text);
             border: none;
             padding: 12px 24px;
             border-radius: 10px;
@@ -209,7 +220,7 @@
             outline: none;
             transition: all 0.3s ease;
             background: var(--input-bg);
-            color: var(--text-color);
+            color: var(--safe-text);
             font-weight: 500;
         }
         
@@ -284,7 +295,7 @@
         
         .message-header {
             font-size: 12px;
-            color: var(--text-color);
+            color: var(--safe-text);
             margin-bottom: 6px;
             text-align: left;
             font-weight: 600;
@@ -297,7 +308,7 @@
 
         .message-time {
             font-size: 11px;
-            color: var(--text-color);
+            color: var(--safe-text);
             margin-top: 4px;
             opacity: 0.6;
         }
@@ -309,7 +320,7 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             max-width: 75%;
             word-wrap: break-word;
-            color: var(--text-color);
+            color: var(--safe-text);
             position: relative;
             transition: all 0.3s ease;
             font-size: 16px;
@@ -379,6 +390,7 @@
             align-items: center;
             gap: 3px;
             position: relative;
+            color: var(--safe-text);
         }
 
         .reaction:hover {
@@ -464,7 +476,7 @@
             outline: none;
             transition: all 0.3s ease;
             background: var(--input-bg);
-            color: var(--text-color);
+            color: var(--safe-text);
             resize: none;
             min-height: 44px;
             max-height: 120px;
@@ -534,6 +546,281 @@
             font-weight: 600;
         }
 
+        .level-up-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #000;
+            padding: 20px 30px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 2000;
+            animation: levelUpAnimation 3s ease-out forwards;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5);
+        }
+
+        @keyframes levelUpAnimation {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            20% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            90% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(15px);
+        }
+
+        .settings-content {
+            background: var(--chat-bg);
+            border-radius: 20px;
+            padding: 25px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+            border: 1px solid var(--border-color);
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            color: var(--safe-text);
+        }
+
+        .settings-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--safe-text);
+        }
+
+        .settings-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            background: var(--input-bg);
+        }
+
+        .settings-section h3 {
+            color: var(--safe-text);
+            margin-bottom: 15px;
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        .theme-switcher {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .theme-option {
+            background: var(--message-own-bg);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .theme-option:hover {
+            background: #0051d5;
+            transform: translateY(-1px);
+        }
+
+        .theme-option.active {
+            background: #34c759;
+        }
+
+        .password-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .password-form input {
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--input-bg);
+            color: var(--safe-text);
+            font-size: 14px;
+        }
+
+        .password-form input::placeholder {
+            color: var(--text-light);
+        }
+
+        .password-form button {
+            background: var(--message-own-bg);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .password-form button:hover {
+            background: #0051d5;
+        }
+
+        .user-stats {
+            color: var(--safe-text);
+            line-height: 1.6;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #007aff, #34c759);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Leaderboard */
+        .leaderboard-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1500;
+            backdrop-filter: blur(15px);
+        }
+
+        .leaderboard-content {
+            background: var(--chat-bg);
+            border-radius: 20px;
+            padding: 25px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+            border: 1px solid var(--border-color);
+        }
+
+        .leaderboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            color: var(--safe-text);
+        }
+
+        .leaderboard-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--safe-text);
+        }
+
+        .leaderboard-list {
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            margin: 8px 0;
+            background: var(--input-bg);
+            border-radius: 12px;
+            color: var(--safe-text);
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .leaderboard-item:hover {
+            background: var(--border-color);
+            transform: translateY(-1px);
+        }
+
+        .leaderboard-item.current-user {
+            background: rgba(0, 122, 255, 0.2);
+            border: 2px solid var(--message-own-bg);
+        }
+
+        .leaderboard-rank {
+            font-size: 18px;
+            font-weight: bold;
+            min-width: 60px;
+        }
+
+        .leaderboard-info {
+            flex: 1;
+            margin-left: 15px;
+        }
+
+        .leaderboard-username {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .leaderboard-stats {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 2px;
+        }
+
+        .leaderboard-level {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--message-own-bg);
+        }
+
         .admin-panel {
             position: fixed;
             top: 0;
@@ -565,7 +852,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 25px;
-            color: var(--text-color);
+            color: var(--safe-text);
         }
 
         .admin-close {
@@ -573,7 +860,7 @@
             border: none;
             font-size: 28px;
             cursor: pointer;
-            color: var(--text-color);
+            color: var(--safe-text);
         }
 
         .admin-section {
@@ -585,10 +872,14 @@
         }
 
         .admin-section h3 {
-            color: var(--text-color);
+            color: var(--safe-text);
             margin-bottom: 15px;
             font-size: 17px;
             font-weight: 700;
+        }
+
+        .admin-section p {
+            color: var(--safe-text);
         }
 
         .admin-button {
@@ -622,7 +913,7 @@
             border: 1px solid var(--border-color);
             border-radius: 10px;
             background: var(--input-bg);
-            color: var(--text-color);
+            color: var(--safe-text);
             margin: 6px;
             width: 220px;
         }
@@ -641,7 +932,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 10px 0;
-            color: var(--text-color);
+            color: var(--safe-text);
             border-bottom: 1px solid var(--border-color);
         }
 
@@ -772,7 +1063,7 @@
             transform: translateY(-2px);
         }
 
-        /* Leaderboard */
+        /* Leaderboard in game */
         .leaderboard {
             margin-top: 25px;
             max-height: 220px;
@@ -827,10 +1118,11 @@
 
     <div class="messages-container-wrapper">
         <div class="messages-header">
-            <button class="theme-toggle" onclick="toggleTheme()">☀️</button>
-            Messages
-            <div class="admin-badge" id="adminBadge" style="display: none;">ADMIN</div>
             <div class="online-count" id="onlineCount">● 0 online</div>
+            Messages
+            <button class="settings-toggle" onclick="openSettingsPanel()">⚙️</button>
+            <div class="user-level" id="userLevel" style="display: none;">Level 1</div>
+            <div class="admin-badge" id="adminBadge" style="display: none;">ADMIN</div>
         </div>
         
         <div class="auth-screen" id="authScreen">
@@ -866,6 +1158,62 @@
             <div class="input-container">
                 <textarea id="messageInput" class="message-input" placeholder="iMessage" rows="1"></textarea>
                 <button onclick="sendMessage()" class="send-btn" id="sendBtn">↑</button>
+            </div>
+        </div>
+
+        <!-- Settings Panel -->
+        <div class="settings-panel" id="settingsPanel">
+            <div class="settings-content">
+                <div class="settings-header">
+                    <h2>⚙️ Settings</h2>
+                    <button class="settings-close" onclick="closeSettingsPanel()">&times;</button>
+                </div>
+
+                <div class="settings-section">
+                    <h3>🎨 Theme</h3>
+                    <div class="theme-switcher">
+                        <button class="theme-option" id="darkThemeBtn" onclick="setTheme('dark')">Dark</button>
+                        <button class="theme-option" id="lightThemeBtn" onclick="setTheme('light')">Light</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>🔒 Change Password</h3>
+                    <div class="password-form">
+                        <input type="password" id="currentPassword" placeholder="Current Password">
+                        <input type="password" id="newPassword" placeholder="New Password">
+                        <input type="password" id="confirmPassword" placeholder="Confirm New Password">
+                        <button onclick="changePassword()">Update Password</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>📊 Your Statistics</h3>
+                    <div class="user-stats" id="userStats">
+                        <p><strong>Level:</strong> <span id="statsLevel">1</span></p>
+                        <p><strong>XP:</strong> <span id="statsXP">0</span></p>
+                        <p><strong>Messages Sent:</strong> <span id="statsMessages">0</span></p>
+                        <p><strong>Progress to Next Level:</strong></p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressBar" style="width: 0%;"></div>
+                        </div>
+                        <p id="progressText">0 / 50 XP to Level 2</p>
+                    </div>
+                    <button class="theme-option" onclick="openLeaderboard()">🏆 View Leaderboard</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaderboard Panel -->
+        <div class="leaderboard-panel" id="leaderboardPanel">
+            <div class="leaderboard-content">
+                <div class="leaderboard-header">
+                    <h2>🏆 Leaderboard</h2>
+                    <button class="leaderboard-close" onclick="closeLeaderboard()">&times;</button>
+                </div>
+                <div class="leaderboard-list" id="leaderboardList">
+                    <p>Loading leaderboard...</p>
+                </div>
             </div>
         </div>
 
@@ -937,9 +1285,9 @@
                     <div id="highscoreMessage" style="margin: 15px 0; font-size: 16px; color: #ffd700;"></div>
                     <button class="game-restart-btn" onclick="restartGame()">Play Again</button>
                     <button class="game-restart-btn" onclick="closeGame()">Back to Chat</button>
-                    <div class="leaderboard" id="leaderboard">
+                    <div class="leaderboard" id="gameLeaderboard">
                         <h3>Leaderboard</h3>
-                        <div id="leaderboardList">Loading...</div>
+                        <div id="gameLeaderboardList">Loading...</div>
                     </div>
                 </div>
             </div>
@@ -973,6 +1321,7 @@
         let isAdmin = false;
         let currentTab = 'login';
         let userHighScore = 0;
+        let userStats = { xp: 0, messageCount: 0, level: 1 };
 
         // Secret game variables
         let secretSequence = [];
@@ -995,6 +1344,211 @@
         const onlineCount = document.getElementById('onlineCount');
         const errorMessage = document.getElementById('errorMessage');
         const successMessage = document.getElementById('successMessage');
+
+        // Level system functions
+        function calculateLevel(xp) {
+            return Math.floor(Math.sqrt(xp / 50)) + 1;
+        }
+
+        function calculateXPForLevel(level) {
+            return Math.pow(level - 1, 2) * 50;
+        }
+
+        function calculateProgress(xp, level) {
+            const currentLevelXP = calculateXPForLevel(level);
+            const nextLevelXP = calculateXPForLevel(level + 1);
+            return Math.min(100, ((xp - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100);
+        }
+
+        function updateUserLevel() {
+            if (!currentUser || !database) return;
+            
+            database.ref(`userStats/${currentUser}`).once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    userStats = snapshot.val();
+                } else {
+                    userStats = { xp: 0, messageCount: 0, level: 1 };
+                }
+                
+                const newLevel = calculateLevel(userStats.xp);
+                const leveledUp = newLevel > userStats.level;
+                
+                if (leveledUp) {
+                    userStats.level = newLevel;
+                    database.ref(`userStats/${currentUser}`).update({ level: newLevel });
+                    showLevelUpNotification(newLevel);
+                }
+                
+                updateLevelDisplay();
+            });
+        }
+
+        function updateLevelDisplay() {
+            const userLevelElement = document.getElementById('userLevel');
+            if (userLevelElement && currentUser) {
+                userLevelElement.textContent = `Level ${userStats.level}`;
+                userLevelElement.style.display = 'block';
+            }
+            
+            // Update stats in settings panel
+            document.getElementById('statsLevel').textContent = userStats.level;
+            document.getElementById('statsXP').textContent = userStats.xp;
+            document.getElementById('statsMessages').textContent = userStats.messageCount;
+            
+            const progress = calculateProgress(userStats.xp, userStats.level);
+            document.getElementById('progressBar').style.width = progress + '%';
+            
+            const nextLevelXP = calculateXPForLevel(userStats.level + 1);
+            const currentLevelXP = calculateXPForLevel(userStats.level);
+            const neededXP = nextLevelXP - userStats.xp;
+            document.getElementById('progressText').textContent = 
+                `${userStats.xp - currentLevelXP} / ${nextLevelXP - currentLevelXP} XP to Level ${userStats.level + 1}`;
+        }
+
+        function awardXP(amount) {
+            if (!currentUser || !database) return;
+            
+            userStats.xp += amount;
+            userStats.messageCount += 1;
+            
+            database.ref(`userStats/${currentUser}`).set(userStats);
+            updateUserLevel();
+        }
+
+        function showLevelUpNotification(level) {
+            const notification = document.createElement('div');
+            notification.className = 'level-up-notification';
+            notification.innerHTML = `🎉 LEVEL UP! 🎉<br>You reached Level ${level}!`;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 3000);
+        }
+
+        // Settings panel functions
+        function openSettingsPanel() {
+            document.getElementById('settingsPanel').style.display = 'flex';
+            updateThemeButtons();
+            updateUserLevel();
+        }
+
+        function closeSettingsPanel() {
+            document.getElementById('settingsPanel').style.display = 'none';
+        }
+
+        function setTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            updateThemeButtons();
+        }
+
+        function updateThemeButtons() {
+            const currentTheme = document.body.getAttribute('data-theme');
+            document.getElementById('darkThemeBtn').classList.toggle('active', currentTheme === 'dark');
+            document.getElementById('lightThemeBtn').classList.toggle('active', currentTheme === 'light');
+        }
+
+        function changePassword() {
+            const currentPassword = document.getElementById('currentPassword').value.trim();
+            const newPassword = document.getElementById('newPassword').value.trim();
+            const confirmPassword = document.getElementById('confirmPassword').value.trim();
+            
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                showError('Please fill in all password fields');
+                return;
+            }
+            
+            if (newPassword.length < 4) {
+                showError('New password must be at least 4 characters');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                showError('New passwords do not match');
+                return;
+            }
+            
+            // Verify current password
+            database.ref('accounts').orderByChild('username').equalTo(currentUser).once('value', (snapshot) => {
+                if (!snapshot.exists()) {
+                    showError('Account not found');
+                    return;
+                }
+                
+                const accounts = snapshot.val();
+                const accountId = Object.keys(accounts)[0];
+                const accountData = accounts[accountId];
+                
+                if (accountData.password !== currentPassword) {
+                    showError('Current password is incorrect');
+                    return;
+                }
+                
+                // Update password
+                database.ref(`accounts/${accountId}`).update({ password: newPassword }).then(() => {
+                    showSuccess('Password updated successfully!');
+                    document.getElementById('currentPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                }).catch((error) => {
+                    showError('Error updating password: ' + error.message);
+                });
+            });
+        }
+
+        // Leaderboard functions
+        function openLeaderboard() {
+            document.getElementById('leaderboardPanel').style.display = 'flex';
+            loadLeaderboard();
+        }
+
+        function closeLeaderboard() {
+            document.getElementById('leaderboardPanel').style.display = 'none';
+        }
+
+        function loadLeaderboard() {
+            if (!database) return;
+            
+            database.ref('userStats').once('value', (snapshot) => {
+                const stats = snapshot.val() || {};
+                const leaderboardData = Object.entries(stats).map(([username, data]) => ({
+                    username,
+                    ...data
+                })).sort((a, b) => {
+                    if (b.level !== a.level) return b.level - a.level;
+                    return b.xp - a.xp;
+                }).slice(0, 20);
+                
+                const leaderboardList = document.getElementById('leaderboardList');
+                
+                if (leaderboardData.length === 0) {
+                    leaderboardList.innerHTML = '<p>No data yet! Send some messages to get on the leaderboard.</p>';
+                    return;
+                }
+                
+                leaderboardList.innerHTML = leaderboardData.map((user, index) => {
+                    const isCurrentUser = user.username === currentUser;
+                    let rank = index + 1;
+                    let rankDisplay = rank;
+                    
+                    if (rank === 1) rankDisplay = '🥇';
+                    else if (rank === 2) rankDisplay = '🥈';
+                    else if (rank === 3) rankDisplay = '🥉';
+                    
+                    return `
+                        <div class="leaderboard-item ${isCurrentUser ? 'current-user' : ''}">
+                            <div class="leaderboard-rank">${rankDisplay}</div>
+                            <div class="leaderboard-info">
+                                <div class="leaderboard-username">${escapeHtml(user.username)}</div>
+                                <div class="leaderboard-stats">${user.messageCount || 0} messages • ${user.xp || 0} XP</div>
+                            </div>
+                            <div class="leaderboard-level">Lv.${user.level || 1}</div>
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
 
         // Initialize Firebase
         const isConfigured = !firebaseConfig.apiKey.includes('YOUR_');
@@ -1109,7 +1663,7 @@
             }
         }
 
-        // Easier Flappy Bird Game Class
+        // Much Easier Flappy Bird Game Class
         class FlappyBirdGame {
             constructor() {
                 this.bird = {
@@ -1118,8 +1672,8 @@
                     width: 30,
                     height: 30,
                     velocity: 0,
-                    gravity: 0.3,  // Reduced from 0.5
-                    jump: -6,      // Reduced from -8
+                    gravity: 0.075,     // Much reduced from 0.3
+                    jump: -4,           // Reduced from -6
                     color: '#ffd700'
                 };
                 
@@ -1127,10 +1681,10 @@
                 this.score = 0;
                 this.gameRunning = false;
                 this.gameStarted = false;
-                this.pipeGap = 150;      // Increased from 120
+                this.pipeGap = 180;      // Increased from 150
                 this.pipeWidth = 50;
-                this.pipeSpeed = 1.5;    // Reduced from 2
-                this.pipeSpacing = 250;  // Increased spacing
+                this.pipeSpeed = 1.0;    // Reduced from 1.5
+                this.pipeSpacing = 300;  // Increased from 250
                 
                 this.ground = {
                     y: gameCanvas.height - 50,
@@ -1223,8 +1777,8 @@
             }
             
             addPipe() {
-                const minHeight = 100;  // Increased minimum height
-                const maxHeight = gameCanvas.height - this.ground.y - this.pipeGap - minHeight - 50; // Added buffer
+                const minHeight = 120;  // Better minimum height
+                const maxHeight = gameCanvas.height - this.ground.y - this.pipeGap - minHeight - 60;
                 const topHeight = Math.random() * (maxHeight - minHeight) + minHeight;
                 
                 this.pipes.push({
@@ -1246,8 +1800,8 @@
                     return true;
                 }
                 
-                // Pipe collisions with smaller hitbox
-                const hitboxMargin = 3;
+                // Pipe collisions with more forgiving hitbox
+                const hitboxMargin = 5; // Increased forgiveness
                 for (let pipe of this.pipes) {
                     if (this.bird.x + this.bird.width - hitboxMargin > pipe.x && 
                         this.bird.x + hitboxMargin < pipe.x + this.pipeWidth) {
@@ -1303,11 +1857,11 @@
                 document.getElementById('scoreMessage').textContent = message;
                 document.getElementById('highscoreMessage').textContent = highscoreMessage;
                 
-                this.loadLeaderboard();
+                this.loadGameLeaderboard();
                 document.getElementById('gameOverScreen').style.display = 'flex';
             }
             
-            loadLeaderboard() {
+            loadGameLeaderboard() {
                 if (!database) return;
                 
                 // Get best score for each user
@@ -1330,14 +1884,14 @@
                         score
                     })).sort((a, b) => b.score - a.score).slice(0, 10);
                     
-                    const leaderboardList = document.getElementById('leaderboardList');
+                    const gameLeaderboardList = document.getElementById('gameLeaderboardList');
                     
                     if (scores.length === 0) {
-                        leaderboardList.innerHTML = '<p>No scores yet!</p>';
+                        gameLeaderboardList.innerHTML = '<p>No scores yet!</p>';
                         return;
                     }
                     
-                    leaderboardList.innerHTML = scores.map((score, index) => {
+                    gameLeaderboardList.innerHTML = scores.map((score, index) => {
                         const isCurrentUser = score.username === currentUser;
                         return `
                             <div class="leaderboard-item ${isCurrentUser ? 'current-user' : ''}">
@@ -1482,21 +2036,10 @@
         }
 
         // Theme functions
-        function toggleTheme() {
-            const body = document.body;
-            const currentTheme = body.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            body.setAttribute('data-theme', newTheme);
-            document.querySelector('.theme-toggle').textContent = newTheme === 'dark' ? '☀️' : '🌙';
-            
-            localStorage.setItem('theme', newTheme);
-        }
-
         function loadTheme() {
             const savedTheme = localStorage.getItem('theme') || 'dark';
             document.body.setAttribute('data-theme', savedTheme);
-            document.querySelector('.theme-toggle').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+            updateThemeButtons();
         }
 
         // Switch tabs
@@ -1577,6 +2120,13 @@
                     password: password,
                     created: firebase.database.ServerValue.TIMESTAMP
                 }).then(() => {
+                    // Initialize user stats
+                    database.ref(`userStats/${username}`).set({
+                        xp: 0,
+                        messageCount: 0,
+                        level: 1
+                    });
+                    
                     showSuccess('Account created successfully! You can now log in.');
                     // Clear form
                     document.getElementById('registerActivation').value = '';
@@ -1652,6 +2202,9 @@
             
             messageInput.focus();
             
+            // Load user stats
+            updateUserLevel();
+            
             listenForMessages();
             listenForUsers();
         }
@@ -1689,6 +2242,9 @@
                 timestamp: firebase.database.ServerValue.TIMESTAMP,
                 reactions: {}
             });
+
+            // Award XP for sending message
+            awardXP(10);
 
             messageInput.value = '';
             autoResize();
@@ -1896,12 +2452,28 @@
             }
         });
 
-        // Click outside to hide reaction pickers
+        // Click outside to hide panels
         document.addEventListener('click', function(e) {
+            // Hide reaction pickers
             if (!e.target.closest('.message-content') && !e.target.closest('.reaction-picker')) {
                 document.querySelectorAll('.reaction-picker').forEach(picker => {
                     picker.classList.remove('show');
                 });
+            }
+            
+            // Close settings panel if clicking outside
+            if (e.target === document.getElementById('settingsPanel')) {
+                closeSettingsPanel();
+            }
+            
+            // Close leaderboard panel if clicking outside
+            if (e.target === document.getElementById('leaderboardPanel')) {
+                closeLeaderboard();
+            }
+            
+            // Close admin panel if clicking outside
+            if (e.target === document.getElementById('adminPanel')) {
+                closeAdminPanel();
             }
         });
 
