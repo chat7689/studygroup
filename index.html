@@ -2200,6 +2200,9 @@
             authScreen.style.display = 'none';
             chatMain.style.display = 'flex';
             
+            // Show XP leaderboard
+            document.getElementById('xpLeaderboard').style.display = 'flex';
+            
             messageInput.focus();
             
             // Load user stats
@@ -2207,6 +2210,54 @@
             
             listenForMessages();
             listenForUsers();
+            
+            // Start updating XP leaderboard
+            updateXPLeaderboard();
+            setInterval(updateXPLeaderboard, 5000); // Update every 5 seconds
+        }
+
+        // Update XP Leaderboard
+        function updateXPLeaderboard() {
+            if (!database) return;
+            
+            database.ref('userStats').once('value', (snapshot) => {
+                const stats = snapshot.val() || {};
+                const leaderboardData = Object.entries(stats).map(([username, data]) => ({
+                    username,
+                    ...data
+                })).sort((a, b) => {
+                    if (b.level !== a.level) return b.level - a.level;
+                    return b.xp - a.xp;
+                }).slice(0, 15); // Show top 15 users
+                
+                const xpLeaderboardContent = document.getElementById('xpLeaderboardContent');
+                
+                if (leaderboardData.length === 0) {
+                    xpLeaderboardContent.innerHTML = '<p style="color: var(--safe-text); text-align: center; margin-top: 20px;">No data yet!</p>';
+                    return;
+                }
+                
+                xpLeaderboardContent.innerHTML = leaderboardData.map((user, index) => {
+                    const isCurrentUser = user.username === currentUser;
+                    let rank = index + 1;
+                    let rankDisplay = rank;
+                    
+                    if (rank === 1) rankDisplay = '🥇';
+                    else if (rank === 2) rankDisplay = '🥈';
+                    else if (rank === 3) rankDisplay = '🥉';
+                    
+                    return `
+                        <div class="xp-leaderboard-item ${isCurrentUser ? 'current-user' : ''}">
+                            <div class="xp-leaderboard-rank">${rankDisplay}</div>
+                            <div class="xp-leaderboard-info">
+                                <div class="xp-leaderboard-username">${escapeHtml(user.username)}</div>
+                                <div class="xp-leaderboard-stats">${user.xp || 0} XP</div>
+                            </div>
+                            <div class="xp-leaderboard-level">Lv.${user.level || 1}</div>
+                        </div>
+                    `;
+                }).join('');
+            });
         }
 
         // Send message
