@@ -1223,8 +1223,8 @@
             }
             
             addPipe() {
-                const minHeight = 80;  // Increased minimum
-                const maxHeight = gameCanvas.height - this.ground.y - this.pipeGap - minHeight;
+                const minHeight = 100;  // Increased minimum height
+                const maxHeight = gameCanvas.height - this.ground.y - this.pipeGap - minHeight - 50; // Added buffer
                 const topHeight = Math.random() * (maxHeight - minHeight) + minHeight;
                 
                 this.pipes.push({
