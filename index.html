@@ -2331,6 +2331,10 @@
         function listenForMessages() {
             database.ref('messages').limitToLast(50).on('value', (snapshot) => {
                 const messages = snapshot.val();
+                
+                // Check if user is near the bottom before updating
+                const wasAtBottom = isScrolledToBottom();
+                
                 messagesContainer.innerHTML = '';
                 
                 if (messages) {
@@ -2345,9 +2349,26 @@
                         displayMessage(msg);
                     });
                     
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    // Only auto-scroll if user was at bottom or this is their first message
+                    if (wasAtBottom || messageArray.some(msg => msg.username === currentUser)) {
+                        scrollToBottom();
+                    }
                 }
             });
+        }
+
+        // Check if user is scrolled near the bottom
+        function isScrolledToBottom() {
+            const threshold = 100; // pixels from bottom
+            return messagesContainer.scrollTop + messagesContainer.clientHeight >= 
+                   messagesContainer.scrollHeight - threshold;
+        }
+
+        // Smooth scroll to bottom
+        function scrollToBottom() {
+            setTimeout(() => {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 50);
         }
 
         // Listen for users
@@ -2373,39 +2394,181 @@
             return `${days}d`;
         }
 
-        // Display message
+        // Display message with comprehensive error handling
         function displayMessage(msg) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${msg.username === currentUser ? 'own' : ''}`;
-            messageDiv.setAttribute('data-message-id', msg.id);
-            
-            const timeStr = msg.timestamp ? timeAgo(msg.timestamp) : 'now';
-            
-            const canDelete = isAdmin;
-            const deleteButton = canDelete ? `<button class="message-delete" onclick="deleteMessage('${msg.id}')" title="Delete message">×</button>` : '';
-            
-            messageDiv.innerHTML = `
-                <div class="message-header">${escapeHtml(msg.username)}</div>
-                <div class="message-content" onclick="showReactionPicker('${msg.id}')">
-                    ${escapeHtml(msg.message)}
-                    ${deleteButton}
-                    <div class="reaction-picker" id="picker-${msg.id}">
-                        <span class="reaction-option" onclick="addReaction('${msg.id}', '👍')">👍</span>
-                        <span class="reaction-option" onclick="addReaction('${msg.id}', '😂')">😂</span>
-                        <span class="reaction-option" onclick="addReaction('${msg.id}', '❤️')">❤️</span>
-                        <span class="reaction-option" onclick="addReaction('${msg.id}', '😮')">😮</span>
-                        <span class="reaction-option" onclick="addReaction('${msg.id}', '😢')">😢</span>
-                    </div>
-                </div>
-                <div class="message-time">${timeStr}</div>
-                <div class="reactions" id="reactions-${msg.id}"></div>
-            `;
-            
-            messagesContainer.appendChild(messageDiv);
+            if (!msg || !msg.username || !msg.message) {
+                console.error('Invalid message data:', msg);
+                return;
+            }
 
-            // Display reactions
-            if (msg.reactions) {
-                displayReactions(msg.id, msg.reactions);
+            try {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${msg.username === currentUser ? 'own' : ''}`;
+                messageDiv.setAttribute('data-message-id', msg.id || 'unknown');
+                
+                const timeStr = msg.timestamp ? timeAgo(msg.timestamp) : 'now';
+                
+                const canDelete = isAdmin;
+                const deleteButton = canDelete ? `<button class="message-delete" onclick="deleteMessage('${msg.id || ''}')" title="Delete message">×</button>` : '';
+                
+                // Sanitize message content
+                const sanitizedMessage = escapeHtml(msg.message);
+                const sanitizedUsername = escapeHtml(msg.username);
+                
+                messageDiv.innerHTML = `
+                    <div class="message-header">${sanitizedUsername}</div>
+                    <div class="message-content" onclick="showReactionPicker('${msg.id || ''}')">
+                        ${sanitizedMessage}
+                        ${deleteButton}
+                        <div class="reaction-picker" id="picker-${msg.id || ''}">
+                            <span class="reaction-option" onclick="addReaction('${msg.id || ''}', '👍')">👍</span>
+                            <span class="reaction-option" onclick="addReaction('${msg.id || ''}', '😂')">😂</span>
+                            <span class="reaction-option" onclick="addReaction('${msg.id || ''}', '❤️')">❤️</span>
+                            <span class="reaction-option" onclick="addReaction('${msg.id || ''}', '😮')">😮</span>
+                            <span class="reaction-option" onclick="addReaction('${msg.id || ''}', '😢')">😢</span>
+                        </div>
+                    </div>
+                    <div class="message-time">${timeStr}</div>
+                    <div class="reactions" id="reactions-${msg.id || ''}"></div>
+                `;
+                
+                if (messagesContainer) {
+                    messagesContainer.appendChild(messageDiv);
+                    
+                    // Display reactions if they exist
+                    if (msg.reactions) {
+                        displayReactions(msg.id, msg.reactions);
+                    }
+                } else {
+                    console.error('Messages container not found');
+                }
+                
+            } catch (error) {
+                console.error('Error creating message element:', error);
+                
+                // Fallback: create a simple message without interactive elements
+                try {
+                    const fallbackDiv = document.createElement('div');
+                    fallbackDiv.className = 'message';
+                    fallbackDiv.innerHTML = `
+                        <div class="message-header">${escapeHtml(msg.username || 'Unknown')}</div>
+                        <div class="message-content">${escapeHtml(msg.message || 'Message could not be displayed')}</div>
+                    `;
+                    if (messagesContainer) {
+                        messagesContainer.appendChild(fallbackDiv);
+                    }
+                } catch (fallbackError) {
+                    console.error('Fallback message creation failed:', fallbackError);
+                }
+            }
+        }
+
+        // Enhanced error message display
+        function showError(message) {
+            try {
+                if (errorMessage) {
+                    errorMessage.textContent = message;
+                    errorMessage.style.display = 'block';
+                    if (successMessage) {
+                        successMessage.style.display = 'none';
+                    }
+                    setTimeout(() => {
+                        if (errorMessage) {
+                            errorMessage.style.display = 'none';
+                        }
+                    }, 4000);
+                }
+                console.error('Error:', message);
+            } catch (error) {
+                console.error('Error displaying error message:', error);
+            }
+        }
+
+        function showSuccess(message) {
+            try {
+                if (successMessage) {
+                    successMessage.textContent = message;
+                    successMessage.style.display = 'block';
+                    if (errorMessage) {
+                        errorMessage.style.display = 'none';
+                    }
+                    setTimeout(() => {
+                        if (successMessage) {
+                            successMessage.style.display = 'none';
+                        }
+                    }, 4000);
+                }
+                console.log('Success:', message);
+            } catch (error) {
+                console.error('Error displaying success message:', error);
+            }
+        }
+
+        // Enhanced connection monitoring
+        function monitorConnection() {
+            if (!database) return;
+            
+            try {
+                database.ref('.info/connected').on('value', (snapshot) => {
+                    if (snapshot.val() === true) {
+                        console.log('Connected to Firebase');
+                        connectionRetries = 0;
+                        // Hide any connection error messages
+                        hideMessages();
+                    } else {
+                        console.log('Disconnected from Firebase');
+                        showError('Connection lost. Attempting to reconnect...');
+                    }
+                });
+            } catch (error) {
+                console.error('Error setting up connection monitor:', error);
+            }
+        }
+
+        // Initialize with enhanced error handling
+        window.addEventListener('load', () => {
+            try {
+                loadTheme();
+                
+                const loginUsernameElement = document.getElementById('loginUsername');
+                if (loginUsernameElement) {
+                    loginUsernameElement.focus();
+                } else {
+                    console.error('Login username element not found');
+                }
+                
+                initializeSecretSquares();
+                
+                // Start connection monitoring if Firebase is configured
+                if (isConfigured && database) {
+                    monitorConnection();
+                }
+            } catch (error) {
+                console.error('Error during page load initialization:', error);
+                showError('Error initializing application. Please refresh the page.');
+            }
+        });
+
+        // Enhanced error handling for reactions
+        function addReaction(messageId, emoji) {
+            if (!database || !messageId || !emoji || !currentUser) {
+                console.error('Missing required data for reaction:', { messageId, emoji, currentUser });
+                return;
+            }
+            
+            try {
+                const reactionRef = database.ref(`messages/${messageId}/reactions/${emoji}/${currentUser}`);
+                reactionRef.set(true).catch((error) => {
+                    console.error('Error adding reaction:', error);
+                    showError('Failed to add reaction. Please try again.');
+                });
+                
+                const pickerElement = document.getElementById(`picker-${messageId}`);
+                if (pickerElement) {
+                    pickerElement.classList.remove('show');
+                }
+            } catch (error) {
+                console.error('Error in addReaction:', error);
             }
         }
 
