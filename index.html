@@ -870,24 +870,32 @@
                 return;
             }
             
-            // Check credentials
-            database.ref('accounts').orderByChild('username').equalTo(username).once('value', (snapshot) => {
-                if (!snapshot.exists()) {
-                    showError('Username not found! Please create an account first.');
+            // Check if someone is already online with this username
+            database.ref('users').orderByChild('username').equalTo(username).once('value', (onlineSnapshot) => {
+                if (onlineSnapshot.exists()) {
+                    showError('Someone is already logged in with this username. Please try again later.');
                     return;
                 }
                 
-                const accounts = snapshot.val();
-                const accountData = Object.values(accounts)[0];
-                
-                if (accountData.password !== password) {
-                    showError('Incorrect password!');
-                    return;
-                }
-                
-                // Login successful
-                currentUser = username;
-                enterChat();
+                // Check credentials
+                database.ref('accounts').orderByChild('username').equalTo(username).once('value', (snapshot) => {
+                    if (!snapshot.exists()) {
+                        showError('Username not found! Please create an account first.');
+                        return;
+                    }
+                    
+                    const accounts = snapshot.val();
+                    const accountData = Object.values(accounts)[0];
+                    
+                    if (accountData.password !== password) {
+                        showError('Incorrect password!');
+                        return;
+                    }
+                    
+                    // Login successful
+                    currentUser = username;
+                    enterChat();
+                });
             });
         }
 
@@ -1180,6 +1188,131 @@
             updateAccountList();
             updateUserList();
             updateChatStats();
+        }
+
+        // Reply functions
+        function replyToMessage(messageId, username, message) {
+            replyingTo = {
+                id: messageId,
+                username: username,
+                message: message
+            };
+            
+            document.getElementById('replyPreview').style.display = 'block';
+            document.getElementById('replyContent').innerHTML = `
+                <strong>Replying to ${escapeHtml(username)}:</strong><br>
+                ${escapeHtml(message.substring(0, 60))}${message.length > 60 ? '...' : ''}
+            `;
+            
+            messageInput.focus();
+        }
+
+        function cancelReply() {
+            replyingTo = null;
+            document.getElementById('replyPreview').style.display = 'none';
+        }
+
+        // Poll functions
+        function createPoll() {
+            if (!isAdmin) return;
+            
+            const question = document.getElementById('pollQuestion').value.trim();
+            const option1 = document.getElementById('pollOption1').value.trim();
+            const option2 = document.getElementById('pollOption2').value.trim();
+            const option3 = document.getElementById('pollOption3').value.trim();
+            const option4 = document.getElementById('pollOption4').value.trim();
+            
+            if (!question || !option1 || !option2) {
+                showError('Please fill in question and at least 2 options');
+                return;
+            }
+            
+            const options = [option1, option2];
+            if (option3) options.push(option3);
+            if (option4) options.push(option4);
+            
+            const pollData = {
+                type: 'poll',
+                username: currentUser,
+                question: question,
+                options: options,
+                votes: {},
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+            
+            database.ref('messages').push(pollData).then(() => {
+                // Clear poll form
+                document.getElementById('pollQuestion').value = '';
+                document.getElementById('pollOption1').value = '';
+                document.getElementById('pollOption2').value = '';
+                document.getElementById('pollOption3').value = '';
+                document.getElementById('pollOption4').value = '';
+                showError('Poll created successfully!');
+            });
+        }
+
+        function displayPoll(poll) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${poll.username === currentUser ? 'own' : ''}`;
+            messageDiv.setAttribute('data-message-id', poll.id);
+            
+            const timeStr = poll.timestamp ? timeAgo(poll.timestamp) : 'now';
+            
+            // Calculate vote counts
+            const voteCounts = {};
+            const totalVotes = Object.keys(poll.votes || {}).length;
+            
+            poll.options.forEach(option => {
+                voteCounts[option] = 0;
+            });
+            
+            Object.values(poll.votes || {}).forEach(vote => {
+                if (voteCounts.hasOwnProperty(vote)) {
+                    voteCounts[vote]++;
+                }
+            });
+            
+            // Check if current user has voted
+            const userVote = poll.votes ? poll.votes[currentUser] : null;
+            
+            // Delete button for admin only
+            const deleteButton = isAdmin ? `<button class="poll-creator" onclick="deleteMessage('${poll.id}')" title="Delete poll">×</button>` : '';
+            
+            const optionsHtml = poll.options.map(option => {
+                const votes = voteCounts[option];
+                const percentage = totalVotes > 0 ? (votes / totalVotes) * 100 : 0;
+                const isVoted = userVote === option;
+                
+                return `
+                    <div class="poll-option ${isVoted ? 'voted' : ''}" onclick="voteOnPoll('${poll.id}', '${option}')">
+                        <div class="poll-progress" style="width: ${percentage}%"></div>
+                        <div class="poll-option-text">
+                            <span>${escapeHtml(option)}</span>
+                            <span class="poll-votes">${votes} vote${votes !== 1 ? 's' : ''}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            messageDiv.innerHTML = `
+                <div class="message-header">${escapeHtml(poll.username)}</div>
+                <div class="poll-container">
+                    ${deleteButton}
+                    <div class="poll-question">📊 ${escapeHtml(poll.question)}</div>
+                    ${optionsHtml}
+                    <div class="poll-footer">${totalVotes} total vote${totalVotes !== 1 ? 's' : ''}</div>
+                </div>
+                <div class="message-time">${timeStr}</div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+        }
+
+        function voteOnPoll(pollId, option) {
+            if (!database) return;
+            
+            // Update user's vote
+            database.ref(`messages/${pollId}/votes/${currentUser}`).set(option);
         }
 
         function closeAdminPanel() {
