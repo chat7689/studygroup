@@ -2200,8 +2200,11 @@
             authScreen.style.display = 'none';
             chatMain.style.display = 'flex';
             
-            // Show XP leaderboard
-            document.getElementById('xpLeaderboard').style.display = 'flex';
+            // Show XP leaderboard - check if element exists first
+            const xpLeaderboardElement = document.getElementById('xpLeaderboard');
+            if (xpLeaderboardElement) {
+                xpLeaderboardElement.style.display = 'flex';
+            }
             
             messageInput.focus();
             
@@ -2214,6 +2217,30 @@
             // Start updating XP leaderboard
             updateXPLeaderboard();
             setInterval(updateXPLeaderboard, 5000); // Update every 5 seconds
+        }
+
+        // Listen for users - simplified
+        function listenForUsers() {
+            if (!database) {
+                console.error('No database connection for users');
+                return;
+            }
+
+            console.log('Setting up users listener...');
+            
+            database.ref('users').on('value', (snapshot) => {
+                const users = snapshot.val();
+                const userCount = users ? Object.keys(users).length : 0;
+                
+                const onlineCountElement = document.getElementById('onlineCount');
+                if (onlineCountElement) {
+                    onlineCountElement.textContent = `● ${userCount} online`;
+                }
+                
+                console.log(`${userCount} users online`);
+            }, (error) => {
+                console.error('Users listener error:', error);
+            });
         }
 
         // Update XP Leaderboard
