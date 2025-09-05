@@ -5,6 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Study Group Chat</title>
     <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --chat-bg: white;
+            --header-gradient: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            --message-bg: white;
+            --message-own-gradient: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            --text-color: #333;
+            --text-light: #666;
+            --border-color: #ddd;
+            --input-bg: white;
+            --messages-bg: #f8f9fa;
+        }
+
+        [data-theme="dark"] {
+            --bg-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --chat-bg: #2d3748;
+            --header-gradient: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            --message-bg: #4a5568;
+            --message-own-gradient: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            --text-color: #e2e8f0;
+            --text-light: #a0aec0;
+            --border-color: #4a5568;
+            --input-bg: #4a5568;
+            --messages-bg: #1a202c;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,27 +39,29 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--bg-gradient);
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
+            transition: all 0.3s ease;
         }
         
         .chat-container {
-            background: white;
+            background: var(--chat-bg);
             border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
             width: 90%;
             max-width: 800px;
             height: 90vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            transition: all 0.3s ease;
         }
         
         .chat-header {
-            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            background: var(--header-gradient);
             color: white;
             padding: 20px;
             text-align: center;
@@ -41,8 +69,27 @@
             font-weight: bold;
             position: relative;
         }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 15px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
         
-        .login-screen {
+        .auth-screen {
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -52,29 +99,62 @@
             padding: 40px;
         }
         
-        .login-screen h2 {
-            color: #333;
+        .auth-screen h2 {
+            color: var(--text-color);
             margin-bottom: 10px;
         }
+
+        .auth-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .auth-tab {
+            background: var(--border-color);
+            color: var(--text-color);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .auth-tab.active {
+            background: var(--header-gradient);
+            color: white;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 300px;
+        }
         
-        .login-screen input {
+        .auth-screen input {
             padding: 15px;
-            border: 2px solid #ddd;
+            border: 2px solid var(--border-color);
             border-radius: 25px;
             font-size: 16px;
-            width: 300px;
-            max-width: 100%;
             text-align: center;
             outline: none;
             transition: border-color 0.3s;
+            background: var(--input-bg);
+            color: var(--text-color);
         }
         
-        .login-screen input:focus {
+        .auth-screen input:focus {
             border-color: #4facfe;
         }
+
+        .auth-screen input::placeholder {
+            color: var(--text-light);
+        }
         
-        .login-screen button {
-            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+        .auth-screen button {
+            background: var(--header-gradient);
             color: white;
             border: none;
             padding: 15px 30px;
@@ -84,7 +164,7 @@
             transition: transform 0.2s;
         }
         
-        .login-screen button:hover {
+        .auth-screen button:hover {
             transform: scale(1.05);
         }
         
@@ -98,13 +178,15 @@
             flex: 1;
             overflow-y: auto;
             padding: 20px;
-            background: #f8f9fa;
+            background: var(--messages-bg);
+            transition: all 0.3s ease;
         }
         
         .message {
             margin-bottom: 15px;
             animation: slideIn 0.3s ease-out;
             clear: both;
+            position: relative;
         }
         
         @keyframes slideIn {
@@ -120,22 +202,33 @@
         
         .message-header {
             font-size: 12px;
-            color: #666;
+            color: var(--text-light);
             margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: var(--text-light);
         }
         
         .message-content {
-            background: white;
+            background: var(--message-bg);
             padding: 12px 16px;
             border-radius: 18px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             display: inline-block;
             max-width: 70%;
             word-wrap: break-word;
+            color: var(--text-color);
+            position: relative;
+            transition: all 0.3s ease;
         }
         
         .message.own .message-content {
-            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            background: var(--message-own-gradient);
             color: white;
             float: right;
         }
@@ -143,31 +236,112 @@
         .message.own {
             text-align: right;
         }
+
+        .message.own .message-header {
+            flex-direction: row-reverse;
+        }
+
+        .reactions {
+            display: flex;
+            gap: 5px;
+            margin-top: 5px;
+            flex-wrap: wrap;
+        }
+
+        .reaction {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2px 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .reaction:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.1);
+        }
+
+        .reaction.active {
+            background: var(--header-gradient);
+            color: white;
+        }
+
+        .reaction-picker {
+            position: absolute;
+            top: -35px;
+            right: 0;
+            background: var(--chat-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 5px 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 100;
+        }
+
+        .reaction-picker.show {
+            display: flex;
+            gap: 5px;
+        }
+
+        .reaction-option {
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .reaction-option:hover {
+            background: var(--border-color);
+            transform: scale(1.2);
+        }
+
+        .message-content:hover::after {
+            content: "😊";
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 12px;
+            opacity: 0.5;
+            cursor: pointer;
+        }
         
         .input-container {
             display: flex;
             padding: 20px;
-            background: white;
-            border-top: 1px solid #eee;
+            background: var(--chat-bg);
+            border-top: 1px solid var(--border-color);
             gap: 10px;
+            transition: all 0.3s ease;
         }
         
         .message-input {
             flex: 1;
             padding: 15px;
-            border: 2px solid #ddd;
+            border: 2px solid var(--border-color);
             border-radius: 25px;
             font-size: 16px;
             outline: none;
             transition: border-color 0.3s;
+            background: var(--input-bg);
+            color: var(--text-color);
         }
         
         .message-input:focus {
             border-color: #4facfe;
         }
+
+        .message-input::placeholder {
+            color: var(--text-light);
+        }
         
         .send-btn {
-            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            background: var(--header-gradient);
             color: white;
             border: none;
             padding: 15px 25px;
@@ -193,7 +367,7 @@
             font-size: 14px;
             background: #fff3cd;
             color: #856404;
-            border-top: 1px solid #eee;
+            border-top: 1px solid var(--border-color);
         }
         
         .online-count {
@@ -205,19 +379,196 @@
             border-radius: 15px;
             font-size: 14px;
         }
+
+        .error-message {
+            color: #e53e3e;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .success-message {
+            color: #38a169;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .admin-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .admin-content {
+            background: var(--chat-bg);
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+
+        .admin-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        .admin-section {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--messages-bg);
+        }
+
+        .admin-section h3 {
+            color: var(--text-color);
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .admin-button {
+            background: var(--header-gradient);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+
+        .admin-button:hover {
+            transform: scale(1.05);
+        }
+
+        .admin-button.danger {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+        }
+
+        .admin-input {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            margin: 5px;
+            width: 200px;
+        }
+
+        .admin-badge {
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .user-list {
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            background: var(--input-bg);
+        }
+
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            color: var(--text-color);
+        }
+
+        .account-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            background: var(--input-bg);
+        }
+
+        .account-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .account-item:last-child {
+            border-bottom: none;
+        }
+
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="chat-container">
         <div class="chat-header">
+            <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
             📚 Study Group Chat
+            <div class="admin-badge" id="adminBadge" style="display: none;">ADMIN</div>
             <div class="online-count" id="onlineCount">🟢 0 online</div>
         </div>
         
-        <div class="login-screen" id="loginScreen">
-            <h2>Join the Study Group</h2>
-            <input type="text" id="usernameInput" placeholder="Enter your name" maxlength="20">
-            <button onclick="joinChat()">Join Chat</button>
+        <div class="auth-screen" id="authScreen">
+            <h2>Study Group Access</h2>
+            
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchTab('login')">Login</button>
+                <button class="auth-tab" onclick="switchTab('register')">Create Account</button>
+            </div>
+
+            <!-- Login Form -->
+            <div class="auth-form" id="loginForm">
+                <input type="text" id="loginUsername" placeholder="Your username" maxlength="20">
+                <input type="password" id="loginPassword" placeholder="Your password" maxlength="50">
+                <button onclick="loginUser()">Login</button>
+            </div>
+
+            <!-- Register Form -->
+            <div class="auth-form hidden" id="registerForm">
+                <input type="text" id="registerActivation" placeholder="Activation code (get from group)" maxlength="50">
+                <input type="text" id="registerUsername" placeholder="Choose username" maxlength="20">
+                <input type="password" id="registerPassword" placeholder="Choose password" maxlength="50">
+                <input type="password" id="registerConfirm" placeholder="Confirm password" maxlength="50">
+                <button onclick="registerUser()">Create Account</button>
+            </div>
+
+            <div class="error-message" id="errorMessage" style="display: none;"></div>
+            <div class="success-message" id="successMessage" style="display: none;"></div>
         </div>
         
         <div class="chat-main" id="chatMain">
@@ -225,6 +576,53 @@
             <div class="input-container">
                 <input type="text" id="messageInput" class="message-input" placeholder="Type your message..." maxlength="500">
                 <button onclick="sendMessage()" class="send-btn" id="sendBtn">Send</button>
+            </div>
+        </div>
+
+        <!-- Admin Panel -->
+        <div class="admin-panel" id="adminPanel">
+            <div class="admin-content">
+                <div class="admin-header">
+                    <h2>🛡️ Admin Panel</h2>
+                    <button class="admin-close" onclick="closeAdminPanel()">&times;</button>
+                </div>
+
+                <div class="admin-section">
+                    <h3>🔑 Account Registration</h3>
+                    <p>Current Activation Code: <strong id="currentActivationCode">temp123</strong></p>
+                    <input type="text" class="admin-input" id="newActivationCode" placeholder="New activation code">
+                    <button class="admin-button" onclick="changeActivationCode()">Update Code</button>
+                </div>
+
+                <div class="admin-section">
+                    <h3>👥 Registered Accounts</h3>
+                    <div class="account-list" id="accountList">
+                        <p>Loading accounts...</p>
+                    </div>
+                    <button class="admin-button danger" onclick="deleteAccount()">Delete Selected Account</button>
+                </div>
+
+                <div class="admin-section">
+                    <h3>🌐 Online Users</h3>
+                    <div class="user-list" id="userList">
+                        <p>Loading users...</p>
+                    </div>
+                    <button class="admin-button danger" onclick="kickAllUsers()">Kick All Users</button>
+                </div>
+
+                <div class="admin-section">
+                    <h3>🗑️ Message Management</h3>
+                    <button class="admin-button danger" onclick="clearAllMessages()">Clear All Messages</button>
+                </div>
+
+                <div class="admin-section">
+                    <h3>📊 Chat Stats</h3>
+                    <div id="chatStats">
+                        <p>Total Accounts: <span id="totalAccounts">0</span></p>
+                        <p>Online Users: <span id="adminOnlineCount">0</span></p>
+                        <p>Total Messages: <span id="totalMessages">0</span></p>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -249,6 +647,12 @@
             measurementId: "G-S6VLMJHKFF"
         };
 
+        // Admin code - change this to whatever secret code you want!
+        const ADMIN_CODE = "/7689admin7689";
+
+        // Initial activation code - admin can change this
+        let ACTIVATION_CODE = "temp123";
+
         // Check if config is set up
         const isConfigured = !firebaseConfig.apiKey.includes('YOUR_');
         
@@ -256,45 +660,191 @@
         let currentUser = '';
         let userRef = null;
         let database = null;
+        let isAdmin = false;
+        let currentTab = 'login';
 
         // DOM elements
-        const loginScreen = document.getElementById('loginScreen');
+        const authScreen = document.getElementById('authScreen');
         const chatMain = document.getElementById('chatMain');
-        const usernameInput = document.getElementById('usernameInput');
         const messageInput = document.getElementById('messageInput');
         const messagesContainer = document.getElementById('messagesContainer');
         const sendBtn = document.getElementById('sendBtn');
         const status = document.getElementById('status');
         const onlineCount = document.getElementById('onlineCount');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
 
         // Initialize Firebase if configured
         if (isConfigured) {
             firebase.initializeApp(firebaseConfig);
             database = firebase.database();
+            loadActivationCode();
         } else {
             status.style.display = 'block';
-            status.innerHTML = '⚠️ Please replace the Firebase configuration in the code with your actual Firebase project settings';
+            status.innerHTML = '⚠️ Please replace the Firebase configuration in the code';
         }
 
-        // Join chat function
-        function joinChat() {
-            if (!isConfigured) {
-                alert('Please set up Firebase configuration first!');
-                return;
-            }
-            
-            const username = usernameInput.value.trim();
-            if (username.length < 1) {
-                alert('Please enter your name');
-                return;
-            }
-            if (username.length > 20) {
-                alert('Name too long (max 20 characters)');
-                return;
-            }
+        // Load activation code from database
+        function loadActivationCode() {
+            database.ref('settings/activationCode').once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    ACTIVATION_CODE = snapshot.val();
+                    document.getElementById('currentActivationCode').textContent = ACTIVATION_CODE;
+                }
+            });
+        }
 
-            currentUser = username;
+        // Theme functions
+        function toggleTheme() {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             
+            body.setAttribute('data-theme', newTheme);
+            document.querySelector('.theme-toggle').textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            
+            // Save theme preference
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // Load saved theme
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.body.setAttribute('data-theme', savedTheme);
+            document.querySelector('.theme-toggle').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+        }
+
+        // Switch between login and register tabs
+        function switchTab(tab) {
+            currentTab = tab;
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const tabs = document.querySelectorAll('.auth-tab');
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                tabs[0].classList.add('active');
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                tabs[1].classList.add('active');
+            }
+            
+            hideMessages();
+        }
+
+        // Register new user
+        function registerUser() {
+            if (!isConfigured) {
+                showError('Please set up Firebase configuration first!');
+                return;
+            }
+            
+            const activation = document.getElementById('registerActivation').value.trim();
+            const username = document.getElementById('registerUsername').value.trim();
+            const password = document.getElementById('registerPassword').value.trim();
+            const confirm = document.getElementById('registerConfirm').value.trim();
+            
+            if (!activation) {
+                showError('Please enter the activation code');
+                return;
+            }
+            
+            if (activation !== ACTIVATION_CODE) {
+                showError('Invalid activation code! Ask someone in the group for the correct code.');
+                return;
+            }
+            
+            if (username.length < 3) {
+                showError('Username must be at least 3 characters');
+                return;
+            }
+            
+            if (username.length > 20) {
+                showError('Username too long (max 20 characters)');
+                return;
+            }
+            
+            if (password.length < 4) {
+                showError('Password must be at least 4 characters');
+                return;
+            }
+            
+            if (password !== confirm) {
+                showError('Passwords do not match');
+                return;
+            }
+            
+            // Check if username already exists
+            database.ref('accounts').orderByChild('username').equalTo(username).once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    showError('Username already taken! Please choose a different one.');
+                    return;
+                }
+                
+                // Create account
+                const accountId = database.ref('accounts').push().key;
+                database.ref(`accounts/${accountId}`).set({
+                    username: username,
+                    password: password,
+                    created: firebase.database.ServerValue.TIMESTAMP
+                }).then(() => {
+                    showSuccess('Account created successfully! You can now login.');
+                    // Clear registration form
+                    document.getElementById('registerActivation').value = '';
+                    document.getElementById('registerUsername').value = '';
+                    document.getElementById('registerPassword').value = '';
+                    document.getElementById('registerConfirm').value = '';
+                    // Switch to login tab
+                    switchTab('login');
+                    document.getElementById('loginUsername').value = username;
+                }).catch((error) => {
+                    showError('Error creating account: ' + error.message);
+                });
+            });
+        }
+
+        // Login user
+        function loginUser() {
+            if (!isConfigured) {
+                showError('Please set up Firebase configuration first!');
+                return;
+            }
+            
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            
+            if (!username || !password) {
+                showError('Please enter both username and password');
+                return;
+            }
+            
+            // Check credentials
+            database.ref('accounts').orderByChild('username').equalTo(username).once('value', (snapshot) => {
+                if (!snapshot.exists()) {
+                    showError('Username not found! Please register first.');
+                    return;
+                }
+                
+                const accounts = snapshot.val();
+                const accountData = Object.values(accounts)[0];
+                
+                if (accountData.password !== password) {
+                    showError('Incorrect password!');
+                    return;
+                }
+                
+                // Login successful
+                currentUser = username;
+                enterChat();
+            });
+        }
+
+        // Enter chat after successful login
+        function enterChat() {
             // Set user as online
             const userId = Date.now().toString();
             userRef = database.ref(`users/${userId}`);
@@ -307,7 +857,7 @@
             userRef.onDisconnect().remove();
 
             // Switch to chat interface
-            loginScreen.style.display = 'none';
+            authScreen.style.display = 'none';
             chatMain.style.display = 'flex';
             
             messageInput.focus();
@@ -320,22 +870,66 @@
         // Send message function
         function sendMessage() {
             if (!isConfigured) {
-                alert('Please set up Firebase configuration first!');
+                showError('Please set up Firebase configuration first!');
                 return;
             }
             
             const message = messageInput.value.trim();
             if (message === '') return;
 
+            // Check for admin code - toggles admin panel
+            if (message === ADMIN_CODE) {
+                if (isAdmin && document.getElementById('adminPanel').style.display === 'flex') {
+                    // Close admin panel if already open
+                    closeAdminPanel();
+                    showError('Admin panel closed.');
+                } else {
+                    // Activate admin and open panel
+                    isAdmin = true;
+                    document.getElementById('adminBadge').style.display = 'block';
+                    openAdminPanel();
+                    showError('Admin panel opened!');
+                }
+                messageInput.value = '';
+                return;
+            }
+
             database.ref('messages').push({
                 username: currentUser,
                 message: message,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                reactions: {}
             });
 
             messageInput.value = '';
             sendBtn.disabled = true;
             setTimeout(() => sendBtn.disabled = false, 500);
+        }
+
+        // Show error message
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 4000);
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            successMessage.textContent = message;
+            successMessage.style.display = 'block';
+            errorMessage.style.display = 'none';
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 4000);
+        }
+
+        // Hide messages
+        function hideMessages() {
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
         }
 
         // Listen for messages
@@ -372,19 +966,101 @@
             });
         }
 
+        // Format time ago
+        function timeAgo(timestamp) {
+            const now = Date.now();
+            const diff = now - timestamp;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+
+            if (minutes < 1) return 'just now';
+            if (minutes < 60) return `${minutes}m ago`;
+            if (hours < 24) return `${hours}h ago`;
+            return `${days}d ago`;
+        }
+
         // Display message
         function displayMessage(msg) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${msg.username === currentUser ? 'own' : ''}`;
+            messageDiv.setAttribute('data-message-id', msg.id);
             
-            const time = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'now';
+            const timeStr = msg.timestamp ? timeAgo(msg.timestamp) : 'now';
             
             messageDiv.innerHTML = `
-                <div class="message-header">${escapeHtml(msg.username)} • ${time}</div>
-                <div class="message-content">${escapeHtml(msg.message)}</div>
+                <div class="message-header">
+                    <span>${escapeHtml(msg.username)}</span>
+                    <span class="message-time">${timeStr}</span>
+                </div>
+                <div class="message-content" onclick="showReactionPicker('${msg.id}')">
+                    ${escapeHtml(msg.message)}
+                    <div class="reaction-picker" id="picker-${msg.id}">
+                        <span class="reaction-option" onclick="addReaction('${msg.id}', '👍')">👍</span>
+                        <span class="reaction-option" onclick="addReaction('${msg.id}', '😂')">😂</span>
+                        <span class="reaction-option" onclick="addReaction('${msg.id}', '❤️')">❤️</span>
+                        <span class="reaction-option" onclick="addReaction('${msg.id}', '😮')">😮</span>
+                        <span class="reaction-option" onclick="addReaction('${msg.id}', '😢')">😢</span>
+                    </div>
+                </div>
+                <div class="reactions" id="reactions-${msg.id}"></div>
             `;
             
             messagesContainer.appendChild(messageDiv);
+
+            // Display reactions
+            if (msg.reactions) {
+                displayReactions(msg.id, msg.reactions);
+            }
+        }
+
+        // Show reaction picker
+        function showReactionPicker(messageId) {
+            // Hide all other pickers
+            document.querySelectorAll('.reaction-picker').forEach(picker => {
+                picker.classList.remove('show');
+            });
+            
+            // Show this picker
+            const picker = document.getElementById(`picker-${messageId}`);
+            if (picker) {
+                picker.classList.add('show');
+                
+                // Hide after 3 seconds
+                setTimeout(() => {
+                    picker.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        // Add reaction
+        function addReaction(messageId, emoji) {
+            if (!database) return;
+            
+            const reactionRef = database.ref(`messages/${messageId}/reactions/${emoji}/${currentUser}`);
+            reactionRef.set(true);
+            
+            // Hide picker
+            document.getElementById(`picker-${messageId}`).classList.remove('show');
+        }
+
+        // Display reactions
+        function displayReactions(messageId, reactions) {
+            const reactionsContainer = document.getElementById(`reactions-${messageId}`);
+            if (!reactionsContainer) return;
+            
+            reactionsContainer.innerHTML = '';
+            
+            Object.entries(reactions || {}).forEach(([emoji, users]) => {
+                const userCount = Object.keys(users).length;
+                if (userCount > 0) {
+                    const reactionDiv = document.createElement('div');
+                    reactionDiv.className = `reaction ${users[currentUser] ? 'active' : ''}`;
+                    reactionDiv.innerHTML = `${emoji} ${userCount}`;
+                    reactionDiv.onclick = () => addReaction(messageId, emoji);
+                    reactionsContainer.appendChild(reactionDiv);
+                }
+            });
         }
 
         // Escape HTML to prevent XSS
@@ -394,23 +1070,195 @@
             return div.innerHTML;
         }
 
-        // Enter key to send message
+        // Enter key handlers
         messageInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 sendMessage();
             }
         });
 
-        // Enter key to join chat
-        usernameInput.addEventListener('keypress', function(e) {
+        document.getElementById('loginUsername').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                joinChat();
+                document.getElementById('loginPassword').focus();
             }
         });
 
-        // Focus username input when page loads
+        document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                loginUser();
+            }
+        });
+
+        document.getElementById('registerUsername').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('registerPassword').focus();
+            }
+        });
+
+        document.getElementById('registerPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('registerConfirm').focus();
+            }
+        });
+
+        document.getElementById('registerConfirm').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                registerUser();
+            }
+        });
+
+        // Click outside to hide reaction pickers
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.message-content') && !e.target.closest('.reaction-picker')) {
+                document.querySelectorAll('.reaction-picker').forEach(picker => {
+                    picker.classList.remove('show');
+                });
+            }
+        });
+
+        // === ADMIN FUNCTIONS ===
+
+        function openAdminPanel() {
+            if (!isAdmin) return;
+            document.getElementById('adminPanel').style.display = 'flex';
+            updateAccountList();
+            updateUserList();
+            updateChatStats();
+        }
+
+        function closeAdminPanel() {
+            document.getElementById('adminPanel').style.display = 'none';
+        }
+
+        function changeActivationCode() {
+            if (!isAdmin) return;
+            const newCode = document.getElementById('newActivationCode').value.trim();
+            if (!newCode) {
+                showError('Please enter a new temporary activation code');
+                return;
+            }
+            
+            // Update in database
+            database.ref('settings/activationCode').set(newCode).then(() => {
+                ACTIVATION_CODE = newCode;
+                document.getElementById('currentActivationCode').textContent = newCode;
+                document.getElementById('newActivationCode').value = '';
+                showError(`Temporary activation code changed to: ${newCode}`);
+            });
+        }
+
+        function deleteMessage(messageId) {
+            if (!isAdmin || !confirm('Delete this message?')) return;
+            database.ref(`messages/${messageId}`).remove().then(() => {
+                showError('Message deleted!');
+            });
+        }
+
+        function updateAccountList() {
+            if (!isAdmin) return;
+            const accountList = document.getElementById('accountList');
+            database.ref('accounts').once('value', (snapshot) => {
+                const accounts = snapshot.val() || {};
+                const accountEntries = Object.entries(accounts);
+                
+                if (accountEntries.length === 0) {
+                    accountList.innerHTML = '<p>No accounts registered</p>';
+                    return;
+                }
+                
+                accountList.innerHTML = accountEntries.map(([id, account]) => {
+                    const created = account.created ? new Date(account.created).toLocaleDateString() : 'Unknown';
+                    return `
+                        <div class="account-item" data-account-id="${id}">
+                            <div>
+                                <strong>${escapeHtml(account.username)}</strong><br>
+                                <small>Created: ${created}</small>
+                            </div>
+                            <button class="admin-button danger" onclick="deleteSpecificAccount('${id}')">Delete</button>
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+
+        function deleteSpecificAccount(accountId) {
+            if (!isAdmin || !confirm('Delete this account permanently?')) return;
+            database.ref(`accounts/${accountId}`).remove().then(() => {
+                updateAccountList();
+                showError('Account deleted!');
+            });
+        }
+
+        function deleteAccount() {
+            if (!isAdmin) return;
+            showError('Click the "Delete" button next to specific accounts to remove them.');
+        }
+
+        function updateUserList() {
+            if (!isAdmin) return;
+            const userList = document.getElementById('userList');
+            database.ref('users').once('value', (snapshot) => {
+                const users = snapshot.val() || {};
+                const userEntries = Object.entries(users);
+                
+                if (userEntries.length === 0) {
+                    userList.innerHTML = '<p>No users online</p>';
+                    return;
+                }
+                
+                userList.innerHTML = userEntries.map(([id, user]) => `
+                    <div class="user-item">
+                        <span>${escapeHtml(user.username)}</span>
+                        <button class="admin-button danger" onclick="kickUser('${id}')">Kick</button>
+                    </div>
+                `).join('');
+            });
+        }
+
+        function kickUser(userId) {
+            if (!isAdmin || !confirm('Kick this user?')) return;
+            database.ref(`users/${userId}`).remove();
+            updateUserList();
+        }
+
+        function kickAllUsers() {
+            if (!isAdmin || !confirm('Kick ALL users? This will disconnect everyone!')) return;
+            database.ref('users').remove();
+            showError('All users kicked!');
+        }
+
+        function clearAllMessages() {
+            if (!isAdmin || !confirm('Are you sure you want to delete ALL messages? This cannot be undone!')) return;
+            database.ref('messages').remove();
+            showError('All messages cleared!');
+        }
+
+        function updateChatStats() {
+            if (!isAdmin) return;
+            
+            // Count accounts
+            database.ref('accounts').once('value', (snapshot) => {
+                const accounts = snapshot.val() || {};
+                document.getElementById('totalAccounts').textContent = Object.keys(accounts).length;
+            });
+            
+            // Count messages
+            database.ref('messages').once('value', (snapshot) => {
+                const messages = snapshot.val() || {};
+                document.getElementById('totalMessages').textContent = Object.keys(messages).length;
+            });
+            
+            // Count online users
+            database.ref('users').once('value', (snapshot) => {
+                const users = snapshot.val() || {};
+                document.getElementById('adminOnlineCount').textContent = Object.keys(users).length;
+            });
+        }
+
+        // Load theme and focus on page load
         window.addEventListener('load', () => {
-            usernameInput.focus();
+            loadTheme();
+            document.getElementById('loginUsername').focus();
         });
     </script>
 </body>
