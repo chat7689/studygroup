@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Group Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .chat-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 800px;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            position: relative;
+        }
+        
+        .login-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+            gap: 20px;
+            padding: 40px;
+        }
+        
+        .login-screen h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .login-screen input {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 16px;
+            width: 300px;
+            max-width: 100%;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .login-screen input:focus {
+            border-color: #4facfe;
+        }
+        
+        .login-screen button {
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .login-screen button:hover {
+            transform: scale(1.05);
+        }
+        
+        .chat-main {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+        }
+        
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            animation: slideIn 0.3s ease-out;
+            clear: both;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .message-header {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .message-content {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 18px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: inline-block;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        
+        .message.own .message-content {
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            float: right;
+        }
+        
+        .message.own {
+            text-align: right;
+        }
+        
+        .input-container {
+            display: flex;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #eee;
+            gap: 10px;
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .message-input:focus {
+            border-color: #4facfe;
+        }
+        
+        .send-btn {
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+        
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status {
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 14px;
+            background: #fff3cd;
+            color: #856404;
+            border-top: 1px solid #eee;
+        }
+        
+        .online-count {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            📚 Study Group Chat
+            <div class="online-count" id="onlineCount">🟢 0 online</div>
+        </div>
+        
+        <div class="login-screen" id="loginScreen">
+            <h2>Join the Study Group</h2>
+            <input type="text" id="usernameInput" placeholder="Enter your name" maxlength="20">
+            <button onclick="joinChat()">Join Chat</button>
+        </div>
+        
+        <div class="chat-main" id="chatMain">
+            <div class="messages-container" id="messagesContainer"></div>
+            <div class="input-container">
+                <input type="text" id="messageInput" class="message-input" placeholder="Type your message..." maxlength="500">
+                <button onclick="sendMessage()" class="send-btn" id="sendBtn">Send</button>
+            </div>
+        </div>
+        
+        <div class="status" id="status" style="display: none;">
+            ⚠️ Please set up Firebase configuration first
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-compat.js"></script>
+
+    <script>
+        // 🔥 FIREBASE CONFIG - READY TO USE!
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyCOxYlNRn-tveI9G22BHYI8EEpMAEWEI",
+            authDomain: "schoolchat-60b44.firebaseapp.com",
+            databaseURL: "https://schoolchat-60b44-default-rtdb.firebaseio.com",
+            projectId: "schoolchat-60b44",
+            storageBucket: "schoolchat-60b44.firebasestorage.app",
+            messagingSenderId: "209703349541",
+            appId: "1:209703349541:web:d89ba692f5f5c322503ecc",
+            measurementId: "G-S6VLMJHKFF"
+        };
+
+        // Check if config is set up
+        const isConfigured = !firebaseConfig.apiKey.includes('YOUR_');
+        
+        // Global variables
+        let currentUser = '';
+        let userRef = null;
+        let database = null;
+
+        // DOM elements
+        const loginScreen = document.getElementById('loginScreen');
+        const chatMain = document.getElementById('chatMain');
+        const usernameInput = document.getElementById('usernameInput');
+        const messageInput = document.getElementById('messageInput');
+        const messagesContainer = document.getElementById('messagesContainer');
+        const sendBtn = document.getElementById('sendBtn');
+        const status = document.getElementById('status');
+        const onlineCount = document.getElementById('onlineCount');
+
+        // Initialize Firebase if configured
+        if (isConfigured) {
+            firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+        } else {
+            status.style.display = 'block';
+            status.innerHTML = '⚠️ Please replace the Firebase configuration in the code with your actual Firebase project settings';
+        }
+
+        // Join chat function
+        function joinChat() {
+            if (!isConfigured) {
+                alert('Please set up Firebase configuration first!');
+                return;
+            }
+            
+            const username = usernameInput.value.trim();
+            if (username.length < 1) {
+                alert('Please enter your name');
+                return;
+            }
+            if (username.length > 20) {
+                alert('Name too long (max 20 characters)');
+                return;
+            }
+
+            currentUser = username;
+            
+            // Set user as online
+            const userId = Date.now().toString();
+            userRef = database.ref(`users/${userId}`);
+            userRef.set({
+                username: currentUser,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            // Remove user when they disconnect
+            userRef.onDisconnect().remove();
+
+            // Switch to chat interface
+            loginScreen.style.display = 'none';
+            chatMain.style.display = 'flex';
+            
+            messageInput.focus();
+            
+            // Start listening for messages and users
+            listenForMessages();
+            listenForUsers();
+        }
+
+        // Send message function
+        function sendMessage() {
+            if (!isConfigured) {
+                alert('Please set up Firebase configuration first!');
+                return;
+            }
+            
+            const message = messageInput.value.trim();
+            if (message === '') return;
+
+            database.ref('messages').push({
+                username: currentUser,
+                message: message,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            messageInput.value = '';
+            sendBtn.disabled = true;
+            setTimeout(() => sendBtn.disabled = false, 500);
+        }
+
+        // Listen for messages
+        function listenForMessages() {
+            database.ref('messages').limitToLast(50).on('value', (snapshot) => {
+                const messages = snapshot.val();
+                messagesContainer.innerHTML = '';
+                
+                if (messages) {
+                    // Convert to array and sort by timestamp
+                    const messageArray = Object.entries(messages).map(([key, value]) => ({
+                        id: key,
+                        ...value
+                    }));
+                    
+                    messageArray.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+                    
+                    messageArray.forEach(msg => {
+                        displayMessage(msg);
+                    });
+                    
+                    // Scroll to bottom
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+            });
+        }
+
+        // Listen for online users
+        function listenForUsers() {
+            database.ref('users').on('value', (snapshot) => {
+                const users = snapshot.val();
+                const userCount = users ? Object.keys(users).length : 0;
+                onlineCount.textContent = `🟢 ${userCount} online`;
+            });
+        }
+
+        // Display message
+        function displayMessage(msg) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${msg.username === currentUser ? 'own' : ''}`;
+            
+            const time = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'now';
+            
+            messageDiv.innerHTML = `
+                <div class="message-header">${escapeHtml(msg.username)} • ${time}</div>
+                <div class="message-content">${escapeHtml(msg.message)}</div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Enter key to send message
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Enter key to join chat
+        usernameInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                joinChat();
+            }
+        });
+
+        // Focus username input when page loads
+        window.addEventListener('load', () => {
+            usernameInput.focus();
+        });
+    </script>
+</body>
+</html>
