@@ -3,1300 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messages</title>
+    <title>Simple Chat</title>
     <style>
-        :root {
-            --bg-color: #000000;
-            --chat-bg: #1c1c1e;
-            --message-bg: #333333;
-            --message-own-bg: #007aff;
-            --text-color: #ffffff;
-            --text-light: #8e8e93;
-            --border-color: #38383a;
-            --input-bg: #1c1c1e;
-            --header-bg: #1c1c1e;
-            --safe-text: #ffffff;
-        }
-
-        [data-theme="light"] {
-            --bg-color: #f2f2f7;
-            --chat-bg: #ffffff;
-            --message-bg: #e5e5ea;
-            --message-own-bg: #007aff;
-            --text-color: #000000;
-            --text-light: #6d6d70;
-            --border-color: #d1d1d6;
-            --input-bg: #f2f2f7;
-            --header-bg: #f9f9f9;
-            --safe-text: #000000;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: var(--bg-color);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.3s ease;
-            position: relative;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f0f0;
         }
-
-        /* Secret background squares - bigger and more visible */
-        .bg-square {
-            position: fixed;
-            width: 80px;
-            height: 80px;
-            background: rgba(255, 255, 255, 0.1);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            z-index: 1;
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
-        }
-
-        [data-theme="light"] .bg-square {
-            background: rgba(0, 0, 0, 0.1);
-        }
-
-        .bg-square:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.1);
-        }
-
-        [data-theme="light"] .bg-square:hover {
-            background: rgba(0, 0, 0, 0.2);
-        }
-
-        .bg-square.clicked {
-            background: rgba(0, 122, 255, 0.5);
-            animation: pulse 0.5s ease;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.3); }
-            100% { transform: scale(1); }
-        }
-
-        .bg-square.top-left { top: 20px; left: 20px; }
-        .bg-square.top-right { top: 20px; right: 20px; }
-        .bg-square.bottom-left { bottom: 20px; left: 20px; }
-        .bg-square.bottom-right { bottom: 20px; right: 20px; }
         
-        .messages-container-wrapper {
-            background: var(--chat-bg);
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            width: 90%;
+        .container {
             max-width: 400px;
-            height: 90vh;
-            display: flex;
-            flex-direction: column;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             overflow: hidden;
-            transition: all 0.3s ease;
-            border: 1px solid var(--border-color);
-            z-index: 10;
-            position: relative;
         }
         
-        .messages-header {
-            background: var(--header-bg);
-            color: var(--safe-text);
-            padding: 20px 25px;
-            text-align: center;
-            font-size: 18px;
-            font-weight: 600;
-            position: relative;
-            border-bottom: 1px solid var(--border-color);
-            backdrop-filter: blur(20px);
-        }
-
-        .settings-toggle {
-            position: absolute;
-            top: 20px;
-            right: 25px;
-            background: none;
-            border: none;
-            color: var(--safe-text);
-            cursor: pointer;
-            font-size: 18px;
-            padding: 0;
-        }
-
-        .online-count {
-            position: absolute;
-            top: 20px;
-            left: 25px;
-            color: var(--safe-text);
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .user-level {
-            position: absolute;
-            top: 45px;
-            left: 25px;
-            color: var(--safe-text);
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .admin-badge {
-            position: absolute;
-            top: 45px;
-            right: 25px;
-            background: #ff3b30;
+        .header {
+            background: #007aff;
             color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 700;
+            padding: 20px;
+            text-align: center;
         }
         
         .auth-screen {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            flex: 1;
-            gap: 25px;
-            padding: 40px 25px;
-        }
-        
-        .auth-screen h2 {
-            color: var(--safe-text);
-            margin-bottom: 25px;
-            font-weight: 700;
-            font-size: 24px;
-        }
-
-        .auth-tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 35px;
-            background: var(--input-bg);
-            border-radius: 14px;
-            padding: 4px;
-        }
-
-        .auth-tab {
-            background: transparent;
-            color: var(--safe-text);
-            border: none;
-            padding: 12px 24px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        .auth-tab.active {
-            background: var(--message-own-bg);
-            color: white;
-            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
-        }
-
-        .auth-form {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            width: 100%;
-            max-width: 300px;
-        }
-        
-        .auth-screen input {
-            padding: 14px 18px;
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            font-size: 16px;
-            outline: none;
-            transition: all 0.3s ease;
-            background: var(--input-bg);
-            color: var(--safe-text);
-            font-weight: 500;
-        }
-        
-        .auth-screen input:focus {
-            border-color: var(--message-own-bg);
-            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
-        }
-
-        .auth-screen input::placeholder {
-            color: var(--text-light);
-        }
-        
-        .auth-screen button {
-            background: var(--message-own-bg);
-            color: white;
-            border: none;
-            padding: 14px 18px;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 8px;
-        }
-        
-        .auth-screen button:hover {
-            background: #0051d5;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+            padding: 20px;
         }
         
         .chat-main {
             display: none;
-            flex: 1;
-            flex-direction: column;
         }
         
-        .messages-container {
-            flex: 1;
+        .messages {
+            height: 400px;
             overflow-y: auto;
-            padding: 25px;
-            background: var(--bg-color);
+            padding: 20px;
+            border-bottom: 1px solid #eee;
         }
         
         .message {
-            margin-bottom: 12px;
-            animation: slideIn 0.4s ease-out;
-            clear: both;
-            position: relative;
-            display: flex;
-            flex-direction: column;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 10px;
         }
-
+        
         .message.own {
-            align-items: flex-end;
-        }
-
-        .message:not(.own) {
-            align-items: flex-start;
-        }
-        
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(15px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .message-header {
-            font-size: 12px;
-            color: var(--safe-text);
-            margin-bottom: 6px;
-            text-align: left;
-            font-weight: 600;
-            opacity: 0.8;
-        }
-
-        .message.own .message-header {
-            text-align: right;
-        }
-
-        .message-time {
-            font-size: 11px;
-            color: var(--safe-text);
-            margin-top: 4px;
-            opacity: 0.6;
-        }
-        
-        .message-content {
-            background: var(--message-bg);
-            padding: 12px 16px;
-            border-radius: 22px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            max-width: 75%;
-            word-wrap: break-word;
-            color: var(--safe-text);
-            position: relative;
-            transition: all 0.3s ease;
-            font-size: 16px;
-            line-height: 1.4;
-            font-weight: 500;
-        }
-        
-        .message.own .message-content {
-            background: var(--message-own-bg);
+            background: #007aff;
             color: white;
-            border-bottom-right-radius: 6px;
+            margin-left: 50px;
         }
-
-        .message:not(.own) .message-content {
-            border-bottom-left-radius: 6px;
-        }
-
-        .message-delete {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: #ff3b30;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 22px;
-            height: 22px;
-            font-size: 12px;
-            cursor: pointer;
-            display: none;
-            transition: all 0.3s ease;
+        
+        .message-user {
             font-weight: bold;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        }
-
-        .message:hover .message-delete {
-            display: block;
-        }
-
-        .message-delete:hover {
-            transform: scale(1.15);
-        }
-
-        .reactions {
-            display: flex;
-            gap: 6px;
-            margin-top: 6px;
-            flex-wrap: wrap;
-            margin-left: 8px;
-        }
-
-        .message.own .reactions {
-            margin-left: 0;
-            margin-right: 8px;
-            justify-content: flex-end;
-        }
-
-        .reaction {
-            background: var(--input-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 4px 8px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            position: relative;
-            color: var(--safe-text);
-        }
-
-        .reaction:hover {
-            background: var(--border-color);
-            transform: scale(1.05);
-        }
-
-        .reaction.active {
-            background: var(--message-own-bg);
-            color: white;
-            border-color: var(--message-own-bg);
-        }
-
-        .reaction-picker {
-            position: absolute;
-            top: -45px;
-            right: 0;
-            background: var(--chat-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 25px;
-            padding: 8px 12px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-            display: none;
-            z-index: 100;
-            backdrop-filter: blur(20px);
-        }
-
-        .reaction-picker.show {
-            display: flex;
-            gap: 6px;
-        }
-
-        .reaction-option {
-            cursor: pointer;
-            padding: 6px;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-            font-size: 16px;
-        }
-
-        .reaction-option:hover {
-            background: var(--border-color);
-            transform: scale(1.2);
-        }
-
-        /* Tooltip for reactions */
-        .reaction-tooltip {
-            position: absolute;
-            bottom: 110%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 6px 10px;
-            border-radius: 8px;
             font-size: 12px;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-            z-index: 1000;
-        }
-
-        .reaction:hover .reaction-tooltip {
-            opacity: 1;
+            margin-bottom: 5px;
         }
         
-        .input-container {
+        .input-area {
+            padding: 20px;
             display: flex;
-            padding: 12px 20px 25px 20px;
-            background: var(--chat-bg);
-            border-top: 1px solid var(--border-color);
-            gap: 12px;
-            align-items: flex-end;
+            gap: 10px;
+        }
+        
+        input, textarea {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
         }
         
         .message-input {
             flex: 1;
-            padding: 12px 18px;
-            border: 2px solid var(--border-color);
-            border-radius: 25px;
-            font-size: 16px;
-            outline: none;
-            transition: all 0.3s ease;
-            background: var(--input-bg);
-            color: var(--safe-text);
             resize: none;
-            min-height: 44px;
-            max-height: 120px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            font-weight: 500;
+            height: 40px;
         }
         
-        .message-input:focus {
-            border-color: var(--message-own-bg);
-            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
-        }
-
-        .message-input::placeholder {
-            color: var(--text-light);
-        }
-        
-        .send-btn {
-            background: var(--message-own-bg);
-            color: white;
-            border: none;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 18px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
-        }
-        
-        .send-btn:hover {
-            background: #0051d5;
-            transform: scale(1.05);
-        }
-        
-        .send-btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .status {
-            padding: 15px 25px;
-            text-align: center;
-            font-size: 14px;
-            background: #ff9500;
-            color: white;
-            border-top: 1px solid var(--border-color);
-            font-weight: 600;
-        }
-
-        .error-message {
-            color: #ff3b30;
-            font-size: 14px;
-            margin-top: 12px;
-            text-align: center;
-            font-weight: 600;
-        }
-
-        .success-message {
-            color: #34c759;
-            font-size: 14px;
-            margin-top: 12px;
-            text-align: center;
-            font-weight: 600;
-        }
-
-        .level-up-notification {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, #ffd700, #ffed4e);
-            color: #000;
-            padding: 20px 30px;
-            border-radius: 15px;
-            font-size: 18px;
-            font-weight: bold;
-            z-index: 2000;
-            animation: levelUpAnimation 3s ease-out forwards;
-            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5);
-        }
-
-        @keyframes levelUpAnimation {
-            0% {
-                opacity: 0;
-                transform: translate(-50%, -50%) scale(0.5);
-            }
-            20% {
-                opacity: 1;
-                transform: translate(-50%, -50%) scale(1.1);
-            }
-            90% {
-                opacity: 1;
-                transform: translate(-50%, -50%) scale(1);
-            }
-            100% {
-                opacity: 0;
-                transform: translate(-50%, -50%) scale(1);
-            }
-        }
-
-        /* Settings Panel */
-        .settings-panel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            backdrop-filter: blur(15px);
-        }
-
-        .settings-content {
-            background: var(--chat-bg);
-            border-radius: 20px;
-            padding: 25px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 85vh;
-            overflow-y: auto;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
-            border: 1px solid var(--border-color);
-        }
-
-        .settings-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            color: var(--safe-text);
-        }
-
-        .settings-close {
-            background: none;
-            border: none;
-            font-size: 28px;
-            cursor: pointer;
-            color: var(--safe-text);
-        }
-
-        .settings-section {
-            margin-bottom: 25px;
-            padding: 20px;
-            border: 1px solid var(--border-color);
-            border-radius: 15px;
-            background: var(--input-bg);
-        }
-
-        .settings-section h3 {
-            color: var(--safe-text);
-            margin-bottom: 15px;
-            font-size: 17px;
-            font-weight: 700;
-        }
-
-        .theme-switcher {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .theme-option {
-            background: var(--message-own-bg);
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            font-weight: 600;
-        }
-
-        .theme-option:hover {
-            background: #0051d5;
-            transform: translateY(-1px);
-        }
-
-        .theme-option.active {
-            background: #34c759;
-        }
-
-        .password-form {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .password-form input {
-            padding: 10px 14px;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            background: var(--input-bg);
-            color: var(--safe-text);
-            font-size: 14px;
-        }
-
-        .password-form input::placeholder {
-            color: var(--text-light);
-        }
-
-        .password-form button {
-            background: var(--message-own-bg);
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .password-form button:hover {
-            background: #0051d5;
-        }
-
-        .user-stats {
-            color: var(--safe-text);
-            line-height: 1.6;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: var(--border-color);
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 10px 0;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #007aff, #34c759);
-            border-radius: 4px;
-            transition: width 0.3s ease;
-        }
-
-        /* Leaderboard */
-        .leaderboard-panel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1500;
-            backdrop-filter: blur(15px);
-        }
-
-        .leaderboard-content {
-            background: var(--chat-bg);
-            border-radius: 20px;
-            padding: 25px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 85vh;
-            overflow-y: auto;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
-            border: 1px solid var(--border-color);
-        }
-
-        .leaderboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            color: var(--safe-text);
-        }
-
-        .leaderboard-close {
-            background: none;
-            border: none;
-            font-size: 28px;
-            cursor: pointer;
-            color: var(--safe-text);
-        }
-
-        .leaderboard-list {
-            max-height: 60vh;
-            overflow-y: auto;
-        }
-
-        .leaderboard-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
-            margin: 8px 0;
-            background: var(--input-bg);
-            border-radius: 12px;
-            color: var(--safe-text);
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .leaderboard-item:hover {
-            background: var(--border-color);
-            transform: translateY(-1px);
-        }
-
-        .leaderboard-item.current-user {
-            background: rgba(0, 122, 255, 0.2);
-            border: 2px solid var(--message-own-bg);
-        }
-
-        .leaderboard-rank {
-            font-size: 18px;
-            font-weight: bold;
-            min-width: 60px;
-        }
-
-        .leaderboard-info {
-            flex: 1;
-            margin-left: 15px;
-        }
-
-        .leaderboard-username {
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        .leaderboard-stats {
-            font-size: 12px;
-            opacity: 0.7;
-            margin-top: 2px;
-        }
-
-        .leaderboard-level {
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--message-own-bg);
-        }
-
-        .admin-panel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            backdrop-filter: blur(15px);
-        }
-
-        .admin-content {
-            background: var(--chat-bg);
-            border-radius: 20px;
-            padding: 25px;
-            max-width: 550px;
-            width: 90%;
-            max-height: 85vh;
-            overflow-y: auto;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
-            border: 1px solid var(--border-color);
-        }
-
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            color: var(--safe-text);
-        }
-
-        .admin-close {
-            background: none;
-            border: none;
-            font-size: 28px;
-            cursor: pointer;
-            color: var(--safe-text);
-        }
-
-        .admin-section {
-            margin-bottom: 25px;
-            padding: 20px;
-            border: 1px solid var(--border-color);
-            border-radius: 15px;
-            background: var(--input-bg);
-        }
-
-        .admin-section h3 {
-            color: var(--safe-text);
-            margin-bottom: 15px;
-            font-size: 17px;
-            font-weight: 700;
-        }
-
-        .admin-section p {
-            color: var(--safe-text);
-        }
-
-        .admin-button {
-            background: var(--message-own-bg);
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            margin: 6px;
-            transition: all 0.3s ease;
-            font-weight: 600;
-        }
-
-        .admin-button:hover {
-            background: #0051d5;
-            transform: translateY(-1px);
-        }
-
-        .admin-button.danger {
-            background: #ff3b30;
-        }
-
-        .admin-button.danger:hover {
-            background: #d70015;
-        }
-
-        .admin-input {
-            padding: 10px 14px;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            background: var(--input-bg);
-            color: var(--safe-text);
-            margin: 6px;
-            width: 220px;
-        }
-
-        .user-list, .account-list {
-            max-height: 180px;
-            overflow-y: auto;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 12px;
-            background: var(--input-bg);
-        }
-
-        .user-item, .account-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            color: var(--safe-text);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .user-item:last-child, .account-item:last-child {
-            border-bottom: none;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        /* Flappy Bird Game Styles */
-        .game-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            backdrop-filter: blur(10px);
-        }
-
-        .game-container {
-            background: linear-gradient(180deg, #87CEEB 0%, #98E4FF 100%);
-            width: 400px;
-            height: 600px;
-            position: relative;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
-        }
-
-        .game-canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        .game-ui {
-            position: absolute;
-            top: 25px;
-            left: 25px;
-            right: 25px;
-            color: white;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
-            z-index: 10;
-        }
-
-        .game-score {
-            font-size: 28px;
-            text-align: center;
-        }
-
-        .game-highscore {
-            font-size: 14px;
-            text-align: center;
-            margin-top: 5px;
-            opacity: 0.9;
-        }
-
-        .game-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: #ff3b30;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 35px;
-            height: 35px;
-            cursor: pointer;
-            font-size: 18px;
-            font-weight: bold;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            z-index: 15;
-        }
-
-        .game-over-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            color: white;
-            text-align: center;
-        }
-
-        .game-over-content {
-            background: rgba(255, 255, 255, 0.15);
-            padding: 35px;
-            border-radius: 20px;
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .game-over-score {
-            font-size: 42px;
-            margin: 25px 0;
-            color: #ffd700;
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
-        }
-
-        .game-restart-btn {
+        button {
+            padding: 10px 20px;
             background: #007aff;
             color: white;
             border: none;
-            padding: 14px 28px;
-            border-radius: 12px;
-            font-size: 16px;
+            border-radius: 5px;
             cursor: pointer;
-            margin: 12px;
-            font-weight: 600;
-            transition: all 0.3s ease;
         }
-
-        .game-restart-btn:hover {
-            background: #0051d5;
-            transform: translateY(-2px);
+        
+        button:hover {
+            background: #0056b3;
         }
-
-        /* Leaderboard in game */
-        .leaderboard {
-            margin-top: 25px;
-            max-height: 220px;
-            overflow-y: auto;
+        
+        .form-group {
+            margin-bottom: 15px;
         }
-
-        .leaderboard-item {
+        
+        .form-group input {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .error {
+            color: red;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        
+        .success {
+            color: green;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        
+        .tabs {
             display: flex;
-            justify-content: space-between;
-            padding: 10px 18px;
-            margin: 6px 0;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            font-weight: 500;
+            margin-bottom: 20px;
         }
-
-        .leaderboard-item.current-user {
-            background: rgba(0, 122, 255, 0.4);
-            border: 1px solid rgba(0, 122, 255, 0.6);
+        
+        .tab {
+            flex: 1;
+            padding: 10px;
+            background: #f0f0f0;
+            border: none;
+            cursor: pointer;
         }
-
-        /* iPhone style scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
+        
+        .tab.active {
+            background: #007aff;
+            color: white;
         }
-
-        ::-webkit-scrollbar-track {
-            background: transparent;
+        
+        .tab-content {
+            display: none;
         }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--text-light);
-            border-radius: 3px;
+        
+        .tab-content.active {
+            display: block;
         }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--border-color);
-        }
-
-        /* Auto-sizing textarea */
-        .message-input {
-            overflow: hidden;
+        
+        .online-count {
+            font-size: 12px;
+            opacity: 0.8;
         }
     </style>
 </head>
-<body data-theme="dark">
-    <!-- Background squares for secret game -->
-    <div class="bg-square top-left" data-position="top-left"></div>
-    <div class="bg-square top-right" data-position="top-right"></div>
-    <div class="bg-square bottom-left" data-position="bottom-left"></div>
-    <div class="bg-square bottom-right" data-position="bottom-right"></div>
-
-    <div class="messages-container-wrapper">
-        <div class="messages-header">
-            <div class="online-count" id="onlineCount">● 0 online</div>
-            Messages
-            <button class="settings-toggle" onclick="openSettingsPanel()">⚙️</button>
-            <div class="user-level" id="userLevel" style="display: none;">Level 1</div>
-            <div class="admin-badge" id="adminBadge" style="display: none;">ADMIN</div>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Simple Chat</h2>
+            <div class="online-count" id="onlineCount">0 users online</div>
         </div>
         
+        <!-- Auth Screen -->
         <div class="auth-screen" id="authScreen">
-            <h2>Messages</h2>
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('login')">Login</button>
+                <button class="tab" onclick="switchTab('register')">Register</button>
+            </div>
             
-            <div class="auth-tabs">
-                <button class="auth-tab active" onclick="switchTab('login')">Log In</button>
-                <button class="auth-tab" onclick="switchTab('register')">Create Account</button>
+            <!-- Login -->
+            <div class="tab-content active" id="loginTab">
+                <div class="form-group">
+                    <input type="text" id="loginUsername" placeholder="Username" maxlength="20">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="loginPassword" placeholder="Password">
+                </div>
+                <button onclick="login()">Login</button>
             </div>
-
-            <!-- Login Form -->
-            <div class="auth-form" id="loginForm">
-                <input type="text" id="loginUsername" placeholder="Username" maxlength="20">
-                <input type="password" id="loginPassword" placeholder="Password" maxlength="50">
-                <button onclick="loginUser()">Log In</button>
+            
+            <!-- Register -->
+            <div class="tab-content" id="registerTab">
+                <div class="form-group">
+                    <input type="text" id="regUsername" placeholder="Username" maxlength="20">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="regPassword" placeholder="Password">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="regConfirm" placeholder="Confirm Password">
+                </div>
+                <button onclick="register()">Create Account</button>
             </div>
-
-            <!-- Register Form -->
-            <div class="auth-form hidden" id="registerForm">
-                <input type="text" id="registerActivation" placeholder="Temporary activation code" maxlength="50">
-                <input type="text" id="registerUsername" placeholder="Username" maxlength="20">
-                <input type="password" id="registerPassword" placeholder="Password" maxlength="50">
-                <input type="password" id="registerConfirm" placeholder="Confirm Password" maxlength="50">
-                <button onclick="registerUser()">Create Account</button>
-            </div>
-
-            <div class="error-message" id="errorMessage" style="display: none;"></div>
-            <div class="success-message" id="successMessage" style="display: none;"></div>
+            
+            <div id="message"></div>
         </div>
         
+        <!-- Chat Screen -->
         <div class="chat-main" id="chatMain">
-            <div class="messages-container" id="messagesContainer"></div>
-            <div class="input-container">
-                <textarea id="messageInput" class="message-input" placeholder="iMessage" rows="1"></textarea>
-                <button onclick="sendMessage()" class="send-btn" id="sendBtn">↑</button>
-            </div>
-        </div>
-
-        <!-- Settings Panel -->
-        <div class="settings-panel" id="settingsPanel">
-            <div class="settings-content">
-                <div class="settings-header">
-                    <h2>⚙️ Settings</h2>
-                    <button class="settings-close" onclick="closeSettingsPanel()">&times;</button>
-                </div>
-
-                <div class="settings-section">
-                    <h3>🎨 Theme</h3>
-                    <div class="theme-switcher">
-                        <button class="theme-option" id="darkThemeBtn" onclick="setTheme('dark')">Dark</button>
-                        <button class="theme-option" id="lightThemeBtn" onclick="setTheme('light')">Light</button>
-                    </div>
-                </div>
-
-                <div class="settings-section">
-                    <h3>🔒 Change Password</h3>
-                    <div class="password-form">
-                        <input type="password" id="currentPassword" placeholder="Current Password">
-                        <input type="password" id="newPassword" placeholder="New Password">
-                        <input type="password" id="confirmPassword" placeholder="Confirm New Password">
-                        <button onclick="changePassword()">Update Password</button>
-                    </div>
-                </div>
-
-                <div class="settings-section">
-                    <h3>📊 Your Statistics</h3>
-                    <div class="user-stats" id="userStats">
-                        <p><strong>Level:</strong> <span id="statsLevel">1</span></p>
-                        <p><strong>XP:</strong> <span id="statsXP">0</span></p>
-                        <p><strong>Messages Sent:</strong> <span id="statsMessages">0</span></p>
-                        <p><strong>Progress to Next Level:</strong></p>
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="progressBar" style="width: 0%;"></div>
-                        </div>
-                        <p id="progressText">0 / 50 XP to Level 2</p>
-                    </div>
-                    <button class="theme-option" onclick="openLeaderboard()">🏆 View Leaderboard</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Leaderboard Panel -->
-        <div class="leaderboard-panel" id="leaderboardPanel">
-            <div class="leaderboard-content">
-                <div class="leaderboard-header">
-                    <h2>🏆 Leaderboard</h2>
-                    <button class="leaderboard-close" onclick="closeLeaderboard()">&times;</button>
-                </div>
-                <div class="leaderboard-list" id="leaderboardList">
-                    <p>Loading leaderboard...</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Admin Panel -->
-        <div class="admin-panel" id="adminPanel">
-            <div class="admin-content">
-                <div class="admin-header">
-                    <h2>🛡️ Admin Panel</h2>
-                    <button class="admin-close" onclick="closeAdminPanel()">&times;</button>
-                </div>
-
-                <div class="admin-section">
-                    <h3>🔑 Account Registration</h3>
-                    <p>Current Temporary Activation Code: <strong id="currentActivationCode">temp123</strong></p>
-                    <input type="text" class="admin-input" id="newActivationCode" placeholder="New temporary activation code">
-                    <button class="admin-button" onclick="changeActivationCode()">Update Temporary Code</button>
-                </div>
-
-                <div class="admin-section">
-                    <h3>👥 Registered Accounts</h3>
-                    <div class="account-list" id="accountList">
-                        <p>Loading accounts...</p>
-                    </div>
-                </div>
-
-                <div class="admin-section">
-                    <h3>🌐 Online Users</h3>
-                    <div class="user-list" id="userList">
-                        <p>Loading users...</p>
-                    </div>
-                    <button class="admin-button danger" onclick="kickAllUsers()">Kick All Users</button>
-                </div>
-
-                <div class="admin-section">
-                    <h3>🗑️ Message Management</h3>
-                    <button class="admin-button danger" onclick="clearAllMessages()">Clear All Messages</button>
-                </div>
-
-                <div class="admin-section">
-                    <h3>📊 Chat Stats</h3>
-                    <div id="chatStats">
-                        <p>Total Accounts: <span id="totalAccounts">0</span></p>
-                        <p>Online Users: <span id="adminOnlineCount">0</span></p>
-                        <p>Total Messages: <span id="totalMessages">0</span></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="status" id="status" style="display: none;">
-            ⚠️ Please set up Firebase configuration first
-        </div>
-    </div>
-
-    <!-- Flappy Bird Game -->
-    <div class="game-overlay" id="gameOverlay">
-        <div class="game-container">
-            <button class="game-close" onclick="closeGame()">&times;</button>
-            <div class="game-ui">
-                <div class="game-score" id="gameScore">0</div>
-                <div class="game-highscore" id="gameHighscore">Best: 0</div>
-            </div>
-            <canvas class="game-canvas" id="gameCanvas" width="400" height="600"></canvas>
-            <div class="game-over-screen" id="gameOverScreen">
-                <div class="game-over-content">
-                    <h2>Game Over!</h2>
-                    <div class="game-over-score" id="finalScore">0</div>
-                    <p id="scoreMessage">Great job!</p>
-                    <div id="highscoreMessage" style="margin: 15px 0; font-size: 16px; color: #ffd700;"></div>
-                    <button class="game-restart-btn" onclick="restartGame()">Play Again</button>
-                    <button class="game-restart-btn" onclick="closeGame()">Back to Chat</button>
-                    <div class="leaderboard" id="gameLeaderboard">
-                        <h3>Leaderboard</h3>
-                        <div id="gameLeaderboardList">Loading...</div>
-                    </div>
-                </div>
+            <div class="messages" id="messages"></div>
+            <div class="input-area">
+                <textarea id="messageInput" class="message-input" placeholder="Type a message..."></textarea>
+                <button onclick="sendMessage()">Send</button>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDK -->
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-compat.js"></script>
-
+    
     <script>
         // Firebase config
         const firebaseConfig = {
@@ -1306,1345 +211,211 @@
             projectId: "schoolchat-60b44",
             storageBucket: "schoolchat-60b44.firebasestorage.app",
             messagingSenderId: "209703349541",
-            appId: "1:209703349541:web:d89ba692f5f5c322503ecc",
-            measurementId: "G-S6VLMJHKFF"
+            appId: "1:209703349541:web:d89ba692f5f5c322503ecc"
         };
 
-        // Admin code
-        const ADMIN_CODE = "/7689admin7689";
-        let ACTIVATION_CODE = "temp123";
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
         
         // Global variables
         let currentUser = '';
         let userRef = null;
-        let database = null;
-        let isAdmin = false;
-        let currentTab = 'login';
-        let userHighScore = 0;
-        let userStats = { xp: 0, messageCount: 0, level: 1 };
 
-        // Secret game variables
-        let secretSequence = [];
-        let secretTimeout = null;
-        const REQUIRED_SEQUENCE = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
-        const SEQUENCE_TIMEOUT = 10000;
-
-        // Game variables
-        let game = null;
-        let gameCanvas = null;
-        let gameCtx = null;
-
-        // DOM elements
-        const authScreen = document.getElementById('authScreen');
-        const chatMain = document.getElementById('chatMain');
-        const messageInput = document.getElementById('messageInput');
-        const messagesContainer = document.getElementById('messagesContainer');
-        const sendBtn = document.getElementById('sendBtn');
-        const status = document.getElementById('status');
-        const onlineCount = document.getElementById('onlineCount');
-        const errorMessage = document.getElementById('errorMessage');
-        const successMessage = document.getElementById('successMessage');
-
-        // Level system functions
-        function calculateLevel(xp) {
-            return Math.floor(Math.sqrt(xp / 50)) + 1;
-        }
-
-        function calculateXPForLevel(level) {
-            return Math.pow(level - 1, 2) * 50;
-        }
-
-        function calculateProgress(xp, level) {
-            const currentLevelXP = calculateXPForLevel(level);
-            const nextLevelXP = calculateXPForLevel(level + 1);
-            return Math.min(100, ((xp - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100);
-        }
-
-        function updateUserLevel() {
-            if (!currentUser || !database) return;
-            
-            database.ref(`userStats/${currentUser}`).once('value', (snapshot) => {
-                if (snapshot.exists()) {
-                    userStats = snapshot.val();
-                } else {
-                    userStats = { xp: 0, messageCount: 0, level: 1 };
-                }
-                
-                const newLevel = calculateLevel(userStats.xp);
-                const leveledUp = newLevel > userStats.level;
-                
-                if (leveledUp) {
-                    userStats.level = newLevel;
-                    database.ref(`userStats/${currentUser}`).update({ level: newLevel });
-                    showLevelUpNotification(newLevel);
-                }
-                
-                updateLevelDisplay();
-            });
-        }
-
-        function updateLevelDisplay() {
-            const userLevelElement = document.getElementById('userLevel');
-            if (userLevelElement && currentUser) {
-                userLevelElement.textContent = `Level ${userStats.level}`;
-                userLevelElement.style.display = 'block';
-            }
-            
-            // Update stats in settings panel
-            document.getElementById('statsLevel').textContent = userStats.level;
-            document.getElementById('statsXP').textContent = userStats.xp;
-            document.getElementById('statsMessages').textContent = userStats.messageCount;
-            
-            const progress = calculateProgress(userStats.xp, userStats.level);
-            document.getElementById('progressBar').style.width = progress + '%';
-            
-            const nextLevelXP = calculateXPForLevel(userStats.level + 1);
-            const currentLevelXP = calculateXPForLevel(userStats.level);
-            const neededXP = nextLevelXP - userStats.xp;
-            document.getElementById('progressText').textContent = 
-                `${userStats.xp - currentLevelXP} / ${nextLevelXP - currentLevelXP} XP to Level ${userStats.level + 1}`;
-        }
-
-        function awardXP(amount) {
-            if (!currentUser || !database) return;
-            
-            userStats.xp += amount;
-            userStats.messageCount += 1;
-            
-            database.ref(`userStats/${currentUser}`).set(userStats);
-            updateUserLevel();
-        }
-
-        function showLevelUpNotification(level) {
-            const notification = document.createElement('div');
-            notification.className = 'level-up-notification';
-            notification.innerHTML = `🎉 LEVEL UP! 🎉<br>You reached Level ${level}!`;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                document.body.removeChild(notification);
-            }, 3000);
-        }
-
-        // Settings panel functions
-        function openSettingsPanel() {
-            document.getElementById('settingsPanel').style.display = 'flex';
-            updateThemeButtons();
-            updateUserLevel();
-        }
-
-        function closeSettingsPanel() {
-            document.getElementById('settingsPanel').style.display = 'none';
-        }
-
-        function setTheme(theme) {
-            document.body.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-            updateThemeButtons();
-        }
-
-        function updateThemeButtons() {
-            const currentTheme = document.body.getAttribute('data-theme');
-            document.getElementById('darkThemeBtn').classList.toggle('active', currentTheme === 'dark');
-            document.getElementById('lightThemeBtn').classList.toggle('active', currentTheme === 'light');
-        }
-
-        function changePassword() {
-            const currentPassword = document.getElementById('currentPassword').value.trim();
-            const newPassword = document.getElementById('newPassword').value.trim();
-            const confirmPassword = document.getElementById('confirmPassword').value.trim();
-            
-            if (!currentPassword || !newPassword || !confirmPassword) {
-                showError('Please fill in all password fields');
-                return;
-            }
-            
-            if (newPassword.length < 4) {
-                showError('New password must be at least 4 characters');
-                return;
-            }
-            
-            if (newPassword !== confirmPassword) {
-                showError('New passwords do not match');
-                return;
-            }
-            
-            // Verify current password
-            database.ref('accounts').orderByChild('username').equalTo(currentUser).once('value', (snapshot) => {
-                if (!snapshot.exists()) {
-                    showError('Account not found');
-                    return;
-                }
-                
-                const accounts = snapshot.val();
-                const accountId = Object.keys(accounts)[0];
-                const accountData = accounts[accountId];
-                
-                if (accountData.password !== currentPassword) {
-                    showError('Current password is incorrect');
-                    return;
-                }
-                
-                // Update password
-                database.ref(`accounts/${accountId}`).update({ password: newPassword }).then(() => {
-                    showSuccess('Password updated successfully!');
-                    document.getElementById('currentPassword').value = '';
-                    document.getElementById('newPassword').value = '';
-                    document.getElementById('confirmPassword').value = '';
-                }).catch((error) => {
-                    showError('Error updating password: ' + error.message);
-                });
-            });
-        }
-
-        // Leaderboard functions
-        function openLeaderboard() {
-            document.getElementById('leaderboardPanel').style.display = 'flex';
-            loadLeaderboard();
-        }
-
-        function closeLeaderboard() {
-            document.getElementById('leaderboardPanel').style.display = 'none';
-        }
-
-        function loadLeaderboard() {
-            if (!database) return;
-            
-            database.ref('userStats').once('value', (snapshot) => {
-                const stats = snapshot.val() || {};
-                const leaderboardData = Object.entries(stats).map(([username, data]) => ({
-                    username,
-                    ...data
-                })).sort((a, b) => {
-                    if (b.level !== a.level) return b.level - a.level;
-                    return b.xp - a.xp;
-                }).slice(0, 20);
-                
-                const leaderboardList = document.getElementById('leaderboardList');
-                
-                if (leaderboardData.length === 0) {
-                    leaderboardList.innerHTML = '<p>No data yet! Send some messages to get on the leaderboard.</p>';
-                    return;
-                }
-                
-                leaderboardList.innerHTML = leaderboardData.map((user, index) => {
-                    const isCurrentUser = user.username === currentUser;
-                    let rank = index + 1;
-                    let rankDisplay = rank;
-                    
-                    if (rank === 1) rankDisplay = '🥇';
-                    else if (rank === 2) rankDisplay = '🥈';
-                    else if (rank === 3) rankDisplay = '🥉';
-                    
-                    return `
-                        <div class="leaderboard-item ${isCurrentUser ? 'current-user' : ''}">
-                            <div class="leaderboard-rank">${rankDisplay}</div>
-                            <div class="leaderboard-info">
-                                <div class="leaderboard-username">${escapeHtml(user.username)}</div>
-                                <div class="leaderboard-stats">${user.messageCount || 0} messages • ${user.xp || 0} XP</div>
-                            </div>
-                            <div class="leaderboard-level">Lv.${user.level || 1}</div>
-                        </div>
-                    `;
-                }).join('');
-            });
-        }
-
-        // Initialize Firebase
-        const isConfigured = !firebaseConfig.apiKey.includes('YOUR_');
-        
-        if (isConfigured) {
-            firebase.initializeApp(firebaseConfig);
-            database = firebase.database();
-            loadActivationCode();
-        } else {
-            status.style.display = 'block';
-            status.innerHTML = '⚠️ Please replace the Firebase configuration in the code';
-        }
-
-        // Initialize on page load
-        window.addEventListener('load', () => {
-            loadTheme();
-            document.getElementById('loginUsername').focus();
-            initializeSecretSquares();
-        });
-
-        // Initialize secret squares
-        function initializeSecretSquares() {
-            const squares = document.querySelectorAll('.bg-square');
-            squares.forEach(square => {
-                square.addEventListener('click', handleSecretClick);
-            });
-        }
-
-        // Handle secret square clicks
-        function handleSecretClick(event) {
-            if (!currentUser) return;
-            
-            const position = event.target.getAttribute('data-position');
-            
-            event.target.classList.add('clicked');
-            setTimeout(() => {
-                event.target.classList.remove('clicked');
-            }, 500);
-            
-            secretSequence.push(position);
-            
-            if (secretTimeout) clearTimeout(secretTimeout);
-            secretTimeout = setTimeout(() => {
-                secretSequence = [];
-            }, SEQUENCE_TIMEOUT);
-            
-            if (secretSequence.length === REQUIRED_SEQUENCE.length) {
-                const isCorrect = secretSequence.every((pos, index) => pos === REQUIRED_SEQUENCE[index]);
-                
-                if (isCorrect) {
-                    secretSequence = [];
-                    clearTimeout(secretTimeout);
-                    unlockFlappyBird();
-                } else {
-                    secretSequence = [];
-                }
-            }
-        }
-
-        // Unlock Flappy Bird
-        function unlockFlappyBird() {
-            showSuccess('🎮 Secret game unlocked! Get ready to flap!');
-            setTimeout(() => {
-                startFlappyBird();
-            }, 1500);
-        }
-
-        // Start Flappy Bird
-        function startFlappyBird() {
-            document.getElementById('gameOverlay').style.display = 'flex';
-            gameCanvas = document.getElementById('gameCanvas');
-            gameCtx = gameCanvas.getContext('2d');
-            
-            // Load user's high score
-            loadUserHighScore();
-            
-            game = new FlappyBirdGame();
-            game.start();
-        }
-
-        // Load user's high score
-        function loadUserHighScore() {
-            if (!database || !currentUser) return;
-            
-            database.ref('gameScores').orderByChild('username').equalTo(currentUser).once('value', (snapshot) => {
-                let highScore = 0;
-                snapshot.forEach(child => {
-                    const score = child.val().score;
-                    if (score > highScore) {
-                        highScore = score;
-                    }
-                });
-                userHighScore = highScore;
-                document.getElementById('gameHighscore').textContent = `Best: ${highScore}`;
-            });
-        }
-
-        // Close game
-        function closeGame() {
-            document.getElementById('gameOverlay').style.display = 'none';
-            if (game) {
-                game.stop();
-                game = null;
-            }
-        }
-
-        // Restart game
-        function restartGame() {
-            document.getElementById('gameOverScreen').style.display = 'none';
-            if (game) {
-                game.restart();
-            }
-        }
-
-        // Much Easier Flappy Bird Game Class
-        class FlappyBirdGame {
-            constructor() {
-                this.bird = {
-                    x: 100,
-                    y: 300,
-                    width: 30,
-                    height: 30,
-                    velocity: 0,
-                    gravity: 0.075,     // Much reduced from 0.3
-                    jump: -4,           // Reduced from -6
-                    color: '#ffd700'
-                };
-                
-                this.pipes = [];
-                this.score = 0;
-                this.gameRunning = false;
-                this.gameStarted = false;
-                this.pipeGap = 180;      // Increased from 150
-                this.pipeWidth = 50;
-                this.pipeSpeed = 1.0;    // Reduced from 1.5
-                this.pipeSpacing = 300;  // Increased from 250
-                
-                this.ground = {
-                    y: gameCanvas.height - 50,
-                    color: '#228b22'
-                };
-                
-                this.setupEventListeners();
-            }
-            
-            setupEventListeners() {
-                gameCanvas.addEventListener('click', () => this.flap());
-                document.addEventListener('keydown', (e) => {
-                    if (e.code === 'Space' && this.gameRunning) {
-                        e.preventDefault();
-                        this.flap();
-                    }
-                });
-            }
-            
-            start() {
-                this.gameRunning = true;
-                this.gameStarted = false;
-                this.gameLoop();
-                this.drawStartScreen();
-            }
-            
-            stop() {
-                this.gameRunning = false;
-            }
-            
-            restart() {
-                this.bird.y = 300;
-                this.bird.velocity = 0;
-                this.pipes = [];
-                this.score = 0;
-                this.gameStarted = false;
-                document.getElementById('gameScore').textContent = '0';
-                this.start();
-            }
-            
-            flap() {
-                if (!this.gameRunning) return;
-                
-                if (!this.gameStarted) {
-                    this.gameStarted = true;
-                }
-                
-                this.bird.velocity = this.bird.jump;
-            }
-            
-            update() {
-                if (!this.gameStarted) return;
-                
-                // Update bird
-                this.bird.velocity += this.bird.gravity;
-                this.bird.y += this.bird.velocity;
-                
-                // Generate pipes with better spacing
-                if (this.pipes.length === 0 || this.pipes[this.pipes.length - 1].x < gameCanvas.width - this.pipeSpacing) {
-                    this.addPipe();
-                }
-                
-                // Update pipes
-                this.pipes.forEach(pipe => {
-                    pipe.x -= this.pipeSpeed;
-                });
-                
-                // Remove off-screen pipes
-                this.pipes = this.pipes.filter(pipe => pipe.x + this.pipeWidth > 0);
-                
-                // Check for scoring
-                this.pipes.forEach(pipe => {
-                    if (!pipe.scored && pipe.x + this.pipeWidth < this.bird.x) {
-                        pipe.scored = true;
-                        this.score++;
-                        document.getElementById('gameScore').textContent = this.score;
-                        
-                        // Update high score display
-                        if (this.score > userHighScore) {
-                            userHighScore = this.score;
-                            document.getElementById('gameHighscore').textContent = `Best: ${userHighScore}`;
-                        }
-                    }
-                });
-                
-                // Check collisions
-                if (this.checkCollisions()) {
-                    this.gameOver();
-                }
-            }
-            
-            addPipe() {
-                const minHeight = 120;  // Better minimum height
-                const maxHeight = gameCanvas.height - this.ground.y - this.pipeGap - minHeight - 60;
-                const topHeight = Math.random() * (maxHeight - minHeight) + minHeight;
-                
-                this.pipes.push({
-                    x: gameCanvas.width,
-                    topHeight: topHeight,
-                    bottomY: topHeight + this.pipeGap,
-                    scored: false
-                });
-            }
-            
-            checkCollisions() {
-                // Ground collision
-                if (this.bird.y + this.bird.height >= this.ground.y) {
-                    return true;
-                }
-                
-                // Ceiling collision
-                if (this.bird.y <= 0) {
-                    return true;
-                }
-                
-                // Pipe collisions with more forgiving hitbox
-                const hitboxMargin = 5; // Increased forgiveness
-                for (let pipe of this.pipes) {
-                    if (this.bird.x + this.bird.width - hitboxMargin > pipe.x && 
-                        this.bird.x + hitboxMargin < pipe.x + this.pipeWidth) {
-                        
-                        if (this.bird.y + hitboxMargin < pipe.topHeight || 
-                            this.bird.y + this.bird.height - hitboxMargin > pipe.bottomY) {
-                            return true;
-                        }
-                    }
-                }
-                
-                return false;
-            }
-            
-            gameOver() {
-                this.gameRunning = false;
-                this.saveScore();
-                this.showGameOverScreen();
-            }
-            
-            saveScore() {
-                if (!database || !currentUser) return;
-                
-                // Only save if it's a new high score for this user
-                if (this.score > userHighScore || userHighScore === 0) {
-                    const scoreData = {
-                        username: currentUser,
-                        score: this.score,
-                        timestamp: firebase.database.ServerValue.TIMESTAMP
-                    };
-                    
-                    database.ref('gameScores').push(scoreData);
-                }
-            }
-            
-            showGameOverScreen() {
-                document.getElementById('finalScore').textContent = this.score;
-                
-                let message = "Try again!";
-                let highscoreMessage = "";
-                
-                if (this.score > userHighScore || (userHighScore === 0 && this.score > 0)) {
-                    highscoreMessage = "🎉 NEW HIGH SCORE! 🎉";
-                    userHighScore = this.score;
-                } else {
-                    highscoreMessage = `Your best: ${userHighScore}`;
-                }
-                
-                if (this.score >= 15) message = "Amazing! You're a flappy master!";
-                else if (this.score >= 10) message = "Great job!";
-                else if (this.score >= 5) message = "Not bad!";
-                
-                document.getElementById('scoreMessage').textContent = message;
-                document.getElementById('highscoreMessage').textContent = highscoreMessage;
-                
-                this.loadGameLeaderboard();
-                document.getElementById('gameOverScreen').style.display = 'flex';
-            }
-            
-            loadGameLeaderboard() {
-                if (!database) return;
-                
-                // Get best score for each user
-                database.ref('gameScores').once('value', (snapshot) => {
-                    const userBestScores = {};
-                    
-                    snapshot.forEach(child => {
-                        const data = child.val();
-                        const username = data.username;
-                        const score = data.score;
-                        
-                        if (!userBestScores[username] || score > userBestScores[username]) {
-                            userBestScores[username] = score;
-                        }
-                    });
-                    
-                    // Convert to array and sort
-                    const scores = Object.entries(userBestScores).map(([username, score]) => ({
-                        username,
-                        score
-                    })).sort((a, b) => b.score - a.score).slice(0, 10);
-                    
-                    const gameLeaderboardList = document.getElementById('gameLeaderboardList');
-                    
-                    if (scores.length === 0) {
-                        gameLeaderboardList.innerHTML = '<p>No scores yet!</p>';
-                        return;
-                    }
-                    
-                    gameLeaderboardList.innerHTML = scores.map((score, index) => {
-                        const isCurrentUser = score.username === currentUser;
-                        return `
-                            <div class="leaderboard-item ${isCurrentUser ? 'current-user' : ''}">
-                                <span>#${index + 1} ${escapeHtml(score.username)}</span>
-                                <span>${score.score}</span>
-                            </div>
-                        `;
-                    }).join('');
-                });
-            }
-            
-            draw() {
-                // Clear canvas
-                gameCtx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
-                
-                // Draw background
-                const gradient = gameCtx.createLinearGradient(0, 0, 0, gameCanvas.height);
-                gradient.addColorStop(0, '#87CEEB');
-                gradient.addColorStop(1, '#98E4FF');
-                gameCtx.fillStyle = gradient;
-                gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
-                
-                // Draw clouds
-                this.drawClouds();
-                
-                // Draw pipes
-                this.pipes.forEach(pipe => {
-                    // Top pipe
-                    gameCtx.fillStyle = '#228b22';
-                    gameCtx.fillRect(pipe.x, 0, this.pipeWidth, pipe.topHeight);
-                    
-                    // Bottom pipe
-                    gameCtx.fillRect(pipe.x, pipe.bottomY, this.pipeWidth, this.ground.y - pipe.bottomY);
-                    
-                    // Pipe caps
-                    gameCtx.fillStyle = '#32cd32';
-                    gameCtx.fillRect(pipe.x - 5, pipe.topHeight - 20, this.pipeWidth + 10, 20);
-                    gameCtx.fillRect(pipe.x - 5, pipe.bottomY, this.pipeWidth + 10, 20);
-                });
-                
-                // Draw ground
-                gameCtx.fillStyle = this.ground.color;
-                gameCtx.fillRect(0, this.ground.y, gameCanvas.width, gameCanvas.height - this.ground.y);
-                
-                // Draw bird
-                gameCtx.fillStyle = this.bird.color;
-                gameCtx.beginPath();
-                gameCtx.arc(
-                    this.bird.x + this.bird.width / 2,
-                    this.bird.y + this.bird.height / 2,
-                    this.bird.width / 2,
-                    0,
-                    Math.PI * 2
-                );
-                gameCtx.fill();
-                
-                // Bird eye
-                gameCtx.fillStyle = 'black';
-                gameCtx.beginPath();
-                gameCtx.arc(
-                    this.bird.x + this.bird.width / 2 + 5,
-                    this.bird.y + this.bird.height / 2 - 3,
-                    3,
-                    0,
-                    Math.PI * 2
-                );
-                gameCtx.fill();
-                
-                // Bird beak
-                gameCtx.fillStyle = '#ff8c00';
-                gameCtx.beginPath();
-                gameCtx.moveTo(this.bird.x + this.bird.width, this.bird.y + this.bird.height / 2);
-                gameCtx.lineTo(this.bird.x + this.bird.width + 10, this.bird.y + this.bird.height / 2 - 3);
-                gameCtx.lineTo(this.bird.x + this.bird.width + 10, this.bird.y + this.bird.height / 2 + 3);
-                gameCtx.fill();
-            }
-            
-            drawClouds() {
-                gameCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-                
-                const clouds = [
-                    {x: 50, y: 100, size: 20},
-                    {x: 200, y: 80, size: 25},
-                    {x: 320, y: 120, size: 18}
-                ];
-                
-                clouds.forEach(cloud => {
-                    gameCtx.beginPath();
-                    gameCtx.arc(cloud.x, cloud.y, cloud.size, 0, Math.PI * 2);
-                    gameCtx.arc(cloud.x + cloud.size, cloud.y, cloud.size * 0.8, 0, Math.PI * 2);
-                    gameCtx.arc(cloud.x + cloud.size * 0.5, cloud.y - cloud.size * 0.5, cloud.size * 0.6, 0, Math.PI * 2);
-                    gameCtx.fill();
-                });
-            }
-            
-            drawStartScreen() {
-                if (this.gameStarted) return;
-                
-                gameCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-                gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
-                
-                gameCtx.fillStyle = 'white';
-                gameCtx.font = 'bold 24px Arial';
-                gameCtx.textAlign = 'center';
-                gameCtx.fillText('Flappy Bird', gameCanvas.width / 2, gameCanvas.height / 2 - 50);
-                
-                gameCtx.font = '16px Arial';
-                gameCtx.fillText('Click or press SPACE to flap', gameCanvas.width / 2, gameCanvas.height / 2);
-                gameCtx.fillText('Avoid the pipes!', gameCanvas.width / 2, gameCanvas.height / 2 + 30);
-            }
-            
-            gameLoop() {
-                if (!this.gameRunning) return;
-                
-                this.update();
-                this.draw();
-                
-                if (!this.gameStarted) {
-                    this.drawStartScreen();
-                }
-                
-                requestAnimationFrame(() => this.gameLoop());
-            }
-        }
-
-        // Auto-resize textarea
-        function autoResize() {
-            messageInput.style.height = 'auto';
-            messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
-        }
-
-        messageInput.addEventListener('input', autoResize);
-
-        // Load activation code
-        function loadActivationCode() {
-            database.ref('settings/activationCode').once('value', (snapshot) => {
-                if (snapshot.exists()) {
-                    ACTIVATION_CODE = snapshot.val();
-                    document.getElementById('currentActivationCode').textContent = ACTIVATION_CODE;
-                }
-            });
-        }
-
-        // Theme functions
-        function loadTheme() {
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            document.body.setAttribute('data-theme', savedTheme);
-            updateThemeButtons();
-        }
-
-        // Switch tabs
+        // Switch between login and register tabs
         function switchTab(tab) {
-            currentTab = tab;
-            const loginForm = document.getElementById('loginForm');
-            const registerForm = document.getElementById('registerForm');
-            const tabs = document.querySelectorAll('.auth-tab');
-            
-            tabs.forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             
             if (tab === 'login') {
-                loginForm.classList.remove('hidden');
-                registerForm.classList.add('hidden');
-                tabs[0].classList.add('active');
+                document.querySelector('.tab:first-child').classList.add('active');
+                document.getElementById('loginTab').classList.add('active');
             } else {
-                loginForm.classList.add('hidden');
-                registerForm.classList.remove('hidden');
-                tabs[1].classList.add('active');
+                document.querySelector('.tab:last-child').classList.add('active');
+                document.getElementById('registerTab').classList.add('active');
             }
-            
-            hideMessages();
+            clearMessage();
+        }
+
+        // Show message
+        function showMessage(text, isError = false) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = isError ? 'error' : 'success';
+        }
+
+        // Clear message
+        function clearMessage() {
+            document.getElementById('message').textContent = '';
         }
 
         // Register user
-        function registerUser() {
-            if (!isConfigured) {
-                showError('Please set up Firebase configuration first!');
-                return;
-            }
+        function register() {
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value.trim();
+            const confirm = document.getElementById('regConfirm').value.trim();
             
-            const activation = document.getElementById('registerActivation').value.trim();
-            const username = document.getElementById('registerUsername').value.trim();
-            const password = document.getElementById('registerPassword').value.trim();
-            const confirm = document.getElementById('registerConfirm').value.trim();
-            
-            if (!activation) {
-                showError('Please enter the activation code');
-                return;
-            }
-            
-            if (activation !== ACTIVATION_CODE) {
-                showError('Invalid temporary activation code! Ask the admin for the correct code.');
+            if (!username || !password || !confirm) {
+                showMessage('Please fill in all fields', true);
                 return;
             }
             
             if (username.length < 3) {
-                showError('Username must be at least 3 characters');
-                return;
-            }
-            
-            if (username.length > 20) {
-                showError('Username too long (max 20 characters)');
+                showMessage('Username must be at least 3 characters', true);
                 return;
             }
             
             if (password.length < 4) {
-                showError('Password must be at least 4 characters');
+                showMessage('Password must be at least 4 characters', true);
                 return;
             }
             
             if (password !== confirm) {
-                showError('Passwords do not match');
+                showMessage('Passwords do not match', true);
                 return;
             }
             
             // Check if username exists
-            database.ref('accounts').orderByChild('username').equalTo(username).once('value', (snapshot) => {
+            database.ref('accounts').orderByChild('username').equalTo(username).once('value')
+            .then(snapshot => {
                 if (snapshot.exists()) {
-                    showError('Username already taken! Please choose a different one.');
+                    showMessage('Username already taken', true);
                     return;
                 }
                 
                 // Create account
                 const accountId = database.ref('accounts').push().key;
-                database.ref(`accounts/${accountId}`).set({
+                return database.ref(`accounts/${accountId}`).set({
                     username: username,
                     password: password,
-                    created: firebase.database.ServerValue.TIMESTAMP
-                }).then(() => {
-                    // Initialize user stats
-                    database.ref(`userStats/${username}`).set({
-                        xp: 0,
-                        messageCount: 0,
-                        level: 1
-                    });
-                    
-                    showSuccess('Account created successfully! You can now log in.');
-                    // Clear form
-                    document.getElementById('registerActivation').value = '';
-                    document.getElementById('registerUsername').value = '';
-                    document.getElementById('registerPassword').value = '';
-                    document.getElementById('registerConfirm').value = '';
-                    // Switch to login
-                    switchTab('login');
-                    document.getElementById('loginUsername').value = username;
-                }).catch((error) => {
-                    showError('Error creating account: ' + error.message);
+                    created: Date.now()
                 });
+            })
+            .then(() => {
+                showMessage('Account created! You can now login.');
+                // Clear form and switch to login
+                document.getElementById('regUsername').value = '';
+                document.getElementById('regPassword').value = '';
+                document.getElementById('regConfirm').value = '';
+                document.getElementById('loginUsername').value = username;
+                switchTab('login');
+            })
+            .catch(error => {
+                showMessage('Error creating account: ' + error.message, true);
             });
         }
 
         // Login user
-        function loginUser() {
-            if (!isConfigured) {
-                showError('Please set up Firebase configuration first!');
-                return;
-            }
-            
+        function login() {
             const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value.trim();
             
             if (!username || !password) {
-                showError('Please enter both username and password');
+                showMessage('Please enter username and password', true);
                 return;
             }
             
             // Check if already online
-            database.ref('users').orderByChild('username').equalTo(username).once('value', (onlineSnapshot) => {
-                if (onlineSnapshot.exists()) {
-                    showError('Someone is already logged in with this username. Please try again later.');
-                    return;
+            database.ref('users').orderByChild('username').equalTo(username).once('value')
+            .then(snapshot => {
+                if (snapshot.exists()) {
+                    throw new Error('User already online');
                 }
                 
                 // Check credentials
-                database.ref('accounts').orderByChild('username').equalTo(username).once('value', (snapshot) => {
-                    if (!snapshot.exists()) {
-                        showError('Username not found! Please create an account first.');
-                        return;
-                    }
-                    
-                    const accounts = snapshot.val();
-                    const accountData = Object.values(accounts)[0];
-                    
-                    if (accountData.password !== password) {
-                        showError('Incorrect password!');
-                        return;
-                    }
-                    
-                    // Login successful
-                    currentUser = username;
-                    enterChat();
-                });
+                return database.ref('accounts').orderByChild('username').equalTo(username).once('value');
+            })
+            .then(snapshot => {
+                if (!snapshot.exists()) {
+                    throw new Error('Username not found');
+                }
+                
+                const accounts = snapshot.val();
+                const accountData = Object.values(accounts)[0];
+                
+                if (accountData.password !== password) {
+                    throw new Error('Wrong password');
+                }
+                
+                // Login successful
+                currentUser = username;
+                enterChat();
+            })
+            .catch(error => {
+                showMessage(error.message, true);
             });
         }
 
         // Enter chat
         function enterChat() {
+            // Add user to online list
             const userId = Date.now().toString();
             userRef = database.ref(`users/${userId}`);
             userRef.set({
                 username: currentUser,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
+                timestamp: Date.now()
             });
-
+            
+            // Remove user when disconnected
             userRef.onDisconnect().remove();
-
-            authScreen.style.display = 'none';
-            chatMain.style.display = 'flex';
             
-            // Show XP leaderboard - check if element exists first
-            const xpLeaderboardElement = document.getElementById('xpLeaderboard');
-            if (xpLeaderboardElement) {
-                xpLeaderboardElement.style.display = 'flex';
-            }
+            // Show chat screen
+            document.getElementById('authScreen').style.display = 'none';
+            document.getElementById('chatMain').style.display = 'block';
             
-            messageInput.focus();
-            
-            // Load user stats
-            updateUserLevel();
-            
+            // Start listening
             listenForMessages();
             listenForUsers();
             
-            // Start updating XP leaderboard
-            updateXPLeaderboard();
-            setInterval(updateXPLeaderboard, 5000); // Update every 5 seconds
-        }
-
-        // Listen for users - simplified
-        function listenForUsers() {
-            if (!database) {
-                console.error('No database connection for users');
-                return;
-            }
-
-            console.log('Setting up users listener...');
-            
-            database.ref('users').on('value', (snapshot) => {
-                const users = snapshot.val();
-                const userCount = users ? Object.keys(users).length : 0;
-                
-                const onlineCountElement = document.getElementById('onlineCount');
-                if (onlineCountElement) {
-                    onlineCountElement.textContent = `● ${userCount} online`;
-                }
-                
-                console.log(`${userCount} users online`);
-            }, (error) => {
-                console.error('Users listener error:', error);
-            });
-        }
-
-        // Update XP Leaderboard
-        function updateXPLeaderboard() {
-            if (!database) return;
-            
-            database.ref('userStats').once('value', (snapshot) => {
-                const stats = snapshot.val() || {};
-                const leaderboardData = Object.entries(stats).map(([username, data]) => ({
-                    username,
-                    ...data
-                })).sort((a, b) => {
-                    if (b.level !== a.level) return b.level - a.level;
-                    return b.xp - a.xp;
-                }).slice(0, 15); // Show top 15 users
-                
-                const xpLeaderboardContent = document.getElementById('xpLeaderboardContent');
-                
-                if (leaderboardData.length === 0) {
-                    xpLeaderboardContent.innerHTML = '<p style="color: var(--safe-text); text-align: center; margin-top: 20px;">No data yet!</p>';
-                    return;
-                }
-                
-                xpLeaderboardContent.innerHTML = leaderboardData.map((user, index) => {
-                    const isCurrentUser = user.username === currentUser;
-                    let rank = index + 1;
-                    let rankDisplay = rank;
-                    
-                    if (rank === 1) rankDisplay = '🥇';
-                    else if (rank === 2) rankDisplay = '🥈';
-                    else if (rank === 3) rankDisplay = '🥉';
-                    
-                    return `
-                        <div class="xp-leaderboard-item ${isCurrentUser ? 'current-user' : ''}">
-                            <div class="xp-leaderboard-rank">${rankDisplay}</div>
-                            <div class="xp-leaderboard-info">
-                                <div class="xp-leaderboard-username">${escapeHtml(user.username)}</div>
-                                <div class="xp-leaderboard-stats">${user.xp || 0} XP</div>
-                            </div>
-                            <div class="xp-leaderboard-level">Lv.${user.level || 1}</div>
-                        </div>
-                    `;
-                }).join('');
-            });
+            document.getElementById('messageInput').focus();
         }
 
         // Send message
         function sendMessage() {
-            if (!isConfigured) {
-                showError('Please set up Firebase configuration first!');
-                return;
-            }
-            
+            const messageInput = document.getElementById('messageInput');
             const message = messageInput.value.trim();
-            if (message === '') return;
-
-            // Check for admin code
-            if (message === ADMIN_CODE) {
-                if (isAdmin && document.getElementById('adminPanel').style.display === 'flex') {
-                    closeAdminPanel();
-                    showError('Admin panel closed.');
-                } else {
-                    isAdmin = true;
-                    document.getElementById('adminBadge').style.display = 'block';
-                    openAdminPanel();
-                    showError('Admin panel opened!');
-                    listenForMessages();
-                }
-                messageInput.value = '';
-                autoResize();
-                return;
-            }
-
+            
+            if (!message) return;
+            
             database.ref('messages').push({
                 username: currentUser,
                 message: message,
-                timestamp: firebase.database.ServerValue.TIMESTAMP,
-                reactions: {}
+                timestamp: Date.now()
             });
-
-            // Award XP for sending message
-            awardXP(10);
-
+            
             messageInput.value = '';
-            autoResize();
-            sendBtn.disabled = true;
-            setTimeout(() => sendBtn.disabled = false, 500);
-        }
-
-        // Show messages
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-            successMessage.style.display = 'none';
-            setTimeout(() => {
-                errorMessage.style.display = 'none';
-            }, 4000);
-        }
-
-        function showSuccess(message) {
-            successMessage.textContent = message;
-            successMessage.style.display = 'block';
-            errorMessage.style.display = 'none';
-            setTimeout(() => {
-                successMessage.style.display = 'none';
-            }, 4000);
-        }
-
-        function hideMessages() {
-            errorMessage.style.display = 'none';
-            successMessage.style.display = 'none';
         }
 
         // Listen for messages
         function listenForMessages() {
-            database.ref('messages').limitToLast(50).on('value', (snapshot) => {
-                const messages = snapshot.val();
+            database.ref('messages').limitToLast(50).on('value', snapshot => {
+                const messagesDiv = document.getElementById('messages');
+                messagesDiv.innerHTML = '';
                 
-                // Check if user is near the bottom before updating
-                const wasAtBottom = isScrolledToBottom();
-                
-                messagesContainer.innerHTML = '';
-                
-                if (messages) {
-                    const messageArray = Object.entries(messages).map(([key, value]) => ({
-                        id: key,
-                        ...value
-                    }));
-                    
-                    messageArray.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-                    
-                    messageArray.forEach(msg => {
-                        displayMessage(msg);
+                if (snapshot.exists()) {
+                    const messages = snapshot.val();
+                    Object.values(messages).forEach(msg => {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = 'message' + (msg.username === currentUser ? ' own' : '');
+                        
+                        messageDiv.innerHTML = `
+                            <div class="message-user">${escapeHtml(msg.username)}</div>
+                            <div>${escapeHtml(msg.message)}</div>
+                        `;
+                        
+                        messagesDiv.appendChild(messageDiv);
                     });
                     
-                    // Only auto-scroll if user was at bottom or this is their first message
-                    if (wasAtBottom || messageArray.some(msg => msg.username === currentUser)) {
-                        scrollToBottom();
-                    }
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
                 }
             });
-        }
-
-        // Check if user is scrolled near the bottom
-        function isScrolledToBottom() {
-            const threshold = 100; // pixels from bottom
-            return messagesContainer.scrollTop + messagesContainer.clientHeight >= 
-                   messagesContainer.scrollHeight - threshold;
-        }
-
-        // Smooth scroll to bottom
-        function scrollToBottom() {
-            setTimeout(() => {
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }, 50);
         }
 
         // Listen for users
         function listenForUsers() {
-            database.ref('users').on('value', (snapshot) => {
-                const users = snapshot.val();
-                const userCount = users ? Object.keys(users).length : 0;
-                onlineCount.textContent = `● ${userCount} online`;
-            });
-        }
-
-        // Time ago
-        function timeAgo(timestamp) {
-            const now = Date.now();
-            const diff = now - timestamp;
-            const minutes = Math.floor(diff / 60000);
-            const hours = Math.floor(diff / 3600000);
-            const days = Math.floor(diff / 86400000);
-
-            if (minutes < 1) return 'now';
-            if (minutes < 60) return `${minutes}m`;
-            if (hours < 24) return `${hours}h`;
-            return `${days}d`;
-        }
-
-        // Display message with comprehensive error handling
-        function displayMessage(msg) {
-            if (!msg || !msg.username || !msg.message) {
-                console.error('Invalid message data:', msg);
-                return;
-            }
-
-            try {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${msg.username === currentUser ? 'own' : ''}`;
-                messageDiv.setAttribute('data-message-id', msg.id || 'unknown');
-                
-                const timeStr = msg.timestamp ? timeAgo(msg.timestamp) : 'now';
-                
-                const canDelete = isAdmin;
-                const deleteButton = canDelete ? `<button class="message-delete" onclick="deleteMessage('${msg.id || ''}')" title="Delete message">×</button>` : '';
-                
-                // Sanitize message content
-                const sanitizedMessage = escapeHtml(msg.message);
-                const sanitizedUsername = escapeHtml(msg.username);
-                
-                messageDiv.innerHTML = `
-                    <div class="message-header">${sanitizedUsername}</div>
-                    <div class="message-content" onclick="showReactionPicker('${msg.id || ''}')">
-                        ${sanitizedMessage}
-                        ${deleteButton}
-                        <div class="reaction-picker" id="picker-${msg.id || ''}">
-                            <span class="reaction-option" onclick="addReaction('${msg.id || ''}', '👍')">👍</span>
-                            <span class="reaction-option" onclick="addReaction('${msg.id || ''}', '😂')">😂</span>
-                            <span class="reaction-option" onclick="addReaction('${msg.id || ''}', '❤️')">❤️</span>
-                            <span class="reaction-option" onclick="addReaction('${msg.id || ''}', '😮')">😮</span>
-                            <span class="reaction-option" onclick="addReaction('${msg.id || ''}', '😢')">😢</span>
-                        </div>
-                    </div>
-                    <div class="message-time">${timeStr}</div>
-                    <div class="reactions" id="reactions-${msg.id || ''}"></div>
-                `;
-                
-                if (messagesContainer) {
-                    messagesContainer.appendChild(messageDiv);
-                    
-                    // Display reactions if they exist
-                    if (msg.reactions) {
-                        displayReactions(msg.id, msg.reactions);
-                    }
-                } else {
-                    console.error('Messages container not found');
-                }
-                
-            } catch (error) {
-                console.error('Error creating message element:', error);
-                
-                // Fallback: create a simple message without interactive elements
-                try {
-                    const fallbackDiv = document.createElement('div');
-                    fallbackDiv.className = 'message';
-                    fallbackDiv.innerHTML = `
-                        <div class="message-header">${escapeHtml(msg.username || 'Unknown')}</div>
-                        <div class="message-content">${escapeHtml(msg.message || 'Message could not be displayed')}</div>
-                    `;
-                    if (messagesContainer) {
-                        messagesContainer.appendChild(fallbackDiv);
-                    }
-                } catch (fallbackError) {
-                    console.error('Fallback message creation failed:', fallbackError);
-                }
-            }
-        }
-
-        // Enhanced error message display
-        function showError(message) {
-            try {
-                if (errorMessage) {
-                    errorMessage.textContent = message;
-                    errorMessage.style.display = 'block';
-                    if (successMessage) {
-                        successMessage.style.display = 'none';
-                    }
-                    setTimeout(() => {
-                        if (errorMessage) {
-                            errorMessage.style.display = 'none';
-                        }
-                    }, 4000);
-                }
-                console.error('Error:', message);
-            } catch (error) {
-                console.error('Error displaying error message:', error);
-            }
-        }
-
-        function showSuccess(message) {
-            try {
-                if (successMessage) {
-                    successMessage.textContent = message;
-                    successMessage.style.display = 'block';
-                    if (errorMessage) {
-                        errorMessage.style.display = 'none';
-                    }
-                    setTimeout(() => {
-                        if (successMessage) {
-                            successMessage.style.display = 'none';
-                        }
-                    }, 4000);
-                }
-                console.log('Success:', message);
-            } catch (error) {
-                console.error('Error displaying success message:', error);
-            }
-        }
-
-        // Enhanced connection monitoring
-        function monitorConnection() {
-            if (!database) return;
-            
-            try {
-                database.ref('.info/connected').on('value', (snapshot) => {
-                    if (snapshot.val() === true) {
-                        console.log('Connected to Firebase');
-                        connectionRetries = 0;
-                        // Hide any connection error messages
-                        hideMessages();
-                    } else {
-                        console.log('Disconnected from Firebase');
-                        showError('Connection lost. Attempting to reconnect...');
-                    }
-                });
-            } catch (error) {
-                console.error('Error setting up connection monitor:', error);
-            }
-        }
-
-        // Initialize with enhanced error handling
-        window.addEventListener('load', () => {
-            try {
-                loadTheme();
-                
-                const loginUsernameElement = document.getElementById('loginUsername');
-                if (loginUsernameElement) {
-                    loginUsernameElement.focus();
-                } else {
-                    console.error('Login username element not found');
-                }
-                
-                initializeSecretSquares();
-                
-                // Start connection monitoring if Firebase is configured
-                if (isConfigured && database) {
-                    monitorConnection();
-                }
-            } catch (error) {
-                console.error('Error during page load initialization:', error);
-                showError('Error initializing application. Please refresh the page.');
-            }
-        });
-
-        // Enhanced error handling for reactions
-        function addReaction(messageId, emoji) {
-            if (!database || !messageId || !emoji || !currentUser) {
-                console.error('Missing required data for reaction:', { messageId, emoji, currentUser });
-                return;
-            }
-            
-            try {
-                const reactionRef = database.ref(`messages/${messageId}/reactions/${emoji}/${currentUser}`);
-                reactionRef.set(true).catch((error) => {
-                    console.error('Error adding reaction:', error);
-                    showError('Failed to add reaction. Please try again.');
-                });
-                
-                const pickerElement = document.getElementById(`picker-${messageId}`);
-                if (pickerElement) {
-                    pickerElement.classList.remove('show');
-                }
-            } catch (error) {
-                console.error('Error in addReaction:', error);
-            }
-        }
-
-        // Show reaction picker
-        function showReactionPicker(messageId) {
-            document.querySelectorAll('.reaction-picker').forEach(picker => {
-                picker.classList.remove('show');
-            });
-            
-            const picker = document.getElementById(`picker-${messageId}`);
-            if (picker) {
-                picker.classList.add('show');
-                
-                setTimeout(() => {
-                    picker.classList.remove('show');
-                }, 3000);
-            }
-        }
-
-        // Add reaction
-        function addReaction(messageId, emoji) {
-            if (!database) return;
-            
-            const reactionRef = database.ref(`messages/${messageId}/reactions/${emoji}/${currentUser}`);
-            reactionRef.set(true);
-            
-            document.getElementById(`picker-${messageId}`).classList.remove('show');
-        }
-
-        // Display reactions with tooltips
-        function displayReactions(messageId, reactions) {
-            const reactionsContainer = document.getElementById(`reactions-${messageId}`);
-            if (!reactionsContainer) return;
-            
-            reactionsContainer.innerHTML = '';
-            
-            Object.entries(reactions || {}).forEach(([emoji, users]) => {
-                const userList = Object.keys(users);
-                const userCount = userList.length;
-                if (userCount > 0) {
-                    const reactionDiv = document.createElement('div');
-                    reactionDiv.className = `reaction ${users[currentUser] ? 'active' : ''}`;
-                    reactionDiv.innerHTML = `
-                        ${emoji} ${userCount}
-                        <div class="reaction-tooltip">${userList.join(', ')}</div>
-                    `;
-                    reactionDiv.onclick = () => addReaction(messageId, emoji);
-                    reactionsContainer.appendChild(reactionDiv);
-                }
+            database.ref('users').on('value', snapshot => {
+                const count = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+                document.getElementById('onlineCount').textContent = `${count} users online`;
             });
         }
 
@@ -2655,194 +426,24 @@
             return div.innerHTML;
         }
 
-        // Event listeners
-        messageInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-
-        document.getElementById('loginUsername').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                document.getElementById('loginPassword').focus();
-            }
-        });
-
-        document.getElementById('loginPassword').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                loginUser();
-            }
-        });
-
-        document.getElementById('registerUsername').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                document.getElementById('registerPassword').focus();
-            }
-        });
-
-        document.getElementById('registerPassword').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                document.getElementById('registerConfirm').focus();
-            }
-        });
-
-        document.getElementById('registerConfirm').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                registerUser();
-            }
-        });
-
-        // Click outside to hide panels
-        document.addEventListener('click', function(e) {
-            // Hide reaction pickers
-            if (!e.target.closest('.message-content') && !e.target.closest('.reaction-picker')) {
-                document.querySelectorAll('.reaction-picker').forEach(picker => {
-                    picker.classList.remove('show');
+        // Enter key to send message
+        document.addEventListener('DOMContentLoaded', function() {
+            const messageInput = document.getElementById('messageInput');
+            if (messageInput) {
+                messageInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
                 });
             }
             
-            // Close settings panel if clicking outside
-            if (e.target === document.getElementById('settingsPanel')) {
-                closeSettingsPanel();
-            }
-            
-            // Close leaderboard panel if clicking outside
-            if (e.target === document.getElementById('leaderboardPanel')) {
-                closeLeaderboard();
-            }
-            
-            // Close admin panel if clicking outside
-            if (e.target === document.getElementById('adminPanel')) {
-                closeAdminPanel();
+            // Focus on username field
+            const loginUsername = document.getElementById('loginUsername');
+            if (loginUsername) {
+                loginUsername.focus();
             }
         });
-
-        // Admin functions
-        function openAdminPanel() {
-            if (!isAdmin) return;
-            document.getElementById('adminPanel').style.display = 'flex';
-            updateAccountList();
-            updateUserList();
-            updateChatStats();
-        }
-
-        function closeAdminPanel() {
-            document.getElementById('adminPanel').style.display = 'none';
-        }
-
-        function changeActivationCode() {
-            if (!isAdmin) return;
-            const newCode = document.getElementById('newActivationCode').value.trim();
-            if (!newCode) {
-                showError('Please enter a new temporary activation code');
-                return;
-            }
-            
-            database.ref('settings/activationCode').set(newCode).then(() => {
-                ACTIVATION_CODE = newCode;
-                document.getElementById('currentActivationCode').textContent = newCode;
-                document.getElementById('newActivationCode').value = '';
-                showError(`Temporary activation code changed to: ${newCode}`);
-            });
-        }
-
-        function deleteMessage(messageId) {
-            database.ref(`messages/${messageId}`).remove();
-        }
-
-        function updateAccountList() {
-            if (!isAdmin) return;
-            const accountList = document.getElementById('accountList');
-            database.ref('accounts').once('value', (snapshot) => {
-                const accounts = snapshot.val() || {};
-                const accountEntries = Object.entries(accounts);
-                
-                if (accountEntries.length === 0) {
-                    accountList.innerHTML = '<p>No accounts registered</p>';
-                    return;
-                }
-                
-                accountList.innerHTML = accountEntries.map(([id, account]) => {
-                    const created = account.created ? new Date(account.created).toLocaleDateString() : 'Unknown';
-                    return `
-                        <div class="account-item" data-account-id="${id}">
-                            <div>
-                                <strong>${escapeHtml(account.username)}</strong><br>
-                                <small>Created: ${created}</small>
-                            </div>
-                            <button class="admin-button danger" onclick="deleteSpecificAccount('${id}')">Delete</button>
-                        </div>
-                    `;
-                }).join('');
-            });
-        }
-
-        function deleteSpecificAccount(accountId) {
-            if (!isAdmin || !confirm('Delete this account permanently?')) return;
-            database.ref(`accounts/${accountId}`).remove().then(() => {
-                updateAccountList();
-                showError('Account deleted!');
-            });
-        }
-
-        function updateUserList() {
-            if (!isAdmin) return;
-            const userList = document.getElementById('userList');
-            database.ref('users').once('value', (snapshot) => {
-                const users = snapshot.val() || {};
-                const userEntries = Object.entries(users);
-                
-                if (userEntries.length === 0) {
-                    userList.innerHTML = '<p>No users online</p>';
-                    return;
-                }
-                
-                userList.innerHTML = userEntries.map(([id, user]) => `
-                    <div class="user-item">
-                        <span>${escapeHtml(user.username)}</span>
-                        <button class="admin-button danger" onclick="kickUser('${id}')">Kick</button>
-                    </div>
-                `).join('');
-            });
-        }
-
-        function kickUser(userId) {
-            if (!isAdmin || !confirm('Kick this user?')) return;
-            database.ref(`users/${userId}`).remove();
-            updateUserList();
-        }
-
-        function kickAllUsers() {
-            if (!isAdmin || !confirm('Kick ALL users? This will disconnect everyone!')) return;
-            database.ref('users').remove();
-            showError('All users kicked!');
-        }
-
-        function clearAllMessages() {
-            if (!isAdmin || !confirm('Are you sure you want to delete ALL messages? This cannot be undone!')) return;
-            database.ref('messages').remove();
-            showError('All messages cleared!');
-        }
-
-        function updateChatStats() {
-            if (!isAdmin) return;
-            
-            database.ref('accounts').once('value', (snapshot) => {
-                const accounts = snapshot.val() || {};
-                document.getElementById('totalAccounts').textContent = Object.keys(accounts).length;
-            });
-            
-            database.ref('messages').once('value', (snapshot) => {
-                const messages = snapshot.val() || {};
-                document.getElementById('totalMessages').textContent = Object.keys(messages).length;
-            });
-            
-            database.ref('users').once('value', (snapshot) => {
-                const users = snapshot.val() || {};
-                document.getElementById('adminOnlineCount').textContent = Object.keys(users).length;
-            });
-        }
     </script>
 </body>
 </html>
