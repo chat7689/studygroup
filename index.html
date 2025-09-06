@@ -366,6 +366,7 @@
             // Start listening
             listenForMessages();
             listenForUsers();
+            checkAdminStatus();
             
             document.getElementById('messageInput').focus();
         }
@@ -388,7 +389,7 @@
 
         // Listen for messages
         function listenForMessages() {
-            database.ref('messages').limitToLast(50).on('value', snapshot => {
+            database.ref('messages').limitToLast(200).on('value', snapshot => {
                 const messagesDiv = document.getElementById('messages');
                 messagesDiv.innerHTML = '';
                 
