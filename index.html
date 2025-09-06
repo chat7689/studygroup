@@ -444,6 +444,37 @@
             if (loginUsername) {
                 loginUsername.focus();
             }
+            
+            // Admin panel hotkey (Shift + Space for 0.5 seconds)
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Shift') {
+                    shiftPressed = true;
+                } else if (e.key === ' ') {
+                    spacePressed = true;
+                }
+                
+                if (shiftPressed && spacePressed && isCurrentUserAdmin && !adminKeyTimer) {
+                    e.preventDefault();
+                    adminKeyTimer = setTimeout(() => {
+                        openAdminPanel();
+                    }, 500);
+                }
+            });
+            
+            document.addEventListener('keyup', function(e) {
+                if (e.key === 'Shift') {
+                    shiftPressed = false;
+                } else if (e.key === ' ') {
+                    spacePressed = false;
+                }
+                
+                if (!shiftPressed || !spacePressed) {
+                    if (adminKeyTimer) {
+                        clearTimeout(adminKeyTimer);
+                        adminKeyTimer = null;
+                    }
+                }
+            });
         });
     </script>
 </body>
