@@ -19,6 +19,7 @@
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             overflow: hidden;
+            position: relative;
         }
         
         .header {
@@ -26,6 +27,30 @@
             color: white;
             padding: 20px;
             text-align: center;
+            position: relative;
+        }
+        
+        .settings-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(255,255,255,0.3);
+            border: 2px solid white;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .settings-btn:hover {
+            background: rgba(255,255,255,0.5);
+            transform: scale(1.1);
+            transition: all 0.3s ease;
         }
         
         .auth-screen {
@@ -48,12 +73,19 @@
             padding: 10px;
             background: #f5f5f5;
             border-radius: 10px;
+            position: relative;
         }
         
         .message.own {
             background: #007aff;
             color: white;
             margin-left: 50px;
+        }
+        
+        .message.system {
+            background: #ffeb3b !important;
+            color: #333 !important;
+            font-style: italic;
         }
         
         .message-user {
@@ -145,12 +177,280 @@
             font-size: 12px;
             opacity: 0.8;
         }
+        
+        .delete-btn {
+            background: #ff3b30;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-size: 10px;
+            cursor: pointer;
+            margin-left: 10px;
+            display: none;
+        }
+        
+        .delete-btn.show {
+            display: inline-block;
+            background: #ff6b6b;
+        }
+        
+        .delete-btn:hover {
+            background: #d70015;
+        }
+
+        .settings-panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+        }
+
+        .settings-content {
+            background: white;
+            margin: 100px auto;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 10px;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #007aff;
+        }
+
+        .close-settings {
+            background: #ff3b30;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .logout-btn {
+            background: #ff3b30;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .logout-btn:hover {
+            background: #d70015;
+        }
+
+        .admin-panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+        }
+        
+        .admin-content {
+            background: white;
+            margin: 50px auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 10px;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #007aff;
+        }
+        
+        .close-admin {
+            background: #ff3b30;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .admin-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .admin-section h3 {
+            color: #007aff;
+            margin-bottom: 15px;
+            margin-top: 0;
+        }
+
+        .user-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .kicked-user {
+            opacity: 0.5;
+            background: #ffebee !important;
+        }
+
+        .user-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .kick-btn {
+            background: #ff9500;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 4px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .kick-btn:hover {
+            background: #cc7700;
+        }
+
+        .untimeout-btn {
+            background: #34c759;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 4px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            margin-right: 15px;
+        }
+
+        .untimeout-btn:hover {
+            background: #28a745;
+        }
+
+        .delete-account-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 4px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .delete-account-btn:hover {
+            background: #c82333;
+        }
+
+        .clear-messages-btn {
+            background: #ff3b30;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .clear-messages-btn:hover {
+            background: #d70015;
+        }
+
+        .admin-password-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1001;
+        }
+
+        .admin-password-content {
+            background: white;
+            margin: 200px auto;
+            padding: 30px;
+            width: 90%;
+            max-width: 300px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .admin-password-input {
+            width: 100%;
+            padding: 10px;
+            margin: 15px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .password-hidden {
+            color: transparent;
+            background: #333;
+            user-select: none;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .password-visible {
+            color: inherit;
+            background: inherit;
+        }
+
+        .connection-status {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ff3b30;
+        }
+
+        .connection-status.connected {
+            background: #34c759;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h2>Simple Chat</h2>
+            <button class="settings-btn" id="settingsButton" onclick="openSettings()" title="Settings">⚙️</button>
+            <div class="connection-status" id="connectionStatus" title="Connection Status"></div>
+            <h2 id="chatTitle">Simple Chat</h2>
             <div class="online-count" id="onlineCount">0 users online</div>
         </div>
         
@@ -183,6 +483,9 @@
                 <div class="form-group">
                     <input type="password" id="regConfirm" placeholder="Confirm Password">
                 </div>
+                <div class="form-group">
+                    <input type="password" id="regActivationCode" placeholder="Activation Code">
+                </div>
                 <button onclick="register()">Create Account</button>
             </div>
             
@@ -199,33 +502,162 @@
         </div>
     </div>
 
+    <!-- Settings Panel -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-content">
+            <div class="settings-header">
+                <h2>Settings</h2>
+                <button class="close-settings" onclick="closeSettings()">Close</button>
+            </div>
+            
+            <div class="form-group">
+                <label>Current Username:</label>
+                <input type="text" id="currentUsername" readonly style="background: #f5f5f5;">
+            </div>
+            
+            <div class="form-group">
+                <label>Current Password:</label>
+                <input type="password" id="currentPassword" placeholder="Enter current password">
+            </div>
+            
+            <div class="form-group">
+                <label>New Password:</label>
+                <input type="password" id="newPassword" placeholder="Enter new password">
+            </div>
+            
+            <div class="form-group">
+                <label>Confirm New Password:</label>
+                <input type="password" id="confirmNewPassword" placeholder="Confirm new password">
+            </div>
+            
+            <button onclick="changePassword()">Change Password</button>
+            
+            <button class="logout-btn" onclick="logout()">Logout</button>
+            
+            <div id="settingsMessage"></div>
+        </div>
+    </div>
+
+    <!-- Admin Password Modal -->
+    <div class="admin-password-modal" id="adminPasswordModal">
+        <div class="admin-password-content">
+            <h3 id="adminActionTitle">Enter Admin Security Code</h3>
+            <input type="password" class="admin-password-input" id="adminPasswordInput" placeholder="Enter security code">
+            <div>
+                <button onclick="confirmAdminAction()">Confirm</button>
+                <button onclick="cancelAdminAction()">Cancel</button>
+            </div>
+            <div id="adminPasswordError" class="error"></div>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-content">
+            <div class="admin-header">
+                <h2>Admin Panel</h2>
+                <button class="close-admin" onclick="closeAdminPanel()">Close</button>
+            </div>
+            
+            <div class="admin-section">
+                <h3>Chat Settings</h3>
+                <div style="margin-bottom: 15px;">
+                    <label>Chat Name:</label>
+                    <input type="text" id="chatNameInput" style="width: 100%; margin-top: 5px; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+                    <button onclick="requestChangeChatName()" style="margin-top: 10px; padding: 8px 15px; font-size: 12px;">Change Name</button>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label>Activation Code:</label>
+                    <input type="password" id="activationCodeInput" style="width: 100%; margin-top: 5px; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+                    <button onclick="requestChangeActivationCode()" style="margin-top: 10px; padding: 8px 15px; font-size: 12px;">Change Code</button>
+                </div>
+            </div>
+            
+            <div class="admin-section">
+                <h3>Message Management</h3>
+                <button class="clear-messages-btn" onclick="requestClearMessages()">Clear All Messages</button>
+                <small>This will delete all chat messages permanently</small>
+            </div>
+            
+            <div class="admin-section">
+                <h3>Online Users</h3>
+                <div id="onlineUsersList">No users online</div>
+            </div>
+            
+            <div class="admin-section">
+                <h3>All Registered Users</h3>
+                <div id="allUsersList">No registered users</div>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-compat.js"></script>
     
     <script>
-        // Firebase config
-        const firebaseConfig = {
-            apiKey: "AIzaSyAyCOxYlNRn-tveI9G22BHYI8EEpMAEWEI",
-            authDomain: "schoolchat-60b44.firebaseapp.com",
-            databaseURL: "https://schoolchat-60b44-default-rtdb.firebaseio.com",
-            projectId: "schoolchat-60b44",
-            storageBucket: "schoolchat-60b44.firebasestorage.app",
-            messagingSenderId: "209703349541",
-            appId: "1:209703349541:web:d89ba692f5f5c322503ecc"
+        // Firebase config - REPLACE WITH YOUR CONFIG
+        var firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        var database = firebase.database();
         
         // Global variables
-        let currentUser = '';
-        let userRef = null;
+        var currentUser = '';
+        var isCurrentUserAdmin = false;
+        var messageIdCounter = 1;
+        var deleteTimers = {};
+        var pendingAdminAction = null;
+        var passwordTimers = {};
+        var userRef = null;
 
-        // Switch between login and register tabs
+        // Connection status
+        database.ref('.info/connected').on('value', function(snapshot) {
+            var connectionStatus = document.getElementById('connectionStatus');
+            if (snapshot.val() === true) {
+                connectionStatus.classList.add('connected');
+                connectionStatus.title = 'Connected to Firebase';
+            } else {
+                connectionStatus.classList.remove('connected');
+                connectionStatus.title = 'Disconnected from Firebase';
+            }
+        });
+
+        // Helper functions
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function addSystemMessage(text) {
+            database.ref('messages').push({
+                username: 'System',
+                message: text,
+                timestamp: Date.now(),
+                isSystem: true
+            });
+        }
+
+        // Tab switching
         function switchTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            var tabs = document.querySelectorAll('.tab');
+            var contents = document.querySelectorAll('.tab-content');
+            
+            for (var i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove('active');
+            }
+            for (var i = 0; i < contents.length; i++) {
+                contents[i].classList.remove('active');
+            }
             
             if (tab === 'login') {
                 document.querySelector('.tab:first-child').classList.add('active');
@@ -237,25 +669,51 @@
             clearMessage();
         }
 
-        // Show message
-        function showMessage(text, isError = false) {
-            const messageDiv = document.getElementById('message');
+        // Message functions
+        function showMessage(text, isError) {
+            var messageDiv = document.getElementById('message');
             messageDiv.textContent = text;
             messageDiv.className = isError ? 'error' : 'success';
         }
 
-        // Clear message
         function clearMessage() {
             document.getElementById('message').textContent = '';
         }
 
-        // Register user
+        function showSettingsMessage(text, isError) {
+            var messageDiv = document.getElementById('settingsMessage');
+            messageDiv.textContent = text;
+            messageDiv.className = isError ? 'error' : 'success';
+        }
+
+        // Check if user is kicked
+        function checkIfKicked(username) {
+            return database.ref('kicks/' + username).once('value')
+            .then(function(snapshot) {
+                if (snapshot.exists()) {
+                    var kickData = snapshot.val();
+                    if (kickData.until === -1 || kickData.until > Date.now()) {
+                        if (kickData.until === -1) {
+                            throw new Error('You are in timeout forever');
+                        } else {
+                            throw new Error('You are in timeout until ' + new Date(kickData.until).toLocaleString());
+                        }
+                    } else {
+                        // Remove expired kick
+                        database.ref('kicks/' + username).remove();
+                    }
+                }
+            });
+        }
+
+        // Registration
         function register() {
-            const username = document.getElementById('regUsername').value.trim();
-            const password = document.getElementById('regPassword').value.trim();
-            const confirm = document.getElementById('regConfirm').value.trim();
+            var username = document.getElementById('regUsername').value.trim();
+            var password = document.getElementById('regPassword').value.trim();
+            var confirm = document.getElementById('regConfirm').value.trim();
+            var activationCode = document.getElementById('regActivationCode').value.trim();
             
-            if (!username || !password || !confirm) {
+            if (!username || !password || !confirm || !activationCode) {
                 showMessage('Please fill in all fields', true);
                 return;
             }
@@ -274,50 +732,63 @@
                 showMessage('Passwords do not match', true);
                 return;
             }
-            
-            // Check if username exists
-            database.ref('accounts').orderByChild('username').equalTo(username).once('value')
-            .then(snapshot => {
+
+            // Check activation code
+            database.ref('settings/activationCode').once('value')
+            .then(function(snapshot) {
+                var correctCode = snapshot.val() || 'code';
+                if (activationCode !== correctCode) {
+                    throw new Error('Invalid activation code');
+                }
+                
+                // Check if username exists
+                return database.ref('accounts').orderByChild('username').equalTo(username).once('value');
+            })
+            .then(function(snapshot) {
                 if (snapshot.exists()) {
-                    showMessage('Username already taken', true);
-                    return;
+                    throw new Error('Username already taken');
                 }
                 
                 // Create account
-                const accountId = database.ref('accounts').push().key;
-                return database.ref(`accounts/${accountId}`).set({
+                var accountId = database.ref('accounts').push().key;
+                return database.ref('accounts/' + accountId).set({
                     username: username,
                     password: password,
-                    created: Date.now()
+                    created: Date.now(),
+                    isAdmin: false
                 });
             })
-            .then(() => {
+            .then(function() {
                 showMessage('Account created! You can now login.');
-                // Clear form and switch to login
                 document.getElementById('regUsername').value = '';
                 document.getElementById('regPassword').value = '';
                 document.getElementById('regConfirm').value = '';
+                document.getElementById('regActivationCode').value = '';
                 document.getElementById('loginUsername').value = username;
                 switchTab('login');
             })
-            .catch(error => {
-                showMessage('Error creating account: ' + error.message, true);
+            .catch(function(error) {
+                showMessage(error.message, true);
             });
         }
 
-        // Login user
+        // Login
         function login() {
-            const username = document.getElementById('loginUsername').value.trim();
-            const password = document.getElementById('loginPassword').value.trim();
+            var username = document.getElementById('loginUsername').value.trim();
+            var password = document.getElementById('loginPassword').value.trim();
             
             if (!username || !password) {
                 showMessage('Please enter username and password', true);
                 return;
             }
             
-            // Check if already online
-            database.ref('users').orderByChild('username').equalTo(username).once('value')
-            .then(snapshot => {
+            // Check if kicked
+            checkIfKicked(username)
+            .then(function() {
+                // Check if already online
+                return database.ref('users').orderByChild('username').equalTo(username).once('value');
+            })
+            .then(function(snapshot) {
                 if (snapshot.exists()) {
                     throw new Error('User already online');
                 }
@@ -325,13 +796,13 @@
                 // Check credentials
                 return database.ref('accounts').orderByChild('username').equalTo(username).once('value');
             })
-            .then(snapshot => {
+            .then(function(snapshot) {
                 if (!snapshot.exists()) {
                     throw new Error('Username not found');
                 }
                 
-                const accounts = snapshot.val();
-                const accountData = Object.values(accounts)[0];
+                var accounts = snapshot.val();
+                var accountData = Object.values(accounts)[0];
                 
                 if (accountData.password !== password) {
                     throw new Error('Wrong password');
@@ -339,9 +810,10 @@
                 
                 // Login successful
                 currentUser = username;
+                isCurrentUserAdmin = accountData.isAdmin || false;
                 enterChat();
             })
-            .catch(error => {
+            .catch(function(error) {
                 showMessage(error.message, true);
             });
         }
@@ -349,8 +821,8 @@
         // Enter chat
         function enterChat() {
             // Add user to online list
-            const userId = Date.now().toString();
-            userRef = database.ref(`users/${userId}`);
+            var userId = Date.now().toString();
+            userRef = database.ref('users/' + userId);
             userRef.set({
                 username: currentUser,
                 timestamp: Date.now()
@@ -362,22 +834,43 @@
             // Show chat screen
             document.getElementById('authScreen').style.display = 'none';
             document.getElementById('chatMain').style.display = 'block';
+            document.getElementById('settingsButton').style.display = 'flex';
             
             // Start listening
             listenForMessages();
             listenForUsers();
-            checkAdminStatus();
+            loadChatSettings();
             
             document.getElementById('messageInput').focus();
         }
 
+        // Load chat settings
+        function loadChatSettings() {
+            database.ref('settings').once('value')
+            .then(function(snapshot) {
+                if (snapshot.exists()) {
+                    var settings = snapshot.val();
+                    if (settings.chatName) {
+                        document.getElementById('chatTitle').textContent = settings.chatName;
+                    }
+                }
+            });
+        }
+
         // Send message
         function sendMessage() {
-            const messageInput = document.getElementById('messageInput');
-            const message = messageInput.value.trim();
+            var messageInput = document.getElementById('messageInput');
+            var message = messageInput.value.trim();
             
             if (!message) return;
             
+            // Handle special commands
+            if (handleSpecialCommands(message)) {
+                messageInput.value = '';
+                return;
+            }
+            
+            // Send regular message
             database.ref('messages').push({
                 username: currentUser,
                 message: message,
@@ -387,22 +880,489 @@
             messageInput.value = '';
         }
 
+        // Handle special commands
+        function handleSpecialCommands(message) {
+            if (message === '/admin') {
+                requestAdminStatus();
+                return true;
+            }
+            
+            if (message === '/adminpanel') {
+                if (!isCurrentUserAdmin) {
+                    addSystemMessage('You must be admin to use /adminpanel command');
+                } else {
+                    requestAdminPanel();
+                }
+                return true;
+            }
+            
+            return false;
+        }
+
+        // Admin request functions
+        function requestAdminStatus() {
+            pendingAdminAction = { action: 'becomeAdmin' };
+            document.getElementById('adminActionTitle').textContent = 'Enter Admin Security Code to Become Admin';
+            document.getElementById('adminPasswordInput').value = '';
+            document.getElementById('adminPasswordError').textContent = '';
+            document.getElementById('adminPasswordModal').style.display = 'block';
+        }
+
+        function requestAdminPanel() {
+            pendingAdminAction = { action: 'openPanel' };
+            document.getElementById('adminActionTitle').textContent = 'Enter Admin Security Code to Access Panel';
+            document.getElementById('adminPasswordInput').value = '';
+            document.getElementById('adminPasswordError').textContent = '';
+            document.getElementById('adminPasswordModal').style.display = 'block';
+        }
+
+        function requestClearMessages() {
+            pendingAdminAction = { action: 'clearMessages' };
+            document.getElementById('adminActionTitle').textContent = 'Enter Admin Security Code to Clear All Messages';
+            document.getElementById('adminPasswordInput').value = '';
+            document.getElementById('adminPasswordError').textContent = '';
+            document.getElementById('adminPasswordModal').style.display = 'block';
+        }
+
+        function requestTimeoutUser(username, minutes) {
+            if (!isCurrentUserAdmin) return;
+            pendingAdminAction = { action: 'timeout', username: username, minutes: minutes };
+            var title = 'Enter Admin Security Code to ';
+            if (minutes === -1) {
+                title += 'timeout ' + username + ' forever';
+            } else {
+                title += 'timeout ' + username + ' for ' + minutes + ' minute' + (minutes > 1 ? 's' : '');
+            }
+            document.getElementById('adminActionTitle').textContent = title;
+            document.getElementById('adminPasswordInput').value = '';
+            document.getElementById('adminPasswordError').textContent = '';
+            document.getElementById('adminPasswordModal').style.display = 'block';
+        }
+
+        function requestUntimeoutUser(username) {
+            if (!isCurrentUserAdmin) return;
+            pendingAdminAction = { action: 'untimeout', username: username };
+            document.getElementById('adminActionTitle').textContent = 'Enter Admin Security Code to Remove Timeout from ' + username;
+            document.getElementById('adminPasswordInput').value = '';
+            document.getElementById('adminPasswordError').textContent = '';
+            document.getElementById('adminPasswordModal').style.display = 'block';
+        }
+
+        function requestDeleteAccount(username) {
+            if (!isCurrentUserAdmin) return;
+            if (username === currentUser) {
+                alert('You cannot delete your own account');
+                return;
+            }
+            pendingAdminAction = { action: 'deleteAccount', username: username };
+            document.getElementById('adminActionTitle').textContent = 'Enter Admin Security Code to DELETE ACCOUNT: ' + username;
+            document.getElementById('adminPasswordInput').value = '';
+            document.getElementById('adminPasswordError').textContent = '';
+            document.getElementById('adminPasswordModal').style.display = 'block';
+        }
+
+        function requestChangeChatName() {
+            if (!isCurrentUserAdmin) return;
+            var chatNameInput = document.getElementById('chatNameInput');
+            if (!chatNameInput) return;
+            
+            var newName = chatNameInput.value.trim();
+            if (!newName) {
+                alert('Please enter a chat name');
+                return;
+            }
+            pendingAdminAction = { action: 'changeChatName', newName: newName };
+            document.getElementById('adminActionTitle').textContent = 'Enter Admin Security Code to Change Chat Name';
+            document.getElementById('adminPasswordInput').value = '';
+            document.getElementById('adminPasswordError').textContent = '';
+            document.getElementById('adminPasswordModal').style.display = 'block';
+        }
+
+        function requestChangeActivationCode() {
+            if (!isCurrentUserAdmin) return;
+            var activationCodeInput = document.getElementById('activationCodeInput');
+            if (!activationCodeInput) return;
+            
+            var newCode = activationCodeInput.value.trim();
+            if (!newCode) {
+                alert('Please enter an activation code');
+                return;
+            }
+            pendingAdminAction = { action: 'changeActivationCode', newCode: newCode };
+            document.getElementById('adminActionTitle').textContent = 'Enter Admin Security Code to Change Activation Code';
+            document.getElementById('adminPasswordInput').value = '';
+            document.getElementById('adminPasswordError').textContent = '';
+            document.getElementById('adminPasswordModal').style.display = 'block';
+        }
+
+        // Admin action confirmation
+        function confirmAdminAction() {
+            var password = document.getElementById('adminPasswordInput').value;
+            
+            if (password !== '76897689') {
+                document.getElementById('adminPasswordError').textContent = 'Incorrect security code';
+                return;
+            }
+            
+            var action = pendingAdminAction;
+            if (!action) return;
+            
+            if (action.action === 'becomeAdmin') {
+                becomeAdmin();
+            } else if (action.action === 'openPanel') {
+                openAdminPanel();
+            } else if (action.action === 'clearMessages') {
+                clearAllMessages();
+            } else if (action.action === 'timeout') {
+                timeoutUser(action.username, action.minutes);
+            } else if (action.action === 'untimeout') {
+                untimeoutUser(action.username);
+            } else if (action.action === 'deleteAccount') {
+                deleteAccount(action.username);
+            } else if (action.action === 'changeChatName') {
+                changeChatName(action.newName);
+            } else if (action.action === 'changeActivationCode') {
+                changeActivationCode(action.newCode);
+            }
+            
+            cancelAdminAction();
+        }
+
+        function cancelAdminAction() {
+            pendingAdminAction = null;
+            document.getElementById('adminPasswordModal').style.display = 'none';
+        }
+
+        // Admin functions
+        function becomeAdmin() {
+            // Remove admin from all users
+            database.ref('accounts').once('value')
+            .then(function(snapshot) {
+                if (snapshot.exists()) {
+                    var accounts = snapshot.val();
+                    var updates = {};
+                    
+                    // Remove admin from all accounts
+                    Object.keys(accounts).forEach(function(accountId) {
+                        if (accounts[accountId].isAdmin) {
+                            updates['accounts/' + accountId + '/isAdmin'] = false;
+                        }
+                    });
+                    
+                    return database.ref().update(updates);
+                }
+            })
+            .then(function() {
+                // Now make current user admin
+                return database.ref('accounts').orderByChild('username').equalTo(currentUser).once('value');
+            })
+            .then(function(snapshot) {
+                if (snapshot.exists()) {
+                    var accounts = snapshot.val();
+                    var accountId = Object.keys(accounts)[0];
+                    
+                    return database.ref('accounts/' + accountId + '/isAdmin').set(true);
+                }
+            })
+            .then(function() {
+                isCurrentUserAdmin = true;
+                addSystemMessage(currentUser + ' is now the admin');
+            })
+            .catch(function(error) {
+                console.error('Error becoming admin:', error);
+            });
+        }
+
+        function clearAllMessages() {
+            database.ref('messages').remove()
+            .then(function() {
+                addSystemMessage('All messages have been cleared by ' + currentUser);
+            });
+        }
+
+        function timeoutUser(username, minutes) {
+            if (!isCurrentUserAdmin) return;
+            
+            var timeoutUntil;
+            var message;
+            
+            if (minutes === -1) {
+                timeoutUntil = -1;
+                message = username + ' was put in timeout forever by ' + currentUser;
+            } else {
+                timeoutUntil = Date.now() + (minutes * 60 * 1000);
+                message = username + ' was put in timeout for ' + minutes + ' minute' + (minutes > 1 ? 's' : '') + ' by ' + currentUser;
+            }
+            
+            // Set kick
+            database.ref('kicks/' + username).set({
+                kickedBy: currentUser,
+                until: timeoutUntil,
+                timestamp: Date.now()
+            });
+            
+            // Remove user from online list if they're online
+            database.ref('users').orderByChild('username').equalTo(username).once('value')
+            .then(function(snapshot) {
+                if (snapshot.exists()) {
+                    var users = snapshot.val();
+                    Object.keys(users).forEach(function(userId) {
+                        database.ref('users/' + userId).remove();
+                    });
+                }
+            });
+            
+            addSystemMessage(message);
+        }
+
+        function untimeoutUser(username) {
+            if (!isCurrentUserAdmin) return;
+            
+            database.ref('kicks/' + username).remove()
+            .then(function() {
+                addSystemMessage(username + ' was removed from timeout by ' + currentUser);
+            });
+        }
+
+        function deleteAccount(username) {
+            if (!isCurrentUserAdmin) return;
+            if (username === currentUser) return;
+            
+            // Remove from accounts
+            database.ref('accounts').orderByChild('username').equalTo(username).once('value')
+            .then(function(snapshot) {
+                if (snapshot.exists()) {
+                    var accounts = snapshot.val();
+                    Object.keys(accounts).forEach(function(accountId) {
+                        database.ref('accounts/' + accountId).remove();
+                    });
+                }
+            });
+            
+            // Remove from online users
+            database.ref('users').orderByChild('username').equalTo(username).once('value')
+            .then(function(snapshot) {
+                if (snapshot.exists()) {
+                    var users = snapshot.val();
+                    Object.keys(users).forEach(function(userId) {
+                        database.ref('users/' + userId).remove();
+                    });
+                }
+            });
+            
+            // Remove from kicks if exists
+            database.ref('kicks/' + username).remove();
+            
+            addSystemMessage('Account ' + username + ' was deleted by ' + currentUser);
+        }
+
+        function changeChatName(newName) {
+            if (!isCurrentUserAdmin) return;
+            
+            database.ref('settings/chatName').set(newName)
+            .then(function() {
+                document.getElementById('chatTitle').textContent = newName;
+                addSystemMessage('Chat name changed to "' + newName + '" by ' + currentUser);
+            });
+        }
+
+        function changeActivationCode(newCode) {
+            if (!isCurrentUserAdmin) return;
+            
+            database.ref('settings/activationCode').set(newCode)
+            .then(function() {
+                addSystemMessage('Activation code was changed by ' + currentUser);
+            });
+        }
+
+        // Admin panel functions
+        function openAdminPanel() {
+            document.getElementById('adminPanel').style.display = 'block';
+            loadAdminData();
+        }
+
+        function closeAdminPanel() {
+            document.getElementById('adminPanel').style.display = 'none';
+        }
+
+        function loadAdminData() {
+            loadOnlineUsers();
+            loadAllUsers();
+            loadAdminSettings();
+        }
+
+        function loadAdminSettings() {
+            database.ref('settings').once('value')
+            .then(function(snapshot) {
+                var settings = snapshot.val() || {};
+                
+                var chatNameInput = document.getElementById('chatNameInput');
+                var activationCodeInput = document.getElementById('activationCodeInput');
+                
+                if (chatNameInput) {
+                    chatNameInput.value = settings.chatName || 'Simple Chat';
+                }
+                if (activationCodeInput) {
+                    activationCodeInput.value = settings.activationCode || 'code';
+                }
+            });
+        }
+
+        function loadOnlineUsers() {
+            database.ref('users').once('value')
+            .then(function(snapshot) {
+                var onlineList = document.getElementById('onlineUsersList');
+                onlineList.innerHTML = '';
+                
+                if (snapshot.exists()) {
+                    var users = snapshot.val();
+                    Object.entries(users).forEach(function(entry) {
+                        var userData = entry[1];
+                        var userDiv = document.createElement('div');
+                        userDiv.className = 'user-item';
+                        
+                        if (userData.username !== currentUser) {
+                            userDiv.innerHTML = '<strong>' + escapeHtml(userData.username) + '</strong><br>' +
+                                               '<small>Online since: ' + new Date(userData.timestamp).toLocaleTimeString() + '</small>' +
+                                               '<div class="user-actions">' +
+                                                   '<button class="kick-btn" onclick="requestTimeoutUser(\'' + userData.username + '\', 1)" title="Timeout for 1 minute">1m</button>' +
+                                                   '<button class="kick-btn" onclick="requestTimeoutUser(\'' + userData.username + '\', 5)" title="Timeout for 5 minutes">5m</button>' +
+                                                   '<button class="kick-btn" onclick="requestTimeoutUser(\'' + userData.username + '\', 15)" title="Timeout for 15 minutes">15m</button>' +
+                                                   '<button class="kick-btn" onclick="requestTimeoutUser(\'' + userData.username + '\', 60)" title="Timeout for 1 hour">1h</button>' +
+                                                   '<button class="kick-btn" onclick="requestTimeoutUser(\'' + userData.username + '\', -1)" title="Timeout forever">∞</button>' +
+                                                   '<button class="delete-account-btn" onclick="requestDeleteAccount(\'' + userData.username + '\')" title="Delete account permanently">Delete</button>' +
+                                               '</div>';
+                        } else {
+                            userDiv.innerHTML = '<strong>' + escapeHtml(userData.username) + '</strong><br>' +
+                                               '<small>Online since: ' + new Date(userData.timestamp).toLocaleTimeString() + '</small>' +
+                                               '<div class="user-actions"><small>(You)</small></div>';
+                        }
+                        
+                        onlineList.appendChild(userDiv);
+                    });
+                } else {
+                    onlineList.innerHTML = 'No users online';
+                }
+            });
+        }
+
+        function loadAllUsers() {
+            database.ref('accounts').once('value')
+            .then(function(snapshot) {
+                var allList = document.getElementById('allUsersList');
+                allList.innerHTML = '';
+                
+                if (snapshot.exists()) {
+                    var accounts = snapshot.val();
+                    Object.entries(accounts).forEach(function(entry) {
+                        var accountId = entry[0];
+                        var accountData = entry[1];
+                        
+                        database.ref('kicks/' + accountData.username).once('value')
+                        .then(function(kickSnapshot) {
+                            var kickData = kickSnapshot.val();
+                            var isKicked = kickData && (kickData.until === -1 || kickData.until > Date.now());
+                            var isPermanentKick = kickData && kickData.until === -1;
+                            
+                            var userDiv = document.createElement('div');
+                            userDiv.className = 'user-item' + (isKicked ? ' kicked-user' : '');
+                            
+                            var passwordId = 'pass-' + accountId;
+                            var statusText = '';
+                            if (isPermanentKick) {
+                                statusText = ' <small>(Timeout Forever)</small>';
+                            } else if (isKicked) {
+                                statusText = ' <small>(Timeout until: ' + new Date(kickData.until).toLocaleString() + ')</small>';
+                            }
+                            
+                            var actionsHtml = '';
+                            if (accountData.username !== currentUser) {
+                                if (!isKicked) {
+                                    actionsHtml = '<div class="user-actions">' +
+                                        '<button class="kick-btn" onclick="requestTimeoutUser(\'' + accountData.username + '\', 1)" title="Timeout for 1 minute">1m</button>' +
+                                        '<button class="kick-btn" onclick="requestTimeoutUser(\'' + accountData.username + '\', 5)" title="Timeout for 5 minutes">5m</button>' +
+                                        '<button class="kick-btn" onclick="requestTimeoutUser(\'' + accountData.username + '\', 15)" title="Timeout for 15 minutes">15m</button>' +
+                                        '<button class="kick-btn" onclick="requestTimeoutUser(\'' + accountData.username + '\', 60)" title="Timeout for 1 hour">1h</button>' +
+                                        '<button class="kick-btn" onclick="requestTimeoutUser(\'' + accountData.username + '\', -1)" title="Timeout forever">∞</button>' +
+                                        '<button class="delete-account-btn" onclick="requestDeleteAccount(\'' + accountData.username + '\')" title="Delete account permanently">Delete</button>' +
+                                        '</div>';
+                                } else {
+                                    actionsHtml = '<div class="user-actions">' +
+                                        '<button class="untimeout-btn" onclick="requestUntimeoutUser(\'' + accountData.username + '\')" title="Remove timeout">Untimeout</button>' +
+                                        '<button class="delete-account-btn" onclick="requestDeleteAccount(\'' + accountData.username + '\')" title="Delete account permanently">Delete</button>' +
+                                        '</div>';
+                                }
+                            } else {
+                                actionsHtml = '<div class="user-actions"><small>(You)</small></div>';
+                            }
+                            
+                            userDiv.innerHTML = '<strong>' + escapeHtml(accountData.username) + '</strong>' +
+                                               (accountData.isAdmin ? ' <small>(Admin)</small>' : '') + statusText + '<br>' +
+                                               '<small>Password: <span id="' + passwordId + '" class="password-hidden" onmouseenter="showPassword(\'' + passwordId + '\')" onmouseleave="hidePassword(\'' + passwordId + '\')">' + escapeHtml(accountData.password) + '</span></small><br>' +
+                                               '<small>Created: ' + new Date(accountData.created).toLocaleDateString() + '</small>' +
+                                               actionsHtml;
+                            allList.appendChild(userDiv);
+                        });
+                    });
+                } else {
+                    allList.innerHTML = 'No registered users';
+                }
+            });
+        }
+
+        // Password visibility functions
+        function showPassword(passwordId) {
+            if (!isCurrentUserAdmin) return;
+            
+            passwordTimers[passwordId] = setTimeout(function() {
+                var element = document.getElementById(passwordId);
+                if (element) {
+                    element.classList.remove('password-hidden');
+                    element.classList.add('password-visible');
+                }
+            }, 1000);
+        }
+
+        function hidePassword(passwordId) {
+            if (passwordTimers[passwordId]) {
+                clearTimeout(passwordTimers[passwordId]);
+                delete passwordTimers[passwordId];
+            }
+            
+            var element = document.getElementById(passwordId);
+            if (element) {
+                element.classList.remove('password-visible');
+                element.classList.add('password-hidden');
+            }
+        }
+
         // Listen for messages
         function listenForMessages() {
-            database.ref('messages').limitToLast(200).on('value', snapshot => {
-                const messagesDiv = document.getElementById('messages');
+            database.ref('messages').limitToLast(200).on('value', function(snapshot) {
+                var messagesDiv = document.getElementById('messages');
                 messagesDiv.innerHTML = '';
                 
                 if (snapshot.exists()) {
-                    const messages = snapshot.val();
-                    Object.values(messages).forEach(msg => {
-                        const messageDiv = document.createElement('div');
-                        messageDiv.className = 'message' + (msg.username === currentUser ? ' own' : '');
+                    var messages = snapshot.val();
+                    var messageEntries = Object.entries(messages);
+                    messageEntries.forEach(function(entry) {
+                        var messageId = entry[0];
+                        var msg = entry[1];
                         
-                        messageDiv.innerHTML = `
-                            <div class="message-user">${escapeHtml(msg.username)}</div>
-                            <div>${escapeHtml(msg.message)}</div>
-                        `;
+                        var messageDiv = document.createElement('div');
+                        var className = 'message';
+                        if (msg.username === currentUser) className += ' own';
+                        if (msg.isSystem) className += ' system';
+                        messageDiv.className = className;
+                        
+                        messageDiv.innerHTML = '<div class="message-user">' + escapeHtml(msg.username) + '</div>' +
+                                             '<div>' + escapeHtml(msg.message) + '</div>' +
+                                             (isCurrentUserAdmin && !msg.isSystem ? '<button class="delete-btn" id="del-' + messageId + '" onclick="deleteMessage(\'' + messageId + '\')">Delete</button>' : '');
+                        
+                        if (isCurrentUserAdmin && !msg.isSystem) {
+                            messageDiv.addEventListener('mouseenter', function() { startDeleteTimer(messageId); });
+                            messageDiv.addEventListener('mouseleave', function() { cancelDeleteTimer(messageId); });
+                        }
                         
                         messagesDiv.appendChild(messageDiv);
                     });
@@ -414,22 +1374,139 @@
 
         // Listen for users
         function listenForUsers() {
-            database.ref('users').on('value', snapshot => {
-                const count = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
-                document.getElementById('onlineCount').textContent = `${count} users online`;
+            database.ref('users').on('value', function(snapshot) {
+                var count = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+                document.getElementById('onlineCount').textContent = count + ' users online';
             });
         }
 
-        // Escape HTML
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+        // Delete timer functions
+        function startDeleteTimer(messageId) {
+            if (!isCurrentUserAdmin) return;
+            
+            deleteTimers[messageId] = setTimeout(function() {
+                var deleteBtn = document.getElementById('del-' + messageId);
+                if (deleteBtn) {
+                    deleteBtn.classList.add('show');
+                    deleteBtn.textContent = 'Click to Delete';
+                }
+            }, 500);
         }
 
-        // Enter key to send message
+        function cancelDeleteTimer(messageId) {
+            if (deleteTimers[messageId]) {
+                clearTimeout(deleteTimers[messageId]);
+                delete deleteTimers[messageId];
+                
+                var deleteBtn = document.getElementById('del-' + messageId);
+                if (deleteBtn) {
+                    deleteBtn.classList.remove('show');
+                    deleteBtn.textContent = 'Delete';
+                }
+            }
+        }
+
+        function deleteMessage(messageId) {
+            if (!isCurrentUserAdmin) return;
+            
+            var deleteBtn = document.getElementById('del-' + messageId);
+            if (!deleteBtn || !deleteBtn.classList.contains('show')) {
+                return;
+            }
+            
+            database.ref('messages/' + messageId).remove();
+            
+            if (deleteTimers[messageId]) {
+                clearTimeout(deleteTimers[messageId]);
+                delete deleteTimers[messageId];
+            }
+        }
+
+        // Settings functions
+        function openSettings() {
+            document.getElementById('settingsPanel').style.display = 'block';
+            document.getElementById('currentUsername').value = currentUser;
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmNewPassword').value = '';
+            document.getElementById('settingsMessage').textContent = '';
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsPanel').style.display = 'none';
+        }
+
+        function changePassword() {
+            var currentPassword = document.getElementById('currentPassword').value.trim();
+            var newPassword = document.getElementById('newPassword').value.trim();
+            var confirmPassword = document.getElementById('confirmNewPassword').value.trim();
+            
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                showSettingsMessage('Please fill in all password fields', true);
+                return;
+            }
+            
+            if (newPassword.length < 4) {
+                showSettingsMessage('New password must be at least 4 characters', true);
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                showSettingsMessage('New passwords do not match', true);
+                return;
+            }
+            
+            // Find and update password
+            database.ref('accounts').orderByChild('username').equalTo(currentUser).once('value')
+            .then(function(snapshot) {
+                if (!snapshot.exists()) {
+                    throw new Error('User account not found');
+                }
+                
+                var accounts = snapshot.val();
+                var accountId = Object.keys(accounts)[0];
+                var accountData = accounts[accountId];
+                
+                if (accountData.password !== currentPassword) {
+                    throw new Error('Current password is incorrect');
+                }
+                
+                return database.ref('accounts/' + accountId + '/password').set(newPassword);
+            })
+            .then(function() {
+                showSettingsMessage('Password changed successfully!', false);
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmNewPassword').value = '';
+            })
+            .catch(function(error) {
+                showSettingsMessage(error.message, true);
+            });
+        }
+
+        function logout() {
+            // Remove user from online list
+            if (userRef) {
+                userRef.remove();
+            }
+            
+            currentUser = '';
+            isCurrentUserAdmin = false;
+            userRef = null;
+            
+            closeSettings();
+            document.getElementById('chatMain').style.display = 'none';
+            document.getElementById('settingsButton').style.display = 'none';
+            document.getElementById('authScreen').style.display = 'block';
+            
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+            clearMessage();
+        }
+
+        // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
-            const messageInput = document.getElementById('messageInput');
+            var messageInput = document.getElementById('messageInput');
             if (messageInput) {
                 messageInput.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter' && !e.shiftKey) {
@@ -439,42 +1516,19 @@
                 });
             }
             
-            // Focus on username field
-            const loginUsername = document.getElementById('loginUsername');
+            var loginUsername = document.getElementById('loginUsername');
             if (loginUsername) {
                 loginUsername.focus();
             }
             
-            // Admin panel hotkey (Shift + Space for 0.5 seconds)
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Shift') {
-                    shiftPressed = true;
-                } else if (e.key === ' ') {
-                    spacePressed = true;
-                }
-                
-                if (shiftPressed && spacePressed && isCurrentUserAdmin && !adminKeyTimer) {
-                    e.preventDefault();
-                    adminKeyTimer = setTimeout(() => {
-                        openAdminPanel();
-                    }, 500);
-                }
-            });
-            
-            document.addEventListener('keyup', function(e) {
-                if (e.key === 'Shift') {
-                    shiftPressed = false;
-                } else if (e.key === ' ') {
-                    spacePressed = false;
-                }
-                
-                if (!shiftPressed || !spacePressed) {
-                    if (adminKeyTimer) {
-                        clearTimeout(adminKeyTimer);
-                        adminKeyTimer = null;
+            var adminPasswordInput = document.getElementById('adminPasswordInput');
+            if (adminPasswordInput) {
+                adminPasswordInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        confirmAdminAction();
                     }
-                }
-            });
+                });
+            }
         });
     </script>
 </body>
