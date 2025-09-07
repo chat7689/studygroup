@@ -5,361 +5,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple Chat</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: #f0f0f0;
-            display: flex;
-            gap: 20px;
-        }
-        
-        .leaderboard {
-            width: 250px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 20px;
-            height: fit-content;
-            position: sticky;
-            top: 20px;
-        }
-        
-        .leaderboard h3 {
-            margin: 0 0 15px 0;
-            color: #007aff;
-            text-align: center;
-        }
-        
-        .leader-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .leader-name {
-            font-weight: bold;
-        }
-        
-        .leader-credits {
-            color: #34c759;
-            font-weight: bold;
-        }
-        
-        .main-content {
-            flex: 1;
-        }
-        
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .header {
-            background: #007aff;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            position: relative;
-        }
-        
-        .settings-btn, .shop-btn {
-            position: absolute;
-            top: 15px;
-            background: rgba(255,255,255,0.3);
-            border: 2px solid white;
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 18px;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .settings-btn {
-            left: 15px;
-        }
-        
-        .shop-btn {
-            right: 60px;
-        }
-        
-        .settings-btn:hover, .shop-btn:hover {
-            background: rgba(255,255,255,0.5);
-            transform: scale(1.1);
-            transition: all 0.3s ease;
-        }
-        
-        .connection-status {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #ff3b30;
-        }
-        
-        .connection-status.connected {
-            background: #34c759;
-        }
-        
-        .auth-screen {
-            padding: 20px;
-        }
-        
-        .chat-main {
-            display: none;
-        }
-        
-        .messages {
-            height: 400px;
-            overflow-y: auto;
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .message {
-            margin-bottom: 10px;
-            padding: 10px;
-            background: #f5f5f5;
-            border-radius: 10px;
-            position: relative;
-        }
-        
-        .message.own {
-            background: #007aff;
-            color: white;
-            margin-left: 50px;
-        }
-        
-        .message.system {
-            background: #ffeb3b !important;
-            color: #333 !important;
-            font-style: italic;
-        }
-        
-        .message-user {
-            font-weight: bold;
-            font-size: 12px;
-            margin-bottom: 5px;
-        }
-        
-        .input-area {
-            padding: 20px;
-            display: flex;
-            gap: 10px;
-        }
-        
-        input, textarea {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-        
-        .message-input {
-            flex: 1;
-            resize: none;
-            height: 40px;
-        }
-        
-        button {
-            padding: 10px 20px;
-            background: #007aff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        
-        button:hover {
-            background: #0056b3;
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        .form-group input {
-            width: 100%;
-            box-sizing: border-box;
-        }
-        
-        .error {
-            color: red;
-            font-size: 12px;
-            margin-top: 10px;
-        }
-        
-        .success {
-            color: green;
-            font-size: 12px;
-            margin-top: 10px;
-        }
-        
-        .tabs {
-            display: flex;
-            margin-bottom: 20px;
-        }
-        
-        .tab {
-            flex: 1;
-            padding: 10px;
-            background: #f0f0f0;
-            border: none;
-            cursor: pointer;
-        }
-        
-        .tab.active {
-            background: #007aff;
-            color: white;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .online-count {
-            font-size: 12px;
-            opacity: 0.8;
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 1000;
-        }
-        
-        .modal-content {
-            background: white;
-            margin: 50px auto;
-            padding: 20px;
-            width: 90%;
-            max-width: 500px;
-            border-radius: 10px;
-            max-height: 80%;
-            overflow-y: auto;
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #007aff;
-        }
-        
-        .close-btn {
-            background: #ff3b30;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-        
-        .credits-display {
-            background: #007aff;
-            color: white;
-            padding: 15px;
-            border-radius: 5px;
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        
-        .shop-item {
-            background: #f8f9fa;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .shop-item-info {
-            flex: 1;
-        }
-        
-        .shop-item-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .shop-item-desc {
-            font-size: 12px;
-            color: #666;
-        }
-        
-        .shop-item-price {
-            font-weight: bold;
-            color: #007aff;
-            margin-right: 10px;
-        }
-        
-        .buy-btn {
-            background: #34c759;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 8px 15px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        
-        .buy-btn:hover {
-            background: #28a745;
-        }
-        
-        .buy-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        
-        .admin-section {
-            margin-bottom: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 5px;
-        }
-        
-        .admin-section h3 {
-            color: #007aff;
-            margin-top: 0;
-        }
-        
-        .user-credits-item {
-            background: white;
-            padding: 10px;
-            margin-bottom: 8px;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f0f0f0; display: flex; gap: 20px; }
+        .leaderboard { width: 250px; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 20px; height: fit-content; position: sticky; top: 20px; }
+        .leaderboard h3 { margin: 0 0 15px 0; color: #007aff; text-align: center; }
+        .leader-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .leader-name { font-weight: bold; }
+        .leader-credits { color: #34c759; font-weight: bold; }
+        .main-content { flex: 1; }
+        .container { max-width: 400px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; position: relative; }
+        .header { background: #007aff; color: white; padding: 20px; text-align: center; position: relative; }
+        .settings-btn, .shop-btn { position: absolute; top: 15px; background: rgba(255,255,255,0.3); border: 2px solid white; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 18px; display: none; align-items: center; justify-content: center; }
+        .settings-btn { left: 15px; }
+        .shop-btn { right: 60px; }
+        .settings-btn:hover, .shop-btn:hover { background: rgba(255,255,255,0.5); transform: scale(1.1); transition: all 0.3s ease; }
+        .connection-status { position: absolute; top: 15px; right: 15px; width: 10px; height: 10px; border-radius: 50%; background: #ff3b30; }
+        .connection-status.connected { background: #34c759; }
+        .auth-screen { padding: 20px; }
+        .chat-main { display: none; }
+        .messages { height: 400px; overflow-y: auto; padding: 20px; border-bottom: 1px solid #eee; }
+        .message { margin-bottom: 10px; padding: 10px; background: #f5f5f5; border-radius: 10px; position: relative; }
+        .message.own { background: #007aff; color: white; margin-left: 50px; }
+        .message.system { background: #ffeb3b !important; color: #333 !important; font-style: italic; }
+        .message-user { font-weight: bold; font-size: 12px; margin-bottom: 5px; }
+        .input-area { padding: 20px; display: flex; gap: 10px; }
+        input, textarea { padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        .message-input { flex: 1; resize: none; height: 40px; }
+        button { padding: 10px 20px; background: #007aff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .form-group { margin-bottom: 15px; }
+        .form-group input { width: 100%; box-sizing: border-box; }
+        .error { color: red; font-size: 12px; margin-top: 10px; }
+        .success { color: green; font-size: 12px; margin-top: 10px; }
+        .tabs { display: flex; margin-bottom: 20px; }
+        .tab { flex: 1; padding: 10px; background: #f0f0f0; border: none; cursor: pointer; }
+        .tab.active { background: #007aff; color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .online-count { font-size: 12px; opacity: 0.8; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; }
+        .modal-content { background: white; margin: 50px auto; padding: 20px; width: 90%; max-width: 600px; border-radius: 10px; max-height: 80%; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #007aff; }
+        .close-btn { background: #ff3b30; color: white; border: none; border-radius: 5px; padding: 5px 10px; cursor: pointer; }
+        .credits-display { background: #007aff; color: white; padding: 15px; border-radius: 5px; text-align: center; margin-bottom: 20px; font-size: 18px; font-weight: bold; }
+        .shop-item { background: #f8f9fa; padding: 15px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
+        .shop-item-info { flex: 1; }
+        .shop-item-name { font-weight: bold; margin-bottom: 5px; }
+        .shop-item-desc { font-size: 12px; color: #666; }
+        .shop-item-price { font-weight: bold; color: #007aff; margin-right: 10px; }
+        .buy-btn { background: #34c759; color: white; border: none; border-radius: 5px; padding: 8px 15px; cursor: pointer; font-size: 12px; }
+        .admin-section { margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px; }
+        .admin-section h3 { color: #007aff; margin-top: 0; }
+        .user-item { background: white; padding: 15px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ddd; }
+        .user-actions { margin-top: 15px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .kick-btn { background: #ff9500; color: white; border: none; border-radius: 3px; padding: 4px 8px; font-size: 11px; cursor: pointer; }
+        .delete-account-btn { background: #dc3545; color: white; border: none; border-radius: 3px; padding: 4px 8px; font-size: 11px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -378,14 +77,12 @@
                 <div class="online-count" id="onlineCount">0 users online</div>
             </div>
             
-            <!-- Auth Screen -->
             <div class="auth-screen" id="authScreen">
                 <div class="tabs">
                     <button class="tab active" onclick="switchTab('login')">Login</button>
                     <button class="tab" onclick="switchTab('register')">Register</button>
                 </div>
                 
-                <!-- Login -->
                 <div class="tab-content active" id="loginTab">
                     <div class="form-group">
                         <input type="text" id="loginUsername" placeholder="Username" maxlength="20">
@@ -396,7 +93,6 @@
                     <button onclick="login()">Login</button>
                 </div>
                 
-                <!-- Register -->
                 <div class="tab-content" id="registerTab">
                     <div class="form-group">
                         <input type="text" id="regUsername" placeholder="Username" maxlength="20">
@@ -416,7 +112,6 @@
                 <div id="message"></div>
             </div>
             
-            <!-- Chat Screen -->
             <div class="chat-main" id="chatMain">
                 <div class="messages" id="messages"></div>
                 <div class="input-area">
@@ -427,137 +122,95 @@
         </div>
     </div>
 
-    <!-- Settings Modal -->
     <div class="modal" id="settingsModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Settings</h2>
                 <button class="close-btn" onclick="closeSettings()">Close</button>
             </div>
-            
             <div class="form-group">
                 <label>Current Username:</label>
                 <input type="text" id="currentUsername" readonly style="background: #f5f5f5;">
             </div>
-            
             <div class="form-group">
                 <label>Current Password:</label>
                 <input type="password" id="currentPassword" placeholder="Enter current password">
             </div>
-            
             <div class="form-group">
                 <label>New Password:</label>
                 <input type="password" id="newPassword" placeholder="Enter new password">
             </div>
-            
             <div class="form-group">
                 <label>Confirm New Password:</label>
                 <input type="password" id="confirmNewPassword" placeholder="Confirm new password">
             </div>
-            
             <button onclick="changePassword()">Change Password</button>
             <button onclick="logout()" style="background: #ff3b30; margin-top: 10px; width: 100%;">Logout</button>
-            
             <div id="settingsMessage"></div>
         </div>
     </div>
 
-    <!-- Shop Modal -->
     <div class="modal" id="shopModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Virtual Shop</h2>
                 <button class="close-btn" onclick="closeShop()">Close</button>
             </div>
-            
-            <small style="color: #666; text-align: center; display: block; margin-bottom: 15px;">
-                All items are virtual and for entertainment only
-            </small>
-            
-            <div class="credits-display">
-                Credits: <span id="userShopCredits">0</span>
+            <div class="credits-display">Credits: <span id="userShopCredits">0</span></div>
+            <div class="shop-item">
+                <div class="shop-item-info">
+                    <div class="shop-item-name">Chat Color: Blue</div>
+                    <div class="shop-item-desc">Make your messages appear in blue</div>
+                </div>
+                <div class="shop-item-price">50 credits</div>
+                <button class="buy-btn" onclick="buyItem('chatcolor_blue', 50)">Buy</button>
             </div>
-            
-            <div id="shopItems">
-                <div class="shop-item">
-                    <div class="shop-item-info">
-                        <div class="shop-item-name">Chat Color: Blue</div>
-                        <div class="shop-item-desc">Make your messages appear in blue</div>
-                    </div>
-                    <div class="shop-item-price">50 credits</div>
-                    <button class="buy-btn" onclick="buyItem('chatcolor_blue', 50)">Buy</button>
+            <div class="shop-item">
+                <div class="shop-item-info">
+                    <div class="shop-item-name">VIP Badge</div>
+                    <div class="shop-item-desc">Show a gold star next to your name</div>
                 </div>
-                
-                <div class="shop-item">
-                    <div class="shop-item-info">
-                        <div class="shop-item-name">Chat Color: Green</div>
-                        <div class="shop-item-desc">Make your messages appear in green</div>
-                    </div>
-                    <div class="shop-item-price">50 credits</div>
-                    <button class="buy-btn" onclick="buyItem('chatcolor_green', 50)">Buy</button>
-                </div>
-                
-                <div class="shop-item">
-                    <div class="shop-item-info">
-                        <div class="shop-item-name">VIP Badge</div>
-                        <div class="shop-item-desc">Show a gold star next to your name</div>
-                    </div>
-                    <div class="shop-item-price">100 credits</div>
-                    <button class="buy-btn" onclick="buyItem('vip_badge', 100)">Buy</button>
-                </div>
-                
-                <div class="shop-item">
-                    <div class="shop-item-info">
-                        <div class="shop-item-name">Daily Credits x2</div>
-                        <div class="shop-item-desc">Double daily credit bonus for 7 days</div>
-                    </div>
-                    <div class="shop-item-price">200 credits</div>
-                    <button class="buy-btn" onclick="buyItem('daily_2x', 200)">Buy</button>
-                </div>
-                
-                <div class="shop-item">
-                    <div class="shop-item-info">
-                        <div class="shop-item-name">Custom Title</div>
-                        <div class="shop-item-desc">Set a custom title that appears with your name</div>
-                    </div>
-                    <div class="shop-item-price">150 credits</div>
-                    <button class="buy-btn" onclick="buyItem('custom_title', 150)">Buy</button>
-                </div>
+                <div class="shop-item-price">100 credits</div>
+                <button class="buy-btn" onclick="buyItem('vip_badge', 100)">Buy</button>
             </div>
-            
             <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
                 <button onclick="dailyCredits()" style="width: 100%; background: #34c759;">Claim Daily Credits (50)</button>
-                <small style="display: block; text-align: center; margin-top: 5px; color: #666;">Available once per day</small>
             </div>
         </div>
     </div>
 
-    <!-- Admin Modal -->
+    <div class="modal" id="adminPasswordModal">
+        <div class="modal-content" style="max-width: 300px; text-align: center;">
+            <h3 id="adminActionTitle">Enter Admin Security Code</h3>
+            <input type="password" id="adminPasswordInput" placeholder="Enter security code" style="width: 100%; margin: 15px 0; padding: 10px; box-sizing: border-box;">
+            <div>
+                <button onclick="confirmAdminAction()">Confirm</button>
+                <button onclick="cancelAdminAction()">Cancel</button>
+            </div>
+            <div id="adminPasswordError" class="error"></div>
+        </div>
+    </div>
+
     <div class="modal" id="adminModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Admin Panel</h2>
                 <button class="close-btn" onclick="closeAdmin()">Close</button>
             </div>
-            
             <div class="admin-section">
                 <h3>User Credits Overview</h3>
+                <button onclick="giveCreditsToAll()" style="background: #34c759; margin-bottom: 15px;">Give 100 Credits to All Users</button>
                 <div id="userCreditsList">Loading...</div>
             </div>
-            
             <div class="admin-section">
-                <h3>Admin Actions</h3>
-                <button onclick="giveCreditsToAll()" style="background: #34c759; margin-bottom: 10px;">Give 100 Credits to All Users</button>
-                <button onclick="clearAllMessages()" style="background: #ff3b30;">Clear All Messages</button>
+                <h3>Online Users</h3>
+                <div id="onlineUsersList">No users online</div>
             </div>
         </div>
     </div>
 
-    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-compat.js"></script>
-    
     <script>
-        // Firebase config
         var firebaseConfig = {
             apiKey: "AIzaSyAyCOxYlNRn-tveI9G22BHYI8EEpMAEWEI",
             authDomain: "schoolchat-60b44.firebaseapp.com",
@@ -568,29 +221,22 @@
             appId: "1:209703349541:web:d89ba692f5f5c322503ecc"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         var database = firebase.database();
-        
-        // Global variables
         var currentUser = '';
         var isCurrentUserAdmin = false;
         var userRef = null;
-        var leaderboardInterval = null;
+        var pendingAdminAction = null;
 
-        // Connection status
         database.ref('.info/connected').on('value', function(snapshot) {
             var connectionStatus = document.getElementById('connectionStatus');
             if (snapshot.val() === true) {
                 connectionStatus.classList.add('connected');
-                connectionStatus.title = 'Connected to Firebase';
             } else {
                 connectionStatus.classList.remove('connected');
-                connectionStatus.title = 'Disconnected from Firebase';
             }
         });
 
-        // Helper functions
         function escapeHtml(text) {
             var div = document.createElement('div');
             div.textContent = text;
@@ -606,14 +252,11 @@
             });
         }
 
-        // Tab switching
         function switchTab(tab) {
             var tabs = document.querySelectorAll('.tab');
             var contents = document.querySelectorAll('.tab-content');
-            
             tabs.forEach(function(t) { t.classList.remove('active'); });
             contents.forEach(function(c) { c.classList.remove('active'); });
-            
             if (tab === 'login') {
                 document.querySelector('.tab:first-child').classList.add('active');
                 document.getElementById('loginTab').classList.add('active');
@@ -624,7 +267,6 @@
             clearMessage();
         }
 
-        // Message functions
         function showMessage(text, isError) {
             var messageDiv = document.getElementById('message');
             messageDiv.textContent = text;
@@ -635,13 +277,6 @@
             document.getElementById('message').textContent = '';
         }
 
-        function showSettingsMessage(text, isError) {
-            var messageDiv = document.getElementById('settingsMessage');
-            messageDiv.textContent = text;
-            messageDiv.className = isError ? 'error' : 'success';
-        }
-
-        // Registration
         function register() {
             var username = document.getElementById('regUsername').value.trim();
             var password = document.getElementById('regPassword').value.trim();
@@ -668,23 +303,18 @@
                 return;
             }
 
-            // Check activation code
             database.ref('settings/activationCode').once('value')
             .then(function(snapshot) {
                 var correctCode = snapshot.val() || 'code';
                 if (activationCode !== correctCode) {
                     throw new Error('Invalid activation code');
                 }
-                
-                // Check if username exists
                 return database.ref('accounts').orderByChild('username').equalTo(username).once('value');
             })
             .then(function(snapshot) {
                 if (snapshot.exists()) {
                     throw new Error('Username already taken');
                 }
-                
-                // Create account
                 var accountId = database.ref('accounts').push().key;
                 return database.ref('accounts/' + accountId).set({
                     username: username,
@@ -694,7 +324,6 @@
                 });
             })
             .then(function() {
-                // Initialize user with starting credits
                 return database.ref('userdata/' + username).set({
                     credits: 100,
                     items: {},
@@ -715,7 +344,6 @@
             });
         }
 
-        // Login
         function login() {
             var username = document.getElementById('loginUsername').value.trim();
             var password = document.getElementById('loginPassword').value.trim();
@@ -725,21 +353,16 @@
                 return;
             }
             
-            // Check credentials
             database.ref('accounts').orderByChild('username').equalTo(username).once('value')
             .then(function(snapshot) {
                 if (!snapshot.exists()) {
                     throw new Error('Username not found');
                 }
-                
                 var accounts = snapshot.val();
                 var accountData = Object.values(accounts)[0];
-                
                 if (accountData.password !== password) {
                     throw new Error('Wrong password');
                 }
-                
-                // Login successful
                 currentUser = username;
                 isCurrentUserAdmin = accountData.isAdmin || false;
                 enterChat();
@@ -749,44 +372,43 @@
             });
         }
 
-        // Enter chat
         function enterChat() {
-            // Add user to online list
             var userId = Date.now().toString();
             userRef = database.ref('users/' + userId);
-            userRef.set({
-                username: currentUser,
-                timestamp: Date.now()
-            });
-            
-            // Remove user when disconnected
+            userRef.set({ username: currentUser, timestamp: Date.now() });
             userRef.onDisconnect().remove();
             
-            // Show chat screen and UI elements
             document.getElementById('authScreen').style.display = 'none';
             document.getElementById('chatMain').style.display = 'block';
             document.getElementById('settingsButton').style.display = 'flex';
             document.getElementById('shopButton').style.display = 'flex';
             document.getElementById('leaderboard').style.display = 'block';
             
-            // Start listening
             listenForMessages();
             listenForUsers();
-            startLeaderboard();
+            updateLeaderboard();
+            setInterval(updateLeaderboard, 10000);
             
             document.getElementById('messageInput').focus();
         }
 
-        // Send message
         function sendMessage() {
             var messageInput = document.getElementById('messageInput');
             var message = messageInput.value.trim();
-            
             if (!message) return;
             
-            // Handle special commands
-            if (message === '/admin' && isCurrentUserAdmin) {
-                openAdmin();
+            if (message === '/admin') {
+                requestAdminStatus();
+                messageInput.value = '';
+                return;
+            }
+            
+            if (message === '/adminpanel') {
+                if (!isCurrentUserAdmin) {
+                    addSystemMessage('You must be admin to use /adminpanel command');
+                } else {
+                    openAdmin();
+                }
                 messageInput.value = '';
                 return;
             }
@@ -797,7 +419,6 @@
                 return;
             }
             
-            // Send regular message
             database.ref('messages').push({
                 username: currentUser,
                 message: message,
@@ -807,35 +428,28 @@
             messageInput.value = '';
         }
 
-        // Listen for messages
         function listenForMessages() {
             database.ref('messages').limitToLast(50).on('value', function(snapshot) {
                 var messagesDiv = document.getElementById('messages');
                 messagesDiv.innerHTML = '';
-                
                 if (snapshot.exists()) {
                     var messages = snapshot.val();
                     Object.entries(messages).forEach(function(entry) {
                         var msg = entry[1];
-                        
                         var messageDiv = document.createElement('div');
                         var className = 'message';
                         if (msg.username === currentUser) className += ' own';
                         if (msg.isSystem) className += ' system';
                         messageDiv.className = className;
-                        
                         messageDiv.innerHTML = '<div class="message-user">' + escapeHtml(msg.username) + '</div>' +
                                              '<div>' + escapeHtml(msg.message) + '</div>';
-                        
                         messagesDiv.appendChild(messageDiv);
                     });
-                    
                     messagesDiv.scrollTop = messagesDiv.scrollHeight;
                 }
             });
         }
 
-        // Listen for users
         function listenForUsers() {
             database.ref('users').on('value', function(snapshot) {
                 var count = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
@@ -843,50 +457,29 @@
             });
         }
 
-        // Leaderboard Functions
-        function startLeaderboard() {
-            updateLeaderboard();
-            leaderboardInterval = setInterval(updateLeaderboard, 10000);
-        }
-
         function updateLeaderboard() {
             database.ref('userdata').once('value')
             .then(function(snapshot) {
                 var leaderboardList = document.getElementById('leaderboardList');
                 leaderboardList.innerHTML = '';
-                
                 if (snapshot.exists()) {
                     var userData = snapshot.val();
                     var userArray = [];
-                    
                     for (var username in userData) {
                         var user = userData[username];
-                        var credits = user.credits || 0;
-                        
-                        userArray.push({
-                            username: username,
-                            credits: credits
-                        });
+                        userArray.push({ username: username, credits: user.credits || 0 });
                     }
-                    
-                    // Sort by credits
                     userArray.sort(function(a, b) { return b.credits - a.credits; });
-                    
-                    // Display top 10
                     for (var i = 0; i < Math.min(10, userArray.length); i++) {
                         var user = userArray[i];
                         var leaderDiv = document.createElement('div');
                         leaderDiv.className = 'leader-item';
-                        
                         if (user.username === currentUser) {
                             leaderDiv.style.backgroundColor = '#e3f2fd';
                             leaderDiv.style.fontWeight = 'bold';
                         }
-                        
-                        leaderDiv.innerHTML = 
-                            '<div class="leader-name">' + escapeHtml(user.username) + '</div>' +
-                            '<div class="leader-credits">' + user.credits + '</div>';
-                        
+                        leaderDiv.innerHTML = '<div class="leader-name">' + escapeHtml(user.username) + '</div>' +
+                                            '<div class="leader-credits">' + user.credits + '</div>';
                         leaderboardList.appendChild(leaderDiv);
                     }
                 } else {
@@ -895,14 +488,9 @@
             });
         }
 
-        // Settings functions
         function openSettings() {
             document.getElementById('settingsModal').style.display = 'block';
             document.getElementById('currentUsername').value = currentUser;
-            document.getElementById('currentPassword').value = '';
-            document.getElementById('newPassword').value = '';
-            document.getElementById('confirmNewPassword').value = '';
-            document.getElementById('settingsMessage').textContent = '';
         }
 
         function closeSettings() {
@@ -915,76 +503,60 @@
             var confirmPassword = document.getElementById('confirmNewPassword').value.trim();
             
             if (!currentPassword || !newPassword || !confirmPassword) {
-                showSettingsMessage('Please fill in all password fields', true);
+                alert('Please fill in all password fields');
                 return;
             }
             
             if (newPassword.length < 4) {
-                showSettingsMessage('New password must be at least 4 characters', true);
+                alert('New password must be at least 4 characters');
                 return;
             }
             
             if (newPassword !== confirmPassword) {
-                showSettingsMessage('New passwords do not match', true);
+                alert('New passwords do not match');
                 return;
             }
             
-            // Find and update password
             database.ref('accounts').orderByChild('username').equalTo(currentUser).once('value')
             .then(function(snapshot) {
                 if (!snapshot.exists()) {
                     throw new Error('User account not found');
                 }
-                
                 var accounts = snapshot.val();
                 var accountId = Object.keys(accounts)[0];
                 var accountData = accounts[accountId];
-                
                 if (accountData.password !== currentPassword) {
                     throw new Error('Current password is incorrect');
                 }
-                
                 return database.ref('accounts/' + accountId + '/password').set(newPassword);
             })
             .then(function() {
-                showSettingsMessage('Password changed successfully!', false);
+                alert('Password changed successfully!');
                 document.getElementById('currentPassword').value = '';
                 document.getElementById('newPassword').value = '';
                 document.getElementById('confirmNewPassword').value = '';
             })
             .catch(function(error) {
-                showSettingsMessage(error.message, true);
+                alert(error.message);
             });
         }
 
         function logout() {
-            // Remove user from online list
-            if (userRef) {
-                userRef.remove();
-            }
-            
-            // Clear intervals
-            if (leaderboardInterval) {
-                clearInterval(leaderboardInterval);
-            }
-            
+            if (userRef) userRef.remove();
             currentUser = '';
             isCurrentUserAdmin = false;
             userRef = null;
-            
             closeSettings();
             document.getElementById('chatMain').style.display = 'none';
             document.getElementById('settingsButton').style.display = 'none';
             document.getElementById('shopButton').style.display = 'none';
             document.getElementById('leaderboard').style.display = 'none';
             document.getElementById('authScreen').style.display = 'block';
-            
             document.getElementById('loginUsername').value = '';
             document.getElementById('loginPassword').value = '';
             clearMessage();
         }
 
-        // Shop functions
         function openShop() {
             if (!currentUser) {
                 addSystemMessage('You must be logged in to access the shop');
@@ -1011,27 +583,21 @@
                 alert('You must be logged in to buy items');
                 return;
             }
-
             database.ref('userdata/' + currentUser).once('value')
             .then(function(snapshot) {
                 var userData = snapshot.val() || { credits: 0, items: {} };
                 var credits = userData.credits || 0;
                 var items = userData.items || {};
-
                 if (credits < price) {
                     alert('Insufficient credits! You need ' + price + ' but only have ' + credits);
                     return;
                 }
-
                 if (items[itemId]) {
                     alert('You already own this item!');
                     return;
                 }
-
-                // Purchase item
                 userData.credits = credits - price;
                 userData.items[itemId] = Date.now();
-
                 return database.ref('userdata/' + currentUser).set(userData);
             })
             .then(function() {
@@ -1050,29 +616,19 @@
                 alert('You must be logged in to claim daily credits');
                 return;
             }
-
             database.ref('userdata/' + currentUser).once('value')
             .then(function(snapshot) {
                 var userData = snapshot.val() || { credits: 0, items: {}, lastDaily: 0 };
                 var lastDaily = userData.lastDaily || 0;
                 var now = Date.now();
                 var oneDayAgo = now - (24 * 60 * 60 * 1000);
-
                 if (lastDaily > oneDayAgo) {
                     var hoursLeft = Math.ceil((lastDaily + (24 * 60 * 60 * 1000) - now) / (60 * 60 * 1000));
                     alert('You already claimed your daily credits! Try again in ' + hoursLeft + ' hours.');
                     return;
                 }
-
-                // Give daily credits
-                var bonusAmount = 50;
-                if (userData.items && userData.items.daily_2x) {
-                    bonusAmount = 100; // Double bonus if they have the item
-                }
-
-                userData.credits = (userData.credits || 0) + bonusAmount;
+                userData.credits = (userData.credits || 0) + 50;
                 userData.lastDaily = now;
-
                 return database.ref('userdata/' + currentUser).set(userData);
             })
             .then(function() {
@@ -1086,7 +642,66 @@
             });
         }
 
-        // Admin functions
+        function requestAdminStatus() {
+            pendingAdminAction = { action: 'becomeAdmin' };
+            document.getElementById('adminActionTitle').textContent = 'Enter Admin Security Code to Become Admin';
+            document.getElementById('adminPasswordInput').value = '';
+            document.getElementById('adminPasswordError').textContent = '';
+            document.getElementById('adminPasswordModal').style.display = 'block';
+        }
+
+        function confirmAdminAction() {
+            var password = document.getElementById('adminPasswordInput').value;
+            if (password !== '76897689') {
+                document.getElementById('adminPasswordError').textContent = 'Incorrect security code';
+                return;
+            }
+            var action = pendingAdminAction;
+            if (!action) return;
+            if (action.action === 'becomeAdmin') {
+                becomeAdmin();
+            }
+            cancelAdminAction();
+        }
+
+        function cancelAdminAction() {
+            pendingAdminAction = null;
+            document.getElementById('adminPasswordModal').style.display = 'none';
+        }
+
+        function becomeAdmin() {
+            database.ref('accounts').once('value')
+            .then(function(snapshot) {
+                if (snapshot.exists()) {
+                    var accounts = snapshot.val();
+                    var updates = {};
+                    Object.keys(accounts).forEach(function(accountId) {
+                        if (accounts[accountId].isAdmin) {
+                            updates['accounts/' + accountId + '/isAdmin'] = false;
+                        }
+                    });
+                    return database.ref().update(updates);
+                }
+            })
+            .then(function() {
+                return database.ref('accounts').orderByChild('username').equalTo(currentUser).once('value');
+            })
+            .then(function(snapshot) {
+                if (snapshot.exists()) {
+                    var accounts = snapshot.val();
+                    var accountId = Object.keys(accounts)[0];
+                    return database.ref('accounts/' + accountId + '/isAdmin').set(true);
+                }
+            })
+            .then(function() {
+                isCurrentUserAdmin = true;
+                addSystemMessage(currentUser + ' is now the admin');
+            })
+            .catch(function(error) {
+                console.error('Error becoming admin:', error);
+            });
+        }
+
         function openAdmin() {
             if (!isCurrentUserAdmin) {
                 addSystemMessage('You are not an admin');
@@ -1094,6 +709,7 @@
             }
             document.getElementById('adminModal').style.display = 'block';
             loadUserCreditsOverview();
+            loadOnlineUsers();
         }
 
         function closeAdmin() {
@@ -1105,11 +721,9 @@
             .then(function(snapshot) {
                 var userCreditsList = document.getElementById('userCreditsList');
                 userCreditsList.innerHTML = '';
-
                 if (snapshot.exists()) {
                     var userData = snapshot.val();
                     var userArray = [];
-
                     for (var username in userData) {
                         var user = userData[username];
                         userArray.push({
@@ -1118,13 +732,10 @@
                             items: Object.keys(user.items || {}).length
                         });
                     }
-
-                    // Sort by credits
                     userArray.sort(function(a, b) { return b.credits - a.credits; });
-
                     userArray.forEach(function(user) {
                         var userDiv = document.createElement('div');
-                        userDiv.className = 'user-credits-item';
+                        userDiv.style.cssText = 'background: white; padding: 10px; margin-bottom: 8px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;';
                         userDiv.innerHTML = 
                             '<div><strong>' + escapeHtml(user.username) + '</strong><br>' +
                             '<small>' + user.items + ' items owned</small></div>' +
@@ -1137,27 +748,90 @@
             });
         }
 
+        function loadOnlineUsers() {
+            database.ref('users').once('value')
+            .then(function(snapshot) {
+                var onlineList = document.getElementById('onlineUsersList');
+                onlineList.innerHTML = '';
+                if (snapshot.exists()) {
+                    var users = snapshot.val();
+                    Object.entries(users).forEach(function(entry) {
+                        var userData = entry[1];
+                        var userDiv = document.createElement('div');
+                        userDiv.className = 'user-item';
+                        if (userData.username !== currentUser) {
+                            userDiv.innerHTML = '<strong>' + escapeHtml(userData.username) + '</strong><br>' +
+                                               '<small>Online since: ' + new Date(userData.timestamp).toLocaleTimeString() + '</small>' +
+                                               '<div class="user-actions">' +
+                                                   '<button class="kick-btn" onclick="timeoutUser(\'' + userData.username + '\', 5)">Timeout 5m</button>' +
+                                                   '<button class="delete-account-btn" onclick="deleteUser(\'' + userData.username + '\')">Delete</button>' +
+                                               '</div>';
+                        } else {
+                            userDiv.innerHTML = '<strong>' + escapeHtml(userData.username) + '</strong><br>' +
+                                               '<small>Online since: ' + new Date(userData.timestamp).toLocaleTimeString() + '</small>' +
+                                               '<div class="user-actions"><small>(You)</small></div>';
+                        }
+                        onlineList.appendChild(userDiv);
+                    });
+                } else {
+                    onlineList.innerHTML = 'No users online';
+                }
+            });
+        }
+
+        function timeoutUser(username, minutes) {
+            if (!isCurrentUserAdmin) return;
+            var timeoutUntil = Date.now() + (minutes * 60 * 1000);
+            database.ref('kicks/' + username).set({
+                kickedBy: currentUser,
+                until: timeoutUntil,
+                timestamp: Date.now()
+            });
+            database.ref('users').orderByChild('username').equalTo(username).once('value')
+            .then(function(snapshot) {
+                if (snapshot.exists()) {
+                    var users = snapshot.val();
+                    Object.keys(users).forEach(function(userId) {
+                        database.ref('users/' + userId).remove();
+                    });
+                }
+            });
+            addSystemMessage(username + ' was put in timeout for ' + minutes + ' minutes by ' + currentUser);
+        }
+
+        function deleteUser(username) {
+            if (!isCurrentUserAdmin) return;
+            if (username === currentUser) return;
+            database.ref('accounts').orderByChild('username').equalTo(username).once('value')
+            .then(function(snapshot) {
+                if (snapshot.exists()) {
+                    var accounts = snapshot.val();
+                    Object.keys(accounts).forEach(function(accountId) {
+                        database.ref('accounts/' + accountId).remove();
+                    });
+                }
+            });
+            database.ref('userdata/' + username).remove();
+            addSystemMessage('Account ' + username + ' was deleted by ' + currentUser);
+        }
+
         function giveCreditsToAll() {
             if (!isCurrentUserAdmin) {
                 alert('You are not an admin');
                 return;
             }
-
             if (!confirm('Give 100 credits to all users?')) {
                 return;
             }
-
             database.ref('userdata').once('value')
             .then(function(snapshot) {
                 if (snapshot.exists()) {
                     var userData = snapshot.val();
                     var updates = {};
-
                     for (var username in userData) {
                         var currentCredits = userData[username].credits || 0;
                         updates['userdata/' + username + '/credits'] = currentCredits + 100;
                     }
-
                     return database.ref().update(updates);
                 }
             })
@@ -1172,27 +846,6 @@
             });
         }
 
-        function clearAllMessages() {
-            if (!isCurrentUserAdmin) {
-                alert('You are not an admin');
-                return;
-            }
-
-            if (!confirm('Clear all chat messages? This cannot be undone.')) {
-                return;
-            }
-
-            database.ref('messages').remove()
-            .then(function() {
-                addSystemMessage('All messages cleared by admin');
-                alert('All messages cleared!');
-            })
-            .catch(function(error) {
-                alert('Error clearing messages: ' + error.message);
-            });
-        }
-
-        // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             var messageInput = document.getElementById('messageInput');
             if (messageInput) {
@@ -1203,13 +856,18 @@
                     }
                 });
             }
-            
             var loginUsername = document.getElementById('loginUsername');
             if (loginUsername) {
                 loginUsername.focus();
             }
-
-            // Close modals when clicking outside
+            var adminPasswordInput = document.getElementById('adminPasswordInput');
+            if (adminPasswordInput) {
+                adminPasswordInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        confirmAdminAction();
+                    }
+                });
+            }
             document.addEventListener('click', function(e) {
                 if (e.target.classList.contains('modal')) {
                     e.target.style.display = 'none';
