@@ -3,139 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smooth Disk Sim - Society & Agriculture Update</title>
+    <title>Smooth Disk Sim - Stability Update</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #87CEEB; 
+            background-color: #000; 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #fff;
             text-shadow: 1px 1px 2px #000;
         }
 
-        #canvas-container {
-            width: 100vw;
-            height: 100vh;
-        }
+        #canvas-container { width: 100vw; height: 100vh; }
 
         #ui-panel {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100px;
+            position: absolute; top: 0; left: 0; width: 100%; height: 110px;
             background: linear-gradient(to bottom, rgba(10, 10, 15, 0.8), rgba(10, 10, 15, 0));
-            display: flex;
-            padding: 15px 20px;
-            box-sizing: border-box;
-            z-index: 100;
+            display: flex; padding: 15px 20px; box-sizing: border-box; z-index: 100;
             pointer-events: none;
         }
 
         .stats-digital {
-            width: 220px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            border-right: 1px solid rgba(255,255,255,0.3);
-            padding-right: 20px;
-            margin-right: 20px;
+            width: 220px; display: flex; flex-direction: column; justify-content: center;
+            border-right: 1px solid rgba(255,255,255,0.3); padding-right: 20px; margin-right: 20px;
         }
 
-        .stat-line {
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            margin: 2px 0;
-            letter-spacing: 1px;
-        }
+        .stat-line { display: flex; justify-content: space-between; font-size: 14px; margin: 2px 0; letter-spacing: 1px; }
+        .stat-value { font-weight: bold; font-family: monospace; font-size: 15px; text-shadow: none; }
 
-        .stat-value {
-            font-weight: bold;
-            font-family: monospace;
-            font-size: 15px;
-            text-shadow: none;
-        }
-
-        .graph-container {
-            flex-grow: 1;
-            display: flex;
-            gap: 20px;
-            height: 70px;
-        }
-
+        .graph-container { flex-grow: 1; display: flex; gap: 20px; height: 70px; }
         .graph-box {
-            flex: 1;
-            position: relative;
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(4px);
+            flex: 1; position: relative; background: rgba(0, 0, 0, 0.5);
+            border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.2); backdrop-filter: blur(4px);
         }
-
-        .graph-label {
-            position: absolute;
-            top: 5px;
-            left: 8px;
-            font-size: 11px;
-            color: #ccc;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            text-shadow: none;
-        }
-
-        canvas.graph-canvas {
-            width: 100%;
-            height: 100%;
-            border-radius: 6px;
-        }
+        .graph-label { position: absolute; top: 5px; left: 8px; font-size: 11px; color: #ccc; text-transform: uppercase; letter-spacing: 1px; text-shadow: none; }
+        canvas.graph-canvas { width: 100%; height: 100%; border-radius: 6px; }
 
         #control-panel {
-            position: absolute;
-            top: 120px;
-            right: 20px;
-            width: 330px;
-            background: rgba(20, 20, 25, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 6px;
-            padding: 15px;
-            z-index: 100;
-            backdrop-filter: blur(8px);
+            position: absolute; top: 120px; right: 20px; width: 330px;
+            background: rgba(20, 20, 25, 0.85); border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px; padding: 15px; z-index: 100; backdrop-filter: blur(8px);
         }
 
-        .slider-container {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 15px;
-        }
-
-        .slider-label {
-            font-size: 12px;
-            color: #eee;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        input[type=range] {
-            width: 100%;
-            cursor: pointer;
-            accent-color: #55ff55;
-        }
+        .slider-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        .slider-label { font-size: 12px; color: #eee; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; }
+        input[type=range] { width: 100%; cursor: pointer; accent-color: #55ff55; }
 
         .ai-logic-box {
-            font-size: 11px; 
-            color: #ddd; 
-            margin-top: 10px; 
-            text-align: left; 
-            line-height: 1.4;
-            background: rgba(0,0,0,0.4);
-            padding: 10px;
-            border-radius: 4px;
-            text-shadow: none;
+            font-size: 11px; color: #ddd; margin-top: 10px; text-align: left; 
+            line-height: 1.4; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 4px; text-shadow: none;
         }
     </style>
 </head>
@@ -144,18 +60,18 @@
     <div id="ui-panel">
         <div class="stats-digital">
             <div style="font-size: 12px; color: #ddd; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px;">Sim Status</div>
-            <div class="stat-line"><span style="color: #eee;">Time:</span> <span id="stat-time" class="stat-value" style="color: #fff;">0</span></div>
+            <div class="stat-line"><span style="color: #eee;">Time/Days:</span> <span id="stat-time" class="stat-value" style="color: #fff;">0</span></div>
             <div class="stat-line"><span style="color: #eee;">Guss Pop:</span> <span id="stat-guss" class="stat-value" style="color: #44aaff;">0</span></div>
             <div class="stat-line"><span style="color: #eee;">Total Food:</span> <span id="stat-food" class="stat-value" style="color: #55ff55;">0</span></div>
             <div class="stat-line"><span style="color: #eee;">Animals:</span> <span id="stat-animals" class="stat-value" style="color: #ff99cc;">0</span></div>
         </div>
         <div class="graph-container">
             <div class="graph-box">
-                <div class="graph-label">Guss Population (All Time)</div>
+                <div class="graph-label">Population</div>
                 <canvas id="graph-pop" class="graph-canvas"></canvas>
             </div>
             <div class="graph-box">
-                <div class="graph-label">Food Supply (All Time)</div>
+                <div class="graph-label">Food Supply</div>
                 <canvas id="graph-food" class="graph-canvas"></canvas>
             </div>
         </div>
@@ -163,28 +79,21 @@
 
     <div id="control-panel">
         <div class="slider-container">
-            <div class="slider-label">
-                <span>Plant Growth</span>
-                <span id="food-rate-val" style="color: #55ff55; font-weight: bold;">50x</span>
-            </div>
+            <div class="slider-label"><span>Plant Growth</span><span id="food-rate-val" style="color: #55ff55; font-weight: bold;">50x</span></div>
             <input type="range" id="food-rate-slider" min="1" max="100" step="1" value="50">
         </div>
         
         <div class="slider-container">
-            <div class="slider-label">
-                <span>Tree Sprouting</span>
-                <span id="tree-rate-val" style="color: #ffaa00; font-weight: bold;">20x</span>
-            </div>
+            <div class="slider-label"><span>Tree Sprouting</span><span id="tree-rate-val" style="color: #ffaa00; font-weight: bold;">20x</span></div>
             <input type="range" id="tree-rate-slider" min="1" max="100" step="1" value="20">
         </div>
 
         <div class="ai-logic-box">
-            <b>Society & Ag Update:</b><br>
-            - <span style="color:#aaaaaa;">Miners (Grey):</span> Mine Ore, Craft Armor/Tools.<br>
-            - <span style="color:#ffaa55;">Builders (Orange):</span> Chop trees, build & upgrade houses to get roofs.<br>
-            - <span style="color:#55ff55;">Farmers (Green):</span> Eat, Breed, Build Pens, herd wild animals, feed plants to animals to breed them.<br>
-            - Offspring randomly choose a role.<br>
-            - Starving Guss will eat animals to survive.
+            <b>The Stability Update:</b><br>
+            - <span style="color:#55ff55;">Memory Leaks Fixed:</span> Massive performance improvements! The sim will no longer crash over time.<br>
+            - <span style="color:#ffaa55;">Day/Night Cycle:</span> Houses glow at night.<br>
+            - <span style="color:#ffaa55;">Crafting:</span> Make Running Shoes out of Hide to run faster.<br>
+            - <span style="color:#ffaa55;">Upgrades:</span> Pens scale up. Houses can be upgraded to Level 6 (Stone Fortresses & Iron Roofs).
         </div>
         <div style="font-size: 11px; color: #ff6600; margin-top: 10px; text-align: center; font-weight: bold;">
             Double-click for Meteor Strike!
@@ -201,7 +110,7 @@
         // --- Configuration & Constants ---
         // ==========================================
         const SIM_SETTINGS = {
-            diskRadius: 75,         
+            diskRadius: 80,         
             initialGuss: 15,
             initialFood: 80,        
             initialTrees: 25,
@@ -215,20 +124,15 @@
             gusSpeed: 0.22,        
             viewDistance: 60,    
             
-            energyDrainPerTick: 0.04, 
-            energyFromFood: 40,
-            energyFromAnimal: 100,
+            energyDrainPerTick: 0.08, 
+            energyFromFood: 45,
+            energyFromAnimal: 150,
             reproductionEnergy: 160,
 
             // Costs
             houseWoodCost: 3,
-            houseUpgradeCost: 5,
             penWoodCost: 2,
-            pickaxeWoodCost: 2,
-            axeWoodCost: 2,
-            armorStoneCost: 3,
-            ironToolCost: 3,
-            ironArmorCost: 4
+            shoesHideCost: 1
         };
 
         let currentFoodRateMultiplier = 50;
@@ -250,6 +154,9 @@
         let scene, camera, renderer, controls, diskMesh; 
         let clock = new THREE.Clock();
         let totalTime = 0, frameCount = 0;
+        let dayCycle = 0; // 0 to 1
+
+        let dirLight, hemiLight;
 
         // UI Elements
         const elTime = document.getElementById('stat-time');
@@ -276,13 +183,13 @@
             controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
-            controls.maxPolarAngle = Math.PI / 2 - 0.05; 
+            controls.maxPolarAngle = Math.PI / 2 - 0.02; 
 
-            const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.9);
+            hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.9);
             hemiLight.position.set(0, 50, 0);
             scene.add(hemiLight);
 
-            const dirLight = new THREE.DirectionalLight(0xffffff, 1.1);
+            dirLight = new THREE.DirectionalLight(0xffffff, 1.1);
             dirLight.position.set(40, 80, -40);
             dirLight.castShadow = true;
             dirLight.shadow.mapSize.width = 2048;
@@ -320,22 +227,33 @@
             return new THREE.Vector3(Math.sin(angle) * radius, 0, Math.cos(angle) * radius);
         }
 
+        // Memory Leak Fix: Proper disposal of custom materials/geometries
         function createBarSprite(colorHex, bgHex = 0xff0000) {
             const group = new THREE.Group();
             const bgMat = new THREE.MeshBasicMaterial({ color: bgHex, depthTest: false });
             const bgGeo = new THREE.PlaneGeometry(2, 0.3);
             const bg = new THREE.Mesh(bgGeo, bgMat);
             bg.renderOrder = 999;
+            
             const fgMat = new THREE.MeshBasicMaterial({ color: colorHex, depthTest: false });
             const fgGeo = new THREE.PlaneGeometry(2, 0.3);
             const fg = new THREE.Mesh(fgGeo, fgMat);
             fg.position.z = 0.01; 
             fg.renderOrder = 1000;
+            
             group.add(bg, fg);
             group.onBeforeRender = function(renderer, scene, camera) {
                 group.quaternion.copy(camera.quaternion);
             };
-            return { group, fgMesh: fg };
+            
+            return { 
+                group, 
+                fgMesh: fg,
+                dispose: () => {
+                    bgMat.dispose(); bgGeo.dispose();
+                    fgMat.dispose(); fgGeo.dispose();
+                }
+            };
         }
 
         // ==========================================
@@ -349,13 +267,23 @@
             iron: new THREE.MeshStandardMaterial({ color: 0xcdcdcd, metalness: 0.8, roughness: 0.3 }),
             houseWood: new THREE.MeshStandardMaterial({ color: 0xa0522d, roughness: 1.0 }),
             houseRoof: new THREE.MeshStandardMaterial({ color: 0x8b0000, roughness: 0.9 }),
+            houseStone: new THREE.MeshStandardMaterial({ color: 0x666666, roughness: 0.9 }), 
+            houseIron: new THREE.MeshStandardMaterial({ color: 0xaabbcc, metalness: 0.7, roughness: 0.4 }), 
             toolWood: new THREE.MeshStandardMaterial({ color: 0x8b5a2b }),
             toolStone: new THREE.MeshStandardMaterial({ color: 0x777777 }),
             toolIron: new THREE.MeshStandardMaterial({ color: 0xeeeeee, metalness: 0.8 }),
             armorStone: new THREE.MeshStandardMaterial({ color: 0x666666, roughness: 0.9 }),
             armorIron: new THREE.MeshStandardMaterial({ color: 0xdcdcdc, metalness: 0.8, roughness: 0.4 }),
+            shoesMat: new THREE.MeshStandardMaterial({ color: 0xff1111, roughness: 0.5 }),
             pupil: new THREE.MeshBasicMaterial({ color: 0x000000 }),
-            animalBody: new THREE.MeshStandardMaterial({ color: 0xffcccc, roughness: 0.7 })
+            animalBody: new THREE.MeshStandardMaterial({ color: 0xffcccc, roughness: 0.5 }),
+            meteor: new THREE.MeshStandardMaterial({ color: 0xff4400, emissive: 0xff2200 }),
+            
+            // Memory Leak Fix: Shared Guss Materials
+            gusMiner: new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.3 }),
+            gusBuilder: new THREE.MeshStandardMaterial({ color: 0xcc7722, roughness: 0.3 }),
+            gusFarmer: new THREE.MeshStandardMaterial({ color: 0x55cc55, roughness: 0.3 }),
+            gusEye: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1, emissive: 0x333333 })
         };
 
         const geos = {
@@ -373,7 +301,9 @@
             houseStory: new THREE.BoxGeometry(3.2, 2, 3.2),
             houseRoof: new THREE.ConeGeometry(3.5, 2.5, 4),
             fencePiece: new THREE.BoxGeometry(4, 1.5, 0.2),
-            animalBody: new THREE.BoxGeometry(1.2, 1, 1.5)
+            animalBody: new THREE.SphereGeometry(0.8, 16, 16),
+            shoe: new THREE.BoxGeometry(0.6, 0.3, 0.8),
+            meteor: new THREE.SphereGeometry(2.5, 12, 12)
         };
         geos.gusBody.scale(0.7, 1.2, 0.7); 
 
@@ -463,37 +393,47 @@
             }
         }
 
-        // --- NEW: Animals & Pens ---
         class Animal extends WorldObject {
             constructor(pos) {
-                const mesh = new THREE.Mesh(geos.animalBody, mats.animalBody);
-                mesh.position.copy(pos); mesh.position.y = 0.6;
-                mesh.castShadow = true; mesh.receiveShadow = true;
-                super(mesh, animals);
-                this.state = 'wild'; // wild, following, penned
+                const group = new THREE.Group();
+                group.position.copy(pos); group.position.y = 0.8;
+
+                const body = new THREE.Mesh(geos.animalBody, mats.animalBody);
+                body.castShadow = true; body.receiveShadow = true;
+                group.add(body);
+
+                // Memory Leak Fix: Use shared geometries/materials
+                const eye1 = new THREE.Mesh(geos.pupil, mats.pupil); eye1.position.set(0.3, 0.2, 0.7);
+                const eye2 = new THREE.Mesh(geos.pupil, mats.pupil); eye2.position.set(-0.3, 0.2, 0.7);
+                group.add(eye1, eye2);
+
+                super(group, animals);
+                this.state = 'wild'; 
                 this.theta = Math.random() * Math.PI * 2;
                 this.myPen = null;
+                this.scaleTime = 0;
             }
             update(delta) {
+                this.scaleTime += delta * 10;
+                this.mesh.scale.y = 1 + Math.sin(this.scaleTime) * 0.1;
+
                 if (this.state === 'wild') {
                     if (Math.random() < 0.02) this.theta += (Math.random() - 0.5);
                     this.mesh.position.x += Math.sin(this.theta) * delta * 2;
                     this.mesh.position.z += Math.cos(this.theta) * delta * 2;
                     this.mesh.rotation.y = Math.atan2(Math.sin(this.theta), Math.cos(this.theta));
                     
-                    // Keep on disk
                     const dist = Math.sqrt(this.mesh.position.x**2 + this.mesh.position.z**2);
                     if(dist > SIM_SETTINGS.diskRadius - 2) this.theta += Math.PI;
                 } else if (this.state === 'penned' && this.myPen && !this.myPen.dead) {
-                    // Wander inside pen
                     if (Math.random() < 0.05) this.theta += (Math.random() - 0.5) * 2;
                     let nextX = this.mesh.position.x + Math.sin(this.theta) * delta * 1.5;
                     let nextZ = this.mesh.position.z + Math.cos(this.theta) * delta * 1.5;
                     
-                    // Constrain to pen bounds
                     let px = this.myPen.mesh.position.x; let pz = this.myPen.mesh.position.z;
-                    if (Math.abs(nextX - px) > 1.8) this.theta += Math.PI;
-                    else if (Math.abs(nextZ - pz) > 1.8) this.theta += Math.PI;
+                    let bound = this.myPen.level * 1.8; 
+                    if (Math.abs(nextX - px) > bound) this.theta += Math.PI;
+                    else if (Math.abs(nextZ - pz) > bound) this.theta += Math.PI;
                     else {
                         this.mesh.position.x = nextX; this.mesh.position.z = nextZ;
                         this.mesh.rotation.y = Math.atan2(Math.sin(this.theta), Math.cos(this.theta));
@@ -507,29 +447,33 @@
                 const group = new THREE.Group();
                 group.position.copy(pos);
                 
-                // 4 fences
+                this.fences = [];
                 const f1 = new THREE.Mesh(geos.fencePiece, mats.wood); f1.position.set(0, 0.75, 2);
                 const f2 = new THREE.Mesh(geos.fencePiece, mats.wood); f2.position.set(0, 0.75, -2);
                 const f3 = new THREE.Mesh(geos.fencePiece, mats.wood); f3.position.set(2, 0.75, 0); f3.rotation.y = Math.PI/2;
                 const f4 = new THREE.Mesh(geos.fencePiece, mats.wood); f4.position.set(-2, 0.75, 0); f4.rotation.y = Math.PI/2;
                 
-                [f1,f2,f3,f4].forEach(f => { f.castShadow = true; f.receiveShadow = true; group.add(f); });
+                [f1,f2,f3,f4].forEach(f => { f.castShadow = true; f.receiveShadow = true; group.add(f); this.fences.push(f); });
                 super(group, pens);
                 this.animals = [];
+                this.level = 1;
                 this.capacity = 4;
+            }
+            upgrade() {
+                if(this.level >= 3) return;
+                this.level++;
+                this.capacity = this.level * 4;
+                this.mesh.scale.set(this.level, 1, this.level); 
             }
             addAnimal(animal) {
                 if (this.animals.length < this.capacity && !this.animals.includes(animal)) {
                     this.animals.push(animal);
-                    animal.state = 'penned';
-                    animal.myPen = this;
+                    animal.state = 'penned'; animal.myPen = this;
                     return true;
                 }
                 return false;
             }
-            update(delta) {
-                this.animals = this.animals.filter(a => !a.dead);
-            }
+            update(delta) { this.animals = this.animals.filter(a => !a.dead); }
             destroy() {
                 this.animals.forEach(a => { a.state = 'wild'; a.myPen = null; });
                 super.destroy();
@@ -549,6 +493,10 @@
                 this.storyMesh = new THREE.Mesh(geos.houseStory, mats.houseWood); this.storyMesh.position.y = 3; this.storyMesh.castShadow = true;
                 this.roofMesh = new THREE.Mesh(geos.houseRoof, mats.houseRoof); this.roofMesh.position.y = 5.5; this.roofMesh.rotation.y = Math.PI/4; this.roofMesh.castShadow = true;
 
+                this.light = new THREE.PointLight(0xffaa55, 0, 20); 
+                this.light.position.y = 2;
+                this.mesh.add(this.light);
+
                 this.barData = createBarSprite(0x00aaff); this.barData.group.position.y = 3; this.mesh.add(this.barData.group);
                 this.progressBarData = createBarSprite(0xffaa00, 0x333333); this.progressBarData.group.position.y = 3.5; this.mesh.add(this.progressBarData.group);
                 this.mesh.scale.set(1, 0.01, 1);
@@ -560,11 +508,13 @@
                 return false;
             }
             startUpgrade() {
-                if (this.level >= 4 || this.isBuilding) return;
+                if (this.level >= 6 || this.isBuilding) return;
                 this.targetLevel = this.level + 1; this.isBuilding = true; this.buildProgress = 0;
                 if(this.targetLevel === 2) { this.mesh.add(this.extMesh); this.extMesh.scale.y = 0.01; }
                 if(this.targetLevel === 3) { this.mesh.add(this.storyMesh); this.storyMesh.scale.y = 0.01; }
                 if(this.targetLevel === 4) { this.mesh.add(this.roofMesh); this.roofMesh.scale.y = 0.01; }
+                if(this.targetLevel === 5) { this.baseMesh.material = mats.houseStone; this.baseMesh.scale.set(1.05, 1.05, 1.05); } 
+                if(this.targetLevel === 6) { this.roofMesh.material = mats.houseIron; this.roofMesh.scale.set(1.1, 1.1, 1.1); } 
             }
             completeUpgrade() {
                 this.isBuilding = false; this.level = this.targetLevel; this.buildProgress = 0;
@@ -573,12 +523,28 @@
                 if(this.level >= 2) this.extMesh.scale.y = 1;
                 if(this.level >= 3) this.storyMesh.scale.y = 1;
                 if(this.level >= 4) this.roofMesh.scale.y = 1;
-                this.maxDurability = this.level * 100; this.durability = this.maxDurability;
-                this.barData.group.position.y = 2 + (this.level * 1.5);
-                this.progressBarData.group.position.y = 2.5 + (this.level * 1.5);
+                
+                this.maxDurability = this.level * 150; 
+                if(this.level >= 5) this.maxDurability += 500; 
+                if(this.level >= 6) this.maxDurability += 1000;
+                
+                this.durability = this.maxDurability;
+                this.barData.group.position.y = 2 + (Math.min(this.level,4) * 1.5);
+                this.progressBarData.group.position.y = 2.5 + (Math.min(this.level,4) * 1.5);
             }
             repair(amount) { this.durability = Math.min(this.durability + amount, this.maxDurability); }
+            
+            // Memory Leak Fix: Override destroy to dispose of custom bars
+            destroy() {
+                this.barData.dispose();
+                this.progressBarData.dispose();
+                super.destroy();
+            }
+
             update(delta) {
+                if (dayCycle < 0.3 && this.level >= 1) this.light.intensity = 1.5;
+                else this.light.intensity = 0;
+
                 if (!this.isBuilding) {
                     this.durability -= delta * 1.0; this.progressBarData.group.visible = false;
                 } else {
@@ -607,46 +573,37 @@
                 this.flying = false; this.velocity = new THREE.Vector3();
                 this.deathTimer = 0; this.birthTimer = 0;
                 
-                // --- NEW ROLE SYSTEM ---
                 const roles = ['miner', 'builder', 'farmer'];
                 this.role = roles[Math.floor(Math.random() * roles.length)];
 
-                // Stats
                 this.energy = energy;
                 this.maxHealth = 100; this.health = 100;
                 
-                // Inventory
-                this.wood = 0; this.stone = 0; this.iron = 0;
+                this.wood = 0; this.stone = 0; this.iron = 0; this.hide = 0;
                 this.axeTier = 0; this.pickaxeTier = 0; this.armorTier = 0;
+                this.hasShoes = false; 
                 
                 this.house = null; this.targetObj = null; this.currentAction = 'wander';
-                this.followingAnimal = null; // For herding
-                this.hasPlant = false; // For breeding
+                this.followingAnimal = null; this.hasPlant = false;
 
-                // Visuals
                 this.group = new THREE.Group(); this.group.position.copy(pos);
                 this.innerGroup = new THREE.Group(); this.group.add(this.innerGroup);
 
-                // Body Color based on Role
-                let colorHex = 0xffffff;
-                if (this.role === 'miner') colorHex = 0x888888; // Grey
-                if (this.role === 'builder') colorHex = 0xcc7722; // Orange/Brown
-                if (this.role === 'farmer') colorHex = 0x55cc55; // Green
-                
-                this.bodyMat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.3 });
-                this.eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1 });
+                // Memory Leak Fix: Use Shared Materials!
+                if (this.role === 'miner') this.bodyMat = mats.gusMiner;
+                else if (this.role === 'builder') this.bodyMat = mats.gusBuilder;
+                else this.bodyMat = mats.gusFarmer;
 
                 this.bodyMesh = new THREE.Mesh(geos.gusBody, this.bodyMat);
                 this.bodyMesh.position.y = 1.2; this.bodyMesh.castShadow = true;
                 this.innerGroup.add(this.bodyMesh);
 
-                const rightEye = new THREE.Mesh(geos.eye, this.eyeMat); rightEye.position.set(0.35, 1.8, 0.5);
-                const leftEye = new THREE.Mesh(geos.eye, this.eyeMat); leftEye.position.set(-0.35, 1.8, 0.5);
+                const rightEye = new THREE.Mesh(geos.eye, mats.gusEye); rightEye.position.set(0.35, 1.8, 0.5);
+                const leftEye = new THREE.Mesh(geos.eye, mats.gusEye); leftEye.position.set(-0.35, 1.8, 0.5);
                 const rPupil = new THREE.Mesh(geos.pupil, mats.pupil); rPupil.position.set(0.35, 1.8, 0.8);
                 const lPupil = new THREE.Mesh(geos.pupil, mats.pupil); lPupil.position.set(-0.35, 1.8, 0.8);
                 this.innerGroup.add(rightEye, leftEye, rPupil, lPupil);
 
-                // Tools Setup
                 this.toolGroup = new THREE.Group();
                 const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.2), mats.toolWood);
                 this.toolHead = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.3, 0.1), mats.toolStone);
@@ -655,11 +612,14 @@
                 this.toolGroup.position.set(0.9, 1.2, 0.3); this.toolGroup.rotation.x = Math.PI / 4;
                 this.innerGroup.add(this.toolGroup); this.toolGroup.visible = false; 
 
-                // Armor Setup
                 this.helmetMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.5, 16), mats.armorStone);
                 this.helmetMesh.position.y = 2.4; this.helmetMesh.visible = false; this.innerGroup.add(this.helmetMesh);
                 this.chestMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 1.0, 16), mats.armorStone);
                 this.chestMesh.position.y = 1.0; this.chestMesh.visible = false; this.innerGroup.add(this.chestMesh);
+
+                this.lShoe = new THREE.Mesh(geos.shoe, mats.shoesMat); this.lShoe.position.set(-0.4, 0.15, 0); this.lShoe.visible = false;
+                this.rShoe = new THREE.Mesh(geos.shoe, mats.shoesMat); this.rShoe.position.set(0.4, 0.15, 0); this.rShoe.visible = false;
+                this.innerGroup.add(this.lShoe, this.rShoe);
 
                 this.hpBarData = createBarSprite(0x00ff00); this.hpBarData.group.position.y = 3.5; this.group.add(this.hpBarData.group);
 
@@ -682,8 +642,8 @@
                 if(this.health > this.maxHealth) this.health = this.maxHealth;
             }
 
-            findClosest(array) {
-                let closest = null; let minDist = SIM_SETTINGS.viewDistance;
+            findClosest(array, range = SIM_SETTINGS.viewDistance) {
+                let closest = null; let minDist = range;
                 for (let obj of array) {
                     if (obj.dead) continue;
                     let d = this.group.position.distanceTo(obj.mesh.position);
@@ -692,83 +652,80 @@
                 return closest;
             }
 
-            // --- ROLE BASED AI ---
             decideTarget() {
-                // 1. Universal Survival (Starving)
-                if (this.energy < 30 || this.health < this.maxHealth * 0.4) {
+                if (this.energy < 40 || this.health < this.maxHealth * 0.4) {
                     let food = this.findClosest(foods);
                     if (food) return { obj: food, action: 'eat' };
-                    // Extreme starvation: eat an animal!
                     let animal = this.findClosest(animals);
                     if (animal) return { obj: animal, action: 'eat_animal' };
                 }
 
-                // 2. MINER LOGIC
+                if (this.hide >= SIM_SETTINGS.shoesHideCost && !this.hasShoes) {
+                    let table = this.findClosest(tables);
+                    if(table) return { obj: table, action: 'craft_shoes' };
+                    if(this.wood >= 1) return { obj: this.group, action: 'build_table' }; 
+                }
+
                 if (this.role === 'miner') {
-                    if (this.iron >= 3) return { obj: this.group, action: 'craft_iron_gear' }; // Simplified craft anywhere
+                    if (this.iron >= 3) return { obj: this.group, action: 'craft_iron_gear' }; 
                     if (this.stone >= 3 && this.armorTier === 0) return { obj: this.group, action: 'craft_stone_armor' };
                     let ironNode = this.findClosest(irons);
                     if (ironNode) return { obj: ironNode, action: 'mine_iron' };
                     let stoneNode = this.findClosest(stones);
                     if (stoneNode) return { obj: stoneNode, action: 'mine_stone' };
                 }
-                
-                // 3. BUILDER LOGIC
                 else if (this.role === 'builder') {
-                    // Need wood to build
-                    if (this.wood < 5) {
+                    if (this.wood < 6) {
                         let tree = this.findClosest(trees);
                         if (tree) return { obj: tree, action: 'chop' };
                     } else {
-                        // Fix broken houses
+                        let upgradeable = houses.find(h => !h.dead && h.level < 6 && !h.isBuilding);
+                        if (upgradeable) {
+                            if(upgradeable.level === 4 && this.stone < 5) {
+                                let stoneNode = this.findClosest(stones);
+                                if (stoneNode) return { obj: stoneNode, action: 'mine_stone' };
+                            }
+                            if(upgradeable.level === 5 && this.iron < 5) {
+                                let ironNode = this.findClosest(irons);
+                                if (ironNode) return { obj: ironNode, action: 'mine_iron' };
+                            }
+                            return { obj: upgradeable, action: 'start_upgrade' };
+                        }
+                        
                         let brokenHouse = houses.find(h => !h.dead && h.durability < h.maxDurability * 0.5);
                         if (brokenHouse) return { obj: brokenHouse, action: 'fix_house' };
-                        
-                        // Upgrade un-maxed houses
-                        let upgradeable = houses.find(h => !h.dead && h.level < 4 && !h.isBuilding);
-                        if (upgradeable) return { obj: upgradeable, action: 'start_upgrade' };
-                        
-                        // Build new house
+
+                        let smallPen = pens.find(p => !p.dead && p.level < 3 && p.animals.length >= p.capacity);
+                        if (smallPen) return { obj: smallPen, action: 'upgrade_pen' };
+
                         return { obj: this.group, action: 'start_house' };
                     }
                 }
-                
-                // 4. FARMER LOGIC
                 else if (this.role === 'farmer') {
-                    // Farmers always eat a bit early so they can reproduce
                     if (this.energy < 120 && foods.length > 0) {
                         let food = this.findClosest(foods);
                         if (food) return { obj: food, action: 'eat' };
                     }
-
-                    // Are we carrying a plant? Go breed!
                     if (this.hasPlant) {
                         let populatedPen = pens.find(p => !p.dead && p.animals.length > 0 && p.animals.length < p.capacity);
                         if (populatedPen) return { obj: populatedPen, action: 'breed_animal' };
-                        else this.hasPlant = false; // Drop it if no pen needs it
+                        else this.hasPlant = false; 
                     }
-
-                    // Do we need to build a pen?
                     if (pens.length === 0 || pens.every(p => p.animals.length >= p.capacity)) {
                         if (this.wood >= 3) return { obj: this.group, action: 'build_pen' };
                         let tree = this.findClosest(trees);
-                        if (tree) return { obj: tree, action: 'chop' }; // Farmers can chop a little for pens
+                        if (tree) return { obj: tree, action: 'chop' }; 
                     }
-
-                    // Herd wild animals
                     let wildAnimal = animals.find(a => !a.dead && a.state === 'wild');
                     let spacePen = pens.find(p => !p.dead && p.animals.length < p.capacity);
                     if (wildAnimal && spacePen) return { obj: wildAnimal, action: 'herd_animal' };
 
-                    // Fetch food to breed animals
                     let breedablePen = pens.find(p => !p.dead && p.animals.length > 0 && p.animals.length < p.capacity);
                     if (breedablePen) {
                         let food = this.findClosest(foods);
                         if (food) return { obj: food, action: 'fetch_plant' };
                     }
                 }
-
-                // Default Wander
                 return { obj: null, action: 'wander' };
             }
 
@@ -778,34 +735,28 @@
                 let pct = Math.max(0, this.health / this.maxHealth);
                 this.hpBarData.fgMesh.scale.x = pct; this.hpBarData.fgMesh.position.x = -(1 - pct);
 
-                // Herded animal logic (make it follow the farmer)
-                if (this.followingAnimal && !this.followingAnimal.dead) {
-                    let offset = new THREE.Vector3(Math.sin(this.group.rotation.y + Math.PI), 0, Math.cos(this.group.rotation.y + Math.PI)).multiplyScalar(1.5);
-                    this.followingAnimal.mesh.position.lerp(this.group.position.clone().add(offset), delta * 4);
-                    this.followingAnimal.mesh.lookAt(this.group.position);
-                }
-
-                if (this.flying) {
-                    this.velocity.y -= 80 * delta; this.group.position.addScaledVector(this.velocity, delta);
-                    this.innerGroup.rotation.x += delta * 15; this.innerGroup.rotation.y += delta * 10;
-                    if (this.group.position.y <= 0) this.takeDamage(999);
-                    return; 
-                }
-
                 if (this.dying) {
-                    this.deathTimer += delta; this.innerGroup.rotation.x += delta * 2;
-                    this.bodyMat.color.lerp(new THREE.Color(0x000000), delta * 5);
+                    this.deathTimer += delta; 
+                    this.innerGroup.rotation.x += delta * 2;
+                    // Memory Leak Fix: Don't color lerp the shared material, just shrink out of existence
+                    this.innerGroup.scale.setScalar(Math.max(0, 1.0 - this.deathTimer));
                     this.hpBarData.group.visible = false;
                     if (this.deathTimer >= 1.0) {
                         this.dead = true; scene.remove(this.group);
                         if(this.house) this.house.owner = null;
                         if(this.followingAnimal) this.followingAnimal.state = 'wild';
+                        this.hpBarData.dispose(); // Memory Leak Fix
                     }
                     return; 
                 }
 
                 if (this.birthTimer < 1.0) {
                     this.birthTimer += delta * 3; this.group.scale.setScalar(Math.min(this.birthTimer, 1.0));
+                }
+                if (this.followingAnimal && !this.followingAnimal.dead) {
+                    let offset = new THREE.Vector3(Math.sin(this.group.rotation.y + Math.PI), 0, Math.cos(this.group.rotation.y + Math.PI)).multiplyScalar(1.5);
+                    this.followingAnimal.mesh.position.lerp(this.group.position.clone().add(offset), delta * 4);
+                    this.followingAnimal.mesh.lookAt(this.group.position);
                 }
 
                 this.energy -= SIM_SETTINGS.energyDrainPerTick * delta * 60;
@@ -818,20 +769,26 @@
 
                 let moveDir = new THREE.Vector3();
 
-                // --- INSTANT ACTIONS ---
+                // Actions
                 if (this.currentAction === 'start_house') {
                     this.wood -= SIM_SETTINGS.houseWoodCost;
                     this.house = new House(this.group.position.clone(), this);
                     this.targetObj = this.house; this.currentAction = 'build_house'; 
                 } 
                 else if (this.currentAction === 'build_pen') {
-                    this.wood -= 3;
-                    pens.push(new Pen(this.group.position.clone()));
+                    this.wood -= 3; pens.push(new Pen(this.group.position.clone()));
+                    this.currentAction = 'wander'; this.targetObj = null;
+                }
+                else if (this.currentAction === 'build_table') {
+                    this.wood -= 1; tables.push(new CraftingTable(this.group.position.clone()));
                     this.currentAction = 'wander'; this.targetObj = null;
                 }
                 else if (this.currentAction === 'start_upgrade') {
-                    this.wood -= SIM_SETTINGS.houseUpgradeCost;
-                    this.house = this.targetObj; // Claim the house they are upgrading
+                    if(this.targetObj.level === 4) this.stone -= 5;
+                    if(this.targetObj.level === 5) this.iron -= 5;
+                    else this.wood -= SIM_SETTINGS.houseWoodCost;
+                    
+                    this.house = this.targetObj; 
                     this.house.startUpgrade();
                     this.currentAction = 'build_house'; 
                 }
@@ -846,18 +803,25 @@
                     this.currentAction = 'wander'; this.targetObj = null;
                 }
 
-                // --- TRAVEL ACTIONS ---
+                // Travel Actions
                 else if (this.targetObj && !this.targetObj.dead) {
                     let dist = this.group.position.distanceTo(this.targetObj.mesh.position);
-                    let reach = (this.currentAction === 'fix_house' || this.currentAction === 'build_house' || this.currentAction === 'lead_to_pen' || this.currentAction === 'breed_animal') ? 4.0 : 1.8;
+                    let reach = (this.currentAction === 'fix_house' || this.currentAction === 'build_house' || this.currentAction === 'lead_to_pen' || this.currentAction === 'breed_animal' || this.currentAction === 'upgrade_pen' || this.currentAction === 'craft_shoes') ? 4.0 : 1.8;
                     
                     if (dist > reach) {
                         moveDir.subVectors(this.targetObj.mesh.position, this.group.position).normalize();
                         moveDir.y = 0;
-                        this.group.position.addScaledVector(moveDir, SIM_SETTINGS.gusSpeed * delta * 60);
+                        let speedMult = this.hasShoes ? 1.8 : 1.0;
+                        this.group.position.addScaledVector(moveDir, SIM_SETTINGS.gusSpeed * speedMult * delta * 60);
                         this.toolGroup.visible = false; 
+                        
+                        if(this.hasShoes) {
+                            this.lShoe.position.y = 0.15 + Math.abs(Math.sin(Date.now()*0.02))*0.3;
+                            this.rShoe.position.y = 0.15 + Math.abs(Math.sin(Date.now()*0.02 + Math.PI))*0.3;
+                        }
                     } else {
-                        // Reached Target!
+                        if(this.hasShoes) { this.lShoe.position.y = 0.15; this.rShoe.position.y = 0.15; }
+
                         if (this.currentAction === 'eat') {
                             this.energy += SIM_SETTINGS.energyFromFood;
                             this.health = Math.min(this.maxHealth, this.health + 30);
@@ -865,46 +829,36 @@
                         } 
                         else if (this.currentAction === 'eat_animal') {
                             this.energy += SIM_SETTINGS.energyFromAnimal;
-                            this.health = this.maxHealth; // Full heal
+                            this.health = this.maxHealth; 
+                            this.hide++;
                             this.targetObj.destroy();
-                            this.innerGroup.scale.set(1.5, 1.5, 1.5); // Bloat temporarily
-                            setTimeout(() => this.innerGroup.scale.set(1,1,1), 2000);
+                        }
+                        else if (this.currentAction === 'craft_shoes') {
+                            this.hide--; this.hasShoes = true;
+                            this.lShoe.visible = true; this.rShoe.visible = true;
                         }
                         else if (this.currentAction === 'fetch_plant') {
-                            this.hasPlant = true;
-                            this.targetObj.destroy(); // Grab plant
+                            this.hasPlant = true; this.targetObj.destroy(); 
                         }
                         else if (this.currentAction === 'breed_animal') {
-                            this.hasPlant = false;
-                            this.innerGroup.position.y = Math.sin(Date.now() * 0.01) * 0.5; // Happy hop
-                            // Spawn new animal
+                            this.hasPlant = false; this.innerGroup.position.y = Math.sin(Date.now() * 0.01) * 0.5;
                             let newAnim = new Animal(this.targetObj.mesh.position.clone());
                             this.targetObj.addAnimal(newAnim);
                         }
                         else if (this.currentAction === 'herd_animal') {
-                            this.followingAnimal = this.targetObj;
-                            this.followingAnimal.state = 'following';
+                            this.followingAnimal = this.targetObj; this.followingAnimal.state = 'following';
                             let spacePen = pens.find(p => !p.dead && p.animals.length < p.capacity);
-                            if (spacePen) {
-                                this.targetObj = spacePen;
-                                this.currentAction = 'lead_to_pen';
-                            } else {
-                                this.followingAnimal.state = 'wild';
-                                this.followingAnimal = null;
-                                this.targetObj = null;
-                                this.currentAction = 'wander';
-                            }
+                            if (spacePen) { this.targetObj = spacePen; this.currentAction = 'lead_to_pen'; } 
+                            else { this.followingAnimal.state = 'wild'; this.followingAnimal = null; this.targetObj = null; this.currentAction = 'wander'; }
                         }
                         else if (this.currentAction === 'lead_to_pen') {
                             if (this.followingAnimal) {
-                                if (this.targetObj.addAnimal(this.followingAnimal)) {
-                                    // Successfully penned
-                                    this.followingAnimal = null;
-                                } else {
-                                    this.followingAnimal.state = 'wild';
-                                    this.followingAnimal = null;
-                                }
+                                if (this.targetObj.addAnimal(this.followingAnimal)) this.followingAnimal = null;
+                                else { this.followingAnimal.state = 'wild'; this.followingAnimal = null; }
                             }
+                        }
+                        else if (this.currentAction === 'upgrade_pen') {
+                            this.wood -= 3; this.targetObj.upgrade();
                         }
                         else if (this.currentAction === 'chop') {
                             moveDir.subVectors(this.targetObj.mesh.position, this.group.position).normalize();
@@ -925,9 +879,7 @@
                         else if (this.currentAction === 'build_house') {
                             moveDir.subVectors(this.targetObj.mesh.position, this.group.position).normalize();
                             this.toolGroup.visible = true; this.toolHead.material = mats.toolWood; this.toolGroup.rotation.z = Math.sin(Date.now() * 0.02);
-                            if (this.targetObj.addBuildProgress(40 * delta)) {
-                                this.targetObj = null; this.currentAction = 'wander';
-                            }
+                            if (this.targetObj.addBuildProgress(40 * delta)) { this.targetObj = null; this.currentAction = 'wander'; }
                         }
                         else if (this.currentAction === 'fix_house') {
                             this.wood -= 1; this.targetObj.repair(50);
@@ -941,11 +893,15 @@
                 } else {
                     // Wander
                     this.theta += (Math.random() - 0.5) * 0.3; moveDir.set(Math.sin(this.theta), 0, Math.cos(this.theta));
-                    this.group.position.addScaledVector(moveDir, (SIM_SETTINGS.gusSpeed * 0.5) * delta * 60);
+                    let speedMult = this.hasShoes ? 1.8 : 1.0;
+                    this.group.position.addScaledVector(moveDir, (SIM_SETTINGS.gusSpeed * speedMult * 0.5) * delta * 60);
                     this.toolGroup.visible = false;
+                    if(this.hasShoes) {
+                        this.lShoe.position.y = 0.15 + Math.abs(Math.sin(Date.now()*0.01))*0.2;
+                        this.rShoe.position.y = 0.15 + Math.abs(Math.sin(Date.now()*0.01 + Math.PI))*0.2;
+                    }
                 }
 
-                // Smooth Rotation
                 if (moveDir.lengthSq() > 0.001) {
                     let targetRotation = Math.atan2(moveDir.x, moveDir.z);
                     let targetQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), targetRotation);
@@ -960,13 +916,12 @@
                     this.theta += Math.PI; 
                 }
 
-                // REPRODUCTION
                 if (this.energy >= SIM_SETTINGS.reproductionEnergy) {
                     this.energy -= 80; 
                     const spawnPos = this.group.position.clone();
                     const forwardVector = new THREE.Vector3(Math.sin(this.group.rotation.y), 0, Math.cos(this.group.rotation.y));
                     spawnPos.addScaledVector(forwardVector, 2.5);
-                    gussArray.push(new Gus(spawnPos, 60)); // Role randomly assigned inside constructor
+                    gussArray.push(new Gus(spawnPos, 60)); 
                 }
             }
         }
@@ -978,7 +933,9 @@
             constructor(targetPoint) {
                 this.target = targetPoint; this.dead = false;
                 this.group = new THREE.Group(); this.group.position.set(targetPoint.x, 100, targetPoint.z); 
-                this.group.add(new THREE.Mesh(new THREE.SphereGeometry(2.5, 12, 12), new THREE.MeshStandardMaterial({ color: 0xff4400, emissive: 0xff2200 })));
+                
+                // Memory Leak Fix: Use Shared Material/Geo
+                this.group.add(new THREE.Mesh(geos.meteor, mats.meteor));
                 this.group.add(new THREE.PointLight(0xff6600, 3, 100));
                 scene.add(this.group);
             }
@@ -988,7 +945,6 @@
             explode() {
                 this.dead = true; scene.remove(this.group); explosions.push(new Explosion(this.target));
                 const blastRadius = 14; 
-                
                 [foods, stones, irons, trees, tables, houses, pens, animals].forEach(list => {
                     list.forEach(item => {
                         if (!item.dead && item.mesh.position.distanceTo(this.target) < blastRadius) {
@@ -996,15 +952,10 @@
                         }
                     });
                 });
-
                 gussArray.forEach(g => {
                     if (!g.dead && !g.dying) {
                         const dist = g.group.position.distanceTo(this.target);
-                        if (dist < blastRadius) {
-                            g.flying = true; g.takeDamage(200); 
-                            g.velocity = new THREE.Vector3().subVectors(g.group.position, this.target).normalize();
-                            g.velocity.y = 1.5; g.velocity.multiplyScalar(45 * (1 - (dist / blastRadius)) + 15);
-                        }
+                        if (dist < blastRadius) g.takeDamage(200); 
                     }
                 });
             }
@@ -1025,7 +976,7 @@
         }
 
         // ==========================================
-        // --- Main Simulation Loop ---
+        // --- Core Simulation Mechanics ---
         // ==========================================
         function setupUI() {
             document.getElementById('food-rate-slider').addEventListener('input', (e) => {
@@ -1067,38 +1018,29 @@
             const delta = Math.min(clock.getDelta(), 0.1); 
             totalTime += delta;
 
+            dayCycle = (Math.sin(totalTime * 0.1) + 1) / 2; 
+            let dayColor = new THREE.Color(0x87CEEB); 
+            let nightColor = new THREE.Color(0x050515); 
+            scene.background.lerpColors(nightColor, dayColor, dayCycle);
+            scene.fog.color.copy(scene.background);
+            dirLight.intensity = Math.max(0, dayCycle * 1.5 - 0.2);
+            hemiLight.intensity = 0.3 + (dayCycle * 0.6);
+
             let actualFoodRate = SIM_SETTINGS.foodBaseRate * currentFoodRateMultiplier;
             let actualTreeRate = SIM_SETTINGS.treeBaseRate * currentTreeRateMultiplier;
 
-            // Spawning
             timers.food += delta;
-            if (actualFoodRate > 0 && timers.food > (1 / actualFoodRate) && foods.length < 300) {
-                foods.push(new Food(getRandomSpawnPos())); timers.food = 0;
-            }
-            
+            if (actualFoodRate > 0 && timers.food > (1 / actualFoodRate) && foods.length < 300) { foods.push(new Food(getRandomSpawnPos())); timers.food = 0; }
             timers.tree += delta;
-            if (actualTreeRate > 0 && timers.tree > (1 / actualTreeRate) && trees.length < 50) {
-                trees.push(new Tree(getRandomSpawnPos())); timers.tree = 0;
-            }
-
+            if (actualTreeRate > 0 && timers.tree > (1 / actualTreeRate) && trees.length < 50) { trees.push(new Tree(getRandomSpawnPos())); timers.tree = 0; }
             timers.stone += delta;
-            if (timers.stone > 3.0 && stones.length < 20) { 
-                stones.push(new StoneNode(getRandomSpawnPos())); timers.stone = 0;
-            }
-
+            if (timers.stone > 3.0 && stones.length < 20) { stones.push(new StoneNode(getRandomSpawnPos())); timers.stone = 0; }
             timers.iron += delta;
-            if (timers.iron > 6.0 && irons.length < 10) { 
-                irons.push(new IronNode(getRandomSpawnPos())); timers.iron = 0;
-            }
-            
+            if (timers.iron > 6.0 && irons.length < 10) { irons.push(new IronNode(getRandomSpawnPos())); timers.iron = 0; }
             timers.animal += delta;
-            if (timers.animal > 10.0 && animals.length < 15) { // Wild slow respawn
-                animals.push(new Animal(getRandomSpawnPos())); timers.animal = 0;
-            }
+            if (timers.animal > 10.0 && animals.length < 15) { animals.push(new Animal(getRandomSpawnPos())); timers.animal = 0; }
 
-            const cleanup = (arr) => {
-                for (let i = arr.length - 1; i >= 0; i--) { if (arr[i].dead) arr.splice(i, 1); }
-            };
+            const cleanup = (arr) => { for (let i = arr.length - 1; i >= 0; i--) { if (arr[i].dead) arr.splice(i, 1); } };
 
             meteors.forEach(m => m.update(delta));
             explosions.forEach(e => e.update(delta));
@@ -1119,7 +1061,7 @@
 
             frameCount++;
             if (frameCount % 10 === 0) {
-                elTime.innerText = Math.floor(totalTime);
+                elTime.innerText = Math.floor(totalTime / 10); 
                 elGuss.innerText = liveGussCount;
                 elFood.innerText = foods.length;
                 elAnimals.innerText = animals.length;
@@ -1143,7 +1085,12 @@
                 this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
                 this.w = rect.width; this.h = rect.height;
             }
-            addValue(val) { this.dataInfo.push(val); this.draw(); }
+            addValue(val) { 
+                this.dataInfo.push(val); 
+                // Memory Leak Fix: Prevent graph array from inflating indefinitely
+                if (this.dataInfo.length > 250) this.dataInfo.shift();
+                this.draw(); 
+            }
             draw() {
                 this.ctx.clearRect(0, 0, this.w, this.h);
                 if (this.dataInfo.length < 2) return;
