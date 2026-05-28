@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smooth Disk Sim - Civilization Update</title>
+    <title>Smooth Disk Sim - Society & Agriculture Update</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #87CEEB; /* Bright sky background */
+            background-color: #87CEEB; 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #fff;
             text-shadow: 1px 1px 2px #000;
@@ -46,15 +46,15 @@
         .stat-line {
             display: flex;
             justify-content: space-between;
-            font-size: 15px;
-            margin: 3px 0;
+            font-size: 14px;
+            margin: 2px 0;
             letter-spacing: 1px;
         }
 
         .stat-value {
             font-weight: bold;
             font-family: monospace;
-            font-size: 16px;
+            font-size: 15px;
             text-shadow: none;
         }
 
@@ -95,7 +95,7 @@
             position: absolute;
             top: 120px;
             right: 20px;
-            width: 280px;
+            width: 330px;
             background: rgba(20, 20, 25, 0.85);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 6px;
@@ -131,7 +131,7 @@
             color: #ddd; 
             margin-top: 10px; 
             text-align: left; 
-            line-height: 1.5;
+            line-height: 1.4;
             background: rgba(0,0,0,0.4);
             padding: 10px;
             border-radius: 4px;
@@ -145,12 +145,13 @@
         <div class="stats-digital">
             <div style="font-size: 12px; color: #ddd; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px;">Sim Status</div>
             <div class="stat-line"><span style="color: #eee;">Time:</span> <span id="stat-time" class="stat-value" style="color: #fff;">0</span></div>
-            <div class="stat-line"><span style="color: #eee;">Population:</span> <span id="stat-blobs" class="stat-value" style="color: #44aaff;">0</span></div>
+            <div class="stat-line"><span style="color: #eee;">Guss Pop:</span> <span id="stat-guss" class="stat-value" style="color: #44aaff;">0</span></div>
             <div class="stat-line"><span style="color: #eee;">Total Food:</span> <span id="stat-food" class="stat-value" style="color: #55ff55;">0</span></div>
+            <div class="stat-line"><span style="color: #eee;">Animals:</span> <span id="stat-animals" class="stat-value" style="color: #ff99cc;">0</span></div>
         </div>
         <div class="graph-container">
             <div class="graph-box">
-                <div class="graph-label">Population (All Time)</div>
+                <div class="graph-label">Guss Population (All Time)</div>
                 <canvas id="graph-pop" class="graph-canvas"></canvas>
             </div>
             <div class="graph-box">
@@ -178,13 +179,12 @@
         </div>
 
         <div class="ai-logic-box">
-            <b>New AI Priorities:</b><br>
-            1. Hungry? -> Eat Food<br>
-            2. No House? -> Chop wood, build House<br>
-            3. House Broken? -> Chop wood, fix it<br>
-            4. Need Tools? -> Build Table, craft Pickaxe<br>
-            5. Need Armor? -> Mine stone, craft Helm/Chest<br>
-            6. Have wood? -> Upgrade House<br>
+            <b>Society & Ag Update:</b><br>
+            - <span style="color:#aaaaaa;">Miners (Grey):</span> Mine Ore, Craft Armor/Tools.<br>
+            - <span style="color:#ffaa55;">Builders (Orange):</span> Chop trees, build & upgrade houses to get roofs.<br>
+            - <span style="color:#55ff55;">Farmers (Green):</span> Eat, Breed, Build Pens, herd wild animals, feed plants to animals to breed them.<br>
+            - Offspring randomly choose a role.<br>
+            - Starving Guss will eat animals to survive.
         </div>
         <div style="font-size: 11px; color: #ff6600; margin-top: 10px; text-align: center; font-weight: bold;">
             Double-click for Meteor Strike!
@@ -201,39 +201,49 @@
         // --- Configuration & Constants ---
         // ==========================================
         const SIM_SETTINGS = {
-            diskRadius: 60,         
-            initialBlobs: 10,
-            initialFood: 60,        
-            initialTrees: 15,
+            diskRadius: 75,         
+            initialGuss: 15,
+            initialFood: 80,        
+            initialTrees: 25,
             initialStones: 15,
+            initialIrons: 6,
+            initialAnimals: 8,
 
-            foodBaseRate: 0.1, // Multiplied by slider 1-100
-            treeBaseRate: 0.05, // Multiplied by slider 1-100
+            foodBaseRate: 0.1, 
+            treeBaseRate: 0.05, 
             
-            blobSpeed: 0.20,        
-            viewDistance: 45,    
+            gusSpeed: 0.22,        
+            viewDistance: 60,    
             
-            energyDrainPerTick: 0.05, 
+            energyDrainPerTick: 0.04, 
             energyFromFood: 40,
-            reproductionEnergy: 180,
+            energyFromAnimal: 100,
+            reproductionEnergy: 160,
 
-            // New mechanics costs
+            // Costs
             houseWoodCost: 3,
             houseUpgradeCost: 5,
+            penWoodCost: 2,
             pickaxeWoodCost: 2,
-            armorStoneCost: 3
+            axeWoodCost: 2,
+            armorStoneCost: 3,
+            ironToolCost: 3,
+            ironArmorCost: 4
         };
 
         let currentFoodRateMultiplier = 50;
         let currentTreeRateMultiplier = 20;
 
-        // Arrays to hold all world objects
-        const blobs = [];
+        // Arrays
+        const gussArray = [];
         const foods = [];
         const trees = [];
         const stones = [];
+        const irons = [];
         const tables = [];
         const houses = [];
+        const pens = [];
+        const animals = [];
         const meteors = [];
         const explosions = [];
 
@@ -243,18 +253,18 @@
 
         // UI Elements
         const elTime = document.getElementById('stat-time');
-        const elBlobs = document.getElementById('stat-blobs');
+        const elGuss = document.getElementById('stat-guss');
         const elFood = document.getElementById('stat-food');
+        const elAnimals = document.getElementById('stat-animals');
 
         function init3D() {
             const container = document.getElementById('canvas-container');
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x87CEEB); // Bright sky
-            // Removed dark fog, added light haze
-            scene.fog = new THREE.FogExp2(0x87CEEB, 0.005); 
+            scene.background = new THREE.Color(0x87CEEB); 
+            scene.fog = new THREE.FogExp2(0x87CEEB, 0.003); 
 
             camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 60, 100);
+            camera.position.set(0, 70, 110);
 
             renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -268,12 +278,11 @@
             controls.dampingFactor = 0.05;
             controls.maxPolarAngle = Math.PI / 2 - 0.05; 
 
-            // Much brighter lighting
-            const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.8);
+            const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.9);
             hemiLight.position.set(0, 50, 0);
             scene.add(hemiLight);
 
-            const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.1);
             dirLight.position.set(40, 80, -40);
             dirLight.castShadow = true;
             dirLight.shadow.mapSize.width = 2048;
@@ -311,30 +320,21 @@
             return new THREE.Vector3(Math.sin(angle) * radius, 0, Math.cos(angle) * radius);
         }
 
-        // Helper function for Health/Durability Bars
-        function createBarSprite(colorHex) {
+        function createBarSprite(colorHex, bgHex = 0xff0000) {
             const group = new THREE.Group();
-            
-            // Background (Red)
-            const bgMat = new THREE.MeshBasicMaterial({ color: 0xff0000, depthTest: false });
+            const bgMat = new THREE.MeshBasicMaterial({ color: bgHex, depthTest: false });
             const bgGeo = new THREE.PlaneGeometry(2, 0.3);
             const bg = new THREE.Mesh(bgGeo, bgMat);
             bg.renderOrder = 999;
-            
-            // Foreground (Color)
             const fgMat = new THREE.MeshBasicMaterial({ color: colorHex, depthTest: false });
             const fgGeo = new THREE.PlaneGeometry(2, 0.3);
             const fg = new THREE.Mesh(fgGeo, fgMat);
             fg.position.z = 0.01; 
             fg.renderOrder = 1000;
-
             group.add(bg, fg);
-            
-            // Always face camera
             group.onBeforeRender = function(renderer, scene, camera) {
                 group.quaternion.copy(camera.quaternion);
             };
-
             return { group, fgMesh: fg };
         }
 
@@ -346,42 +346,48 @@
             wood: new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.9 }),
             leaves: new THREE.MeshStandardMaterial({ color: 0x228b22, roughness: 0.8 }),
             stone: new THREE.MeshStandardMaterial({ color: 0x777777, roughness: 0.8 }),
+            iron: new THREE.MeshStandardMaterial({ color: 0xcdcdcd, metalness: 0.8, roughness: 0.3 }),
             houseWood: new THREE.MeshStandardMaterial({ color: 0xa0522d, roughness: 1.0 }),
             houseRoof: new THREE.MeshStandardMaterial({ color: 0x8b0000, roughness: 0.9 }),
-            toolHead: new THREE.MeshStandardMaterial({ color: 0xaaaaaa }),
-            armor: new THREE.MeshStandardMaterial({ color: 0x666666, metalness: 0.3, roughness: 0.7 }),
-            pupil: new THREE.MeshBasicMaterial({ color: 0x000000 })
+            toolWood: new THREE.MeshStandardMaterial({ color: 0x8b5a2b }),
+            toolStone: new THREE.MeshStandardMaterial({ color: 0x777777 }),
+            toolIron: new THREE.MeshStandardMaterial({ color: 0xeeeeee, metalness: 0.8 }),
+            armorStone: new THREE.MeshStandardMaterial({ color: 0x666666, roughness: 0.9 }),
+            armorIron: new THREE.MeshStandardMaterial({ color: 0xdcdcdc, metalness: 0.8, roughness: 0.4 }),
+            pupil: new THREE.MeshBasicMaterial({ color: 0x000000 }),
+            animalBody: new THREE.MeshStandardMaterial({ color: 0xffcccc, roughness: 0.7 })
         };
 
         const geos = {
             food: new THREE.SphereGeometry(0.5, 16, 16),
             stone: new THREE.DodecahedronGeometry(0.8),
+            iron: new THREE.IcosahedronGeometry(0.7),
             table: new THREE.BoxGeometry(1.5, 1.2, 1.5),
             treeTrunk: new THREE.CylinderGeometry(0.5, 0.7, 4, 8),
             treeLeaves: new THREE.DodecahedronGeometry(2.5),
-            blobBody: new THREE.SphereGeometry(1, 16, 16),
-            eye: new THREE.SphereGeometry(0.35, 16, 16), // Bigger eyeballs
+            gusBody: new THREE.SphereGeometry(1, 16, 16),
+            eye: new THREE.SphereGeometry(0.35, 16, 16),
             pupil: new THREE.SphereGeometry(0.18, 8, 8),
             houseBase: new THREE.BoxGeometry(3, 2, 3),
-            houseRoof: new THREE.ConeGeometry(2.5, 2, 4)
+            houseExt: new THREE.BoxGeometry(2.5, 2, 2.5),
+            houseStory: new THREE.BoxGeometry(3.2, 2, 3.2),
+            houseRoof: new THREE.ConeGeometry(3.5, 2.5, 4),
+            fencePiece: new THREE.BoxGeometry(4, 1.5, 0.2),
+            animalBody: new THREE.BoxGeometry(1.2, 1, 1.5)
         };
-        geos.blobBody.scale(0.7, 1.2, 0.7); 
+        geos.gusBody.scale(0.7, 1.2, 0.7); 
 
         // ==========================================
         // --- World Object Classes ---
         // ==========================================
         class WorldObject {
             constructor(mesh, list) {
-                this.mesh = mesh;
-                this.dead = false;
-                this.list = list;
+                this.mesh = mesh; this.dead = false; this.list = list;
                 if(this.list) this.list.push(this);
                 scene.add(this.mesh);
             }
             destroy() {
-                if(this.dead) return;
-                this.dead = true;
-                scene.remove(this.mesh);
+                if(this.dead) return; this.dead = true; scene.remove(this.mesh);
             }
             update(delta) {}
         }
@@ -400,18 +406,26 @@
                 const mesh = new THREE.Mesh(geos.stone, mats.stone);
                 mesh.position.copy(pos); mesh.position.y = 0.8;
                 mesh.castShadow = true; mesh.receiveShadow = true;
-                super(mesh, stones);
-                this.health = 50;
+                super(mesh, stones); this.health = 50;
             }
             mine(damage) {
                 this.health -= damage;
-                this.mesh.rotation.y += 0.1;
-                this.mesh.rotation.z = Math.sin(Date.now() * 0.05) * 0.1;
-                if (this.health <= 0) {
-                    this.destroy();
-                    return true;
-                }
-                return false;
+                this.mesh.rotation.y += 0.1; this.mesh.rotation.z = Math.sin(Date.now() * 0.05) * 0.1;
+                if (this.health <= 0) { this.destroy(); return true; } return false;
+            }
+        }
+
+        class IronNode extends WorldObject {
+            constructor(pos) {
+                const mesh = new THREE.Mesh(geos.iron, mats.iron);
+                mesh.position.copy(pos); mesh.position.y = 0.7;
+                mesh.castShadow = true; mesh.receiveShadow = true;
+                super(mesh, irons); this.health = 80;
+            }
+            mine(damage) {
+                this.health -= damage;
+                this.mesh.rotation.y += 0.15; this.mesh.rotation.x = Math.sin(Date.now() * 0.08) * 0.1;
+                if (this.health <= 0) { this.destroy(); return true; } return false;
             }
         }
 
@@ -426,161 +440,206 @@
 
         class Tree extends WorldObject {
             constructor(pos) {
-                const group = new THREE.Group();
-                group.position.copy(pos);
-                
+                const group = new THREE.Group(); group.position.copy(pos);
                 const trunk = new THREE.Mesh(geos.treeTrunk, mats.wood);
-                trunk.position.y = 2;
-                trunk.castShadow = true; trunk.receiveShadow = true;
-                
+                trunk.position.y = 2; trunk.castShadow = true; trunk.receiveShadow = true;
                 const leaves = new THREE.Mesh(geos.treeLeaves, mats.leaves);
-                leaves.position.y = 4.5;
-                leaves.castShadow = true; leaves.receiveShadow = true;
-                
+                leaves.position.y = 4.5; leaves.castShadow = true; leaves.receiveShadow = true;
                 group.add(trunk, leaves);
                 super(group, trees);
-                
-                this.health = 100;
-                
-                // Sprouting Animation Setup
-                this.sprouting = true;
-                this.sproutTimer = 0;
+                this.health = 100; this.sprouting = true; this.sproutTimer = 0;
                 this.mesh.scale.set(0.01, 0.01, 0.01);
             }
-            
             update(delta) {
                 if (this.sprouting) {
-                    this.sproutTimer += delta;
-                    let s = Math.min(this.sproutTimer / 1.5, 1);
-                    // Add a little bounce to the sprouting
-                    let bounce = s + Math.sin(s * Math.PI) * 0.2; 
-                    this.mesh.scale.set(bounce, bounce, bounce);
+                    this.sproutTimer += delta; let s = Math.min(this.sproutTimer / 1.5, 1);
+                    let bounce = s + Math.sin(s * Math.PI) * 0.2; this.mesh.scale.set(bounce, bounce, bounce);
                     if (s === 1) this.sprouting = false;
                 }
             }
-
             chop(damage) {
-                this.health -= damage;
-                this.mesh.rotation.z = Math.sin(Date.now() * 0.05) * 0.1; // Wiggle
-                if (this.health <= 0) {
-                    this.destroy();
-                    return true; 
+                this.health -= damage; this.mesh.rotation.z = Math.sin(Date.now() * 0.05) * 0.1; 
+                if (this.health <= 0) { this.destroy(); return true; } return false;
+            }
+        }
+
+        // --- NEW: Animals & Pens ---
+        class Animal extends WorldObject {
+            constructor(pos) {
+                const mesh = new THREE.Mesh(geos.animalBody, mats.animalBody);
+                mesh.position.copy(pos); mesh.position.y = 0.6;
+                mesh.castShadow = true; mesh.receiveShadow = true;
+                super(mesh, animals);
+                this.state = 'wild'; // wild, following, penned
+                this.theta = Math.random() * Math.PI * 2;
+                this.myPen = null;
+            }
+            update(delta) {
+                if (this.state === 'wild') {
+                    if (Math.random() < 0.02) this.theta += (Math.random() - 0.5);
+                    this.mesh.position.x += Math.sin(this.theta) * delta * 2;
+                    this.mesh.position.z += Math.cos(this.theta) * delta * 2;
+                    this.mesh.rotation.y = Math.atan2(Math.sin(this.theta), Math.cos(this.theta));
+                    
+                    // Keep on disk
+                    const dist = Math.sqrt(this.mesh.position.x**2 + this.mesh.position.z**2);
+                    if(dist > SIM_SETTINGS.diskRadius - 2) this.theta += Math.PI;
+                } else if (this.state === 'penned' && this.myPen && !this.myPen.dead) {
+                    // Wander inside pen
+                    if (Math.random() < 0.05) this.theta += (Math.random() - 0.5) * 2;
+                    let nextX = this.mesh.position.x + Math.sin(this.theta) * delta * 1.5;
+                    let nextZ = this.mesh.position.z + Math.cos(this.theta) * delta * 1.5;
+                    
+                    // Constrain to pen bounds
+                    let px = this.myPen.mesh.position.x; let pz = this.myPen.mesh.position.z;
+                    if (Math.abs(nextX - px) > 1.8) this.theta += Math.PI;
+                    else if (Math.abs(nextZ - pz) > 1.8) this.theta += Math.PI;
+                    else {
+                        this.mesh.position.x = nextX; this.mesh.position.z = nextZ;
+                        this.mesh.rotation.y = Math.atan2(Math.sin(this.theta), Math.cos(this.theta));
+                    }
+                }
+            }
+        }
+
+        class Pen extends WorldObject {
+            constructor(pos) {
+                const group = new THREE.Group();
+                group.position.copy(pos);
+                
+                // 4 fences
+                const f1 = new THREE.Mesh(geos.fencePiece, mats.wood); f1.position.set(0, 0.75, 2);
+                const f2 = new THREE.Mesh(geos.fencePiece, mats.wood); f2.position.set(0, 0.75, -2);
+                const f3 = new THREE.Mesh(geos.fencePiece, mats.wood); f3.position.set(2, 0.75, 0); f3.rotation.y = Math.PI/2;
+                const f4 = new THREE.Mesh(geos.fencePiece, mats.wood); f4.position.set(-2, 0.75, 0); f4.rotation.y = Math.PI/2;
+                
+                [f1,f2,f3,f4].forEach(f => { f.castShadow = true; f.receiveShadow = true; group.add(f); });
+                super(group, pens);
+                this.animals = [];
+                this.capacity = 4;
+            }
+            addAnimal(animal) {
+                if (this.animals.length < this.capacity && !this.animals.includes(animal)) {
+                    this.animals.push(animal);
+                    animal.state = 'penned';
+                    animal.myPen = this;
+                    return true;
                 }
                 return false;
+            }
+            update(delta) {
+                this.animals = this.animals.filter(a => !a.dead);
+            }
+            destroy() {
+                this.animals.forEach(a => { a.state = 'wild'; a.myPen = null; });
+                super.destroy();
             }
         }
 
         class House extends WorldObject {
             constructor(pos, owner) {
-                const group = new THREE.Group();
-                group.position.copy(pos);
-                
-                const base = new THREE.Mesh(geos.houseBase, mats.houseWood);
-                base.position.y = 1;
-                base.castShadow = true; base.receiveShadow = true;
-                group.add(base);
-                
+                const group = new THREE.Group(); group.position.copy(pos);
                 super(group, houses);
+                this.owner = owner; this.level = 0; this.targetLevel = 1;
+                this.maxDurability = 100; this.durability = 100;
+                this.buildProgress = 0; this.isBuilding = true;
                 
-                this.owner = owner;
-                this.level = 1;
-                this.maxDurability = 100;
-                this.durability = 100;
-                
-                // Durability Bar
-                this.barData = createBarSprite(0x00aaff);
-                this.barData.group.position.y = 4;
-                this.mesh.add(this.barData.group);
-                
-                this.roof = null; // Added at level 2
-                
-                // Pop-in animation
-                this.mesh.scale.set(0.01, 0.01, 0.01);
-                this.sproutTimer = 0;
-            }
+                this.baseMesh = new THREE.Mesh(geos.houseBase, mats.houseWood); this.baseMesh.position.y = 1; this.baseMesh.castShadow = true;
+                this.extMesh = new THREE.Mesh(geos.houseExt, mats.houseWood); this.extMesh.position.set(2.5, 1, 0); this.extMesh.castShadow = true;
+                this.storyMesh = new THREE.Mesh(geos.houseStory, mats.houseWood); this.storyMesh.position.y = 3; this.storyMesh.castShadow = true;
+                this.roofMesh = new THREE.Mesh(geos.houseRoof, mats.houseRoof); this.roofMesh.position.y = 5.5; this.roofMesh.rotation.y = Math.PI/4; this.roofMesh.castShadow = true;
 
-            upgrade() {
-                if (this.level === 1) {
-                    this.level = 2;
-                    this.maxDurability = 200;
-                    this.durability = 200;
-                    
-                    this.roof = new THREE.Mesh(geos.houseRoof, mats.houseRoof);
-                    this.roof.position.y = 3;
-                    this.roof.rotation.y = Math.PI / 4;
-                    this.roof.castShadow = true;
-                    this.mesh.add(this.roof);
-                    
-                    this.mesh.scale.setScalar(1.2); // Bigger overall
-                    this.barData.group.position.y = 5;
-                }
+                this.barData = createBarSprite(0x00aaff); this.barData.group.position.y = 3; this.mesh.add(this.barData.group);
+                this.progressBarData = createBarSprite(0xffaa00, 0x333333); this.progressBarData.group.position.y = 3.5; this.mesh.add(this.progressBarData.group);
+                this.mesh.scale.set(1, 0.01, 1);
             }
-
-            repair(amount) {
-                this.durability = Math.min(this.durability + amount, this.maxDurability);
+            addBuildProgress(amount) {
+                this.buildProgress += amount;
+                this.mesh.scale.y = Math.max(0.01, this.buildProgress / 100);
+                if (this.buildProgress >= 100) { this.completeUpgrade(); return true; }
+                return false;
             }
-
+            startUpgrade() {
+                if (this.level >= 4 || this.isBuilding) return;
+                this.targetLevel = this.level + 1; this.isBuilding = true; this.buildProgress = 0;
+                if(this.targetLevel === 2) { this.mesh.add(this.extMesh); this.extMesh.scale.y = 0.01; }
+                if(this.targetLevel === 3) { this.mesh.add(this.storyMesh); this.storyMesh.scale.y = 0.01; }
+                if(this.targetLevel === 4) { this.mesh.add(this.roofMesh); this.roofMesh.scale.y = 0.01; }
+            }
+            completeUpgrade() {
+                this.isBuilding = false; this.level = this.targetLevel; this.buildProgress = 0;
+                this.mesh.scale.set(1,1,1);
+                if(this.level >= 1 && !this.baseMesh.parent) this.mesh.add(this.baseMesh);
+                if(this.level >= 2) this.extMesh.scale.y = 1;
+                if(this.level >= 3) this.storyMesh.scale.y = 1;
+                if(this.level >= 4) this.roofMesh.scale.y = 1;
+                this.maxDurability = this.level * 100; this.durability = this.maxDurability;
+                this.barData.group.position.y = 2 + (this.level * 1.5);
+                this.progressBarData.group.position.y = 2.5 + (this.level * 1.5);
+            }
+            repair(amount) { this.durability = Math.min(this.durability + amount, this.maxDurability); }
             update(delta) {
-                if(this.sproutTimer < 1) {
-                    this.sproutTimer += delta * 2;
-                    let s = Math.min(this.sproutTimer, 1);
-                    this.mesh.scale.setScalar(s * (this.level === 1 ? 1 : 1.2));
+                if (!this.isBuilding) {
+                    this.durability -= delta * 1.0; this.progressBarData.group.visible = false;
+                } else {
+                    this.progressBarData.group.visible = true;
+                    let pctProg = Math.max(0, this.buildProgress / 100);
+                    this.progressBarData.fgMesh.scale.x = pctProg; this.progressBarData.fgMesh.position.x = -(1 - pctProg);
+                    if(this.targetLevel === 1) this.mesh.scale.y = Math.max(0.01, pctProg);
+                    if(this.targetLevel === 2) this.extMesh.scale.y = Math.max(0.01, pctProg);
+                    if(this.targetLevel === 3) this.storyMesh.scale.y = Math.max(0.01, pctProg);
+                    if(this.targetLevel === 4) this.roofMesh.scale.y = Math.max(0.01, pctProg);
                 }
-
-                // Decay
-                this.durability -= delta * 1.5;
-                
-                // Update Bar UI
                 let pct = Math.max(0, this.durability / this.maxDurability);
-                this.barData.fgMesh.scale.x = pct;
-                this.barData.fgMesh.position.x = -(1 - pct); // keep left-aligned (width 2 / 2)
-
-                if (this.durability <= 0) {
-                    this.destroy();
-                    if(this.owner && !this.owner.dead) this.owner.house = null;
+                this.barData.fgMesh.scale.x = pct; this.barData.fgMesh.position.x = -(1 - pct); 
+                if (this.durability <= 0 && !this.isBuilding) {
+                    this.destroy(); if(this.owner && !this.owner.dead) this.owner.house = null;
                 }
             }
         }
 
         // ==========================================
-        // --- The AI Creature ---
+        // --- The AI Creature (GUS) ---
         // ==========================================
-        class Blob {
+        class Gus {
             constructor(pos, energy = 70) {
                 this.dead = false; this.dying = false;
                 this.flying = false; this.velocity = new THREE.Vector3();
                 this.deathTimer = 0; this.birthTimer = 0;
                 
+                // --- NEW ROLE SYSTEM ---
+                const roles = ['miner', 'builder', 'farmer'];
+                this.role = roles[Math.floor(Math.random() * roles.length)];
+
                 // Stats
                 this.energy = energy;
-                this.maxHealth = 100;
-                this.health = 100;
+                this.maxHealth = 100; this.health = 100;
                 
-                // Inventory & Equipment
-                this.wood = 0;
-                this.stone = 0;
-                this.hasPickaxe = false;
-                this.hasHelmet = false;
-                this.hasChestplate = false;
-                this.house = null;
-                this.targetObj = null;
-                this.currentAction = 'wander';
+                // Inventory
+                this.wood = 0; this.stone = 0; this.iron = 0;
+                this.axeTier = 0; this.pickaxeTier = 0; this.armorTier = 0;
+                
+                this.house = null; this.targetObj = null; this.currentAction = 'wander';
+                this.followingAnimal = null; // For herding
+                this.hasPlant = false; // For breeding
 
-                // Visuals Setup
-                this.group = new THREE.Group();
-                this.group.position.copy(pos);
-                this.innerGroup = new THREE.Group();
-                this.group.add(this.innerGroup);
+                // Visuals
+                this.group = new THREE.Group(); this.group.position.copy(pos);
+                this.innerGroup = new THREE.Group(); this.group.add(this.innerGroup);
 
-                this.bodyMat = new THREE.MeshStandardMaterial({ color: 0x44aaff, roughness: 0.3 });
+                // Body Color based on Role
+                let colorHex = 0xffffff;
+                if (this.role === 'miner') colorHex = 0x888888; // Grey
+                if (this.role === 'builder') colorHex = 0xcc7722; // Orange/Brown
+                if (this.role === 'farmer') colorHex = 0x55cc55; // Green
+                
+                this.bodyMat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.3 });
                 this.eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1 });
 
-                this.bodyMesh = new THREE.Mesh(geos.blobBody, this.bodyMat);
-                this.bodyMesh.position.y = 1.2; 
-                this.bodyMesh.castShadow = true;
+                this.bodyMesh = new THREE.Mesh(geos.gusBody, this.bodyMat);
+                this.bodyMesh.position.y = 1.2; this.bodyMesh.castShadow = true;
                 this.innerGroup.add(this.bodyMesh);
 
-                // Prominent Eyeballs
                 const rightEye = new THREE.Mesh(geos.eye, this.eyeMat); rightEye.position.set(0.35, 1.8, 0.5);
                 const leftEye = new THREE.Mesh(geos.eye, this.eyeMat); leftEye.position.set(-0.35, 1.8, 0.5);
                 const rPupil = new THREE.Mesh(geos.pupil, mats.pupil); rPupil.position.set(0.35, 1.8, 0.8);
@@ -589,50 +648,42 @@
 
                 // Tools Setup
                 this.toolGroup = new THREE.Group();
-                const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.2), mats.wood);
-                this.toolHead = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.3, 0.1), mats.toolHead);
+                const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.2), mats.toolWood);
+                this.toolHead = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.3, 0.1), mats.toolStone);
                 this.toolHead.position.set(0.2, 0.4, 0);
                 this.toolGroup.add(handle, this.toolHead);
-                this.toolGroup.position.set(0.9, 1.2, 0.3);
-                this.toolGroup.rotation.x = Math.PI / 4;
-                this.innerGroup.add(this.toolGroup);
-                this.toolGroup.visible = false; // Hidden until axe/pickaxe needed
+                this.toolGroup.position.set(0.9, 1.2, 0.3); this.toolGroup.rotation.x = Math.PI / 4;
+                this.innerGroup.add(this.toolGroup); this.toolGroup.visible = false; 
 
                 // Armor Setup
-                this.helmetMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.5, 16), mats.armor);
-                this.helmetMesh.position.y = 2.4;
-                this.helmetMesh.visible = false;
-                this.innerGroup.add(this.helmetMesh);
+                this.helmetMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.5, 16), mats.armorStone);
+                this.helmetMesh.position.y = 2.4; this.helmetMesh.visible = false; this.innerGroup.add(this.helmetMesh);
+                this.chestMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 1.0, 16), mats.armorStone);
+                this.chestMesh.position.y = 1.0; this.chestMesh.visible = false; this.innerGroup.add(this.chestMesh);
 
-                this.chestMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 1.0, 16), mats.armor);
-                this.chestMesh.position.y = 1.0;
-                this.chestMesh.visible = false;
-                this.innerGroup.add(this.chestMesh);
+                this.hpBarData = createBarSprite(0x00ff00); this.hpBarData.group.position.y = 3.5; this.group.add(this.hpBarData.group);
 
-                // Health Bar
-                this.hpBarData = createBarSprite(0x00ff00);
-                this.hpBarData.group.position.y = 3.5;
-                this.group.add(this.hpBarData.group);
-
-                this.group.scale.set(0.01, 0.01, 0.01);
-                scene.add(this.group);
-                this.theta = Math.random() * Math.PI * 2; 
-                this.group.rotation.y = this.theta; 
+                this.group.scale.set(0.01, 0.01, 0.01); scene.add(this.group);
+                this.theta = Math.random() * Math.PI * 2; this.group.rotation.y = this.theta; 
             }
 
             takeDamage(amount) {
-                this.health -= amount;
-                if(this.health <= 0 && !this.dying) this.dying = true;
+                this.health -= amount; if(this.health <= 0 && !this.dying) this.dying = true;
             }
 
-            updateStats() {
-                this.maxHealth = 100 + (this.hasHelmet ? 100 : 0) + (this.hasChestplate ? 100 : 0);
+            updateArmorVisuals() {
+                if (this.armorTier === 1) {
+                    this.helmetMesh.material = mats.armorStone; this.chestMesh.material = mats.armorStone;
+                    this.helmetMesh.visible = true; this.chestMesh.visible = true; this.maxHealth = 300; 
+                } else if (this.armorTier === 2) {
+                    this.helmetMesh.material = mats.armorIron; this.chestMesh.material = mats.armorIron;
+                    this.helmetMesh.visible = true; this.chestMesh.visible = true; this.maxHealth = 600; 
+                }
                 if(this.health > this.maxHealth) this.health = this.maxHealth;
             }
 
             findClosest(array) {
-                let closest = null;
-                let minDist = SIM_SETTINGS.viewDistance;
+                let closest = null; let minDist = SIM_SETTINGS.viewDistance;
                 for (let obj of array) {
                     if (obj.dead) continue;
                     let d = this.group.position.distanceTo(obj.mesh.position);
@@ -641,205 +692,256 @@
                 return closest;
             }
 
+            // --- ROLE BASED AI ---
             decideTarget() {
-                // 1. Hungry / Low HP -> Find Food (Food heals and gives energy)
-                if (this.energy < 80 || this.health < this.maxHealth * 0.5) {
+                // 1. Universal Survival (Starving)
+                if (this.energy < 30 || this.health < this.maxHealth * 0.4) {
                     let food = this.findClosest(foods);
                     if (food) return { obj: food, action: 'eat' };
+                    // Extreme starvation: eat an animal!
+                    let animal = this.findClosest(animals);
+                    if (animal) return { obj: animal, action: 'eat_animal' };
+                }
+
+                // 2. MINER LOGIC
+                if (this.role === 'miner') {
+                    if (this.iron >= 3) return { obj: this.group, action: 'craft_iron_gear' }; // Simplified craft anywhere
+                    if (this.stone >= 3 && this.armorTier === 0) return { obj: this.group, action: 'craft_stone_armor' };
+                    let ironNode = this.findClosest(irons);
+                    if (ironNode) return { obj: ironNode, action: 'mine_iron' };
+                    let stoneNode = this.findClosest(stones);
+                    if (stoneNode) return { obj: stoneNode, action: 'mine_stone' };
                 }
                 
-                // 2. House Logic
-                if (!this.house || this.house.dead) {
-                    if (this.wood >= SIM_SETTINGS.houseWoodCost) {
-                        return { obj: null, action: 'build_house' }; // Build right here
-                    } else {
+                // 3. BUILDER LOGIC
+                else if (this.role === 'builder') {
+                    // Need wood to build
+                    if (this.wood < 5) {
                         let tree = this.findClosest(trees);
                         if (tree) return { obj: tree, action: 'chop' };
-                    }
-                } 
-                else if (this.house.durability < this.house.maxDurability * 0.4) {
-                    // House needs fixing
-                    if (this.wood > 0) return { obj: this.house, action: 'fix_house' };
-                    let tree = this.findClosest(trees);
-                    if (tree) return { obj: tree, action: 'chop' };
-                }
-
-                // 3. Tool Logic (Needs Pickaxe)
-                if (!this.hasPickaxe) {
-                    if (this.wood >= SIM_SETTINGS.pickaxeWoodCost) {
-                        let table = this.findClosest(tables);
-                        if (table) return { obj: table, action: 'craft_pickaxe' };
-                        // No table? Build one
-                        return { obj: null, action: 'build_table' };
                     } else {
-                        let tree = this.findClosest(trees);
-                        if (tree) return { obj: tree, action: 'chop' };
+                        // Fix broken houses
+                        let brokenHouse = houses.find(h => !h.dead && h.durability < h.maxDurability * 0.5);
+                        if (brokenHouse) return { obj: brokenHouse, action: 'fix_house' };
+                        
+                        // Upgrade un-maxed houses
+                        let upgradeable = houses.find(h => !h.dead && h.level < 4 && !h.isBuilding);
+                        if (upgradeable) return { obj: upgradeable, action: 'start_upgrade' };
+                        
+                        // Build new house
+                        return { obj: this.group, action: 'start_house' };
                     }
-                }
-
-                // 4. Armor Logic
-                if (!this.hasHelmet || !this.hasChestplate) {
-                    if (this.stone >= SIM_SETTINGS.armorStoneCost) {
-                        let table = this.findClosest(tables);
-                        if (table) return { obj: table, action: 'craft_armor' };
-                    } else {
-                        let stoneNode = this.findClosest(stones);
-                        if (stoneNode) return { obj: stoneNode, action: 'mine' };
-                    }
-                }
-
-                // 5. House Upgrades
-                if (this.house && this.house.level === 1) {
-                    if (this.wood >= SIM_SETTINGS.houseUpgradeCost) {
-                        return { obj: this.house, action: 'upgrade_house' };
-                    } else {
-                        let tree = this.findClosest(trees);
-                        if (tree) return { obj: tree, action: 'chop' };
-                    }
-                }
-
-                // Default: wander, gather random resources, or eat
-                if (Math.random() < 0.5) {
-                    let food = this.findClosest(foods);
-                    if (food) return { obj: food, action: 'eat' };
                 }
                 
+                // 4. FARMER LOGIC
+                else if (this.role === 'farmer') {
+                    // Farmers always eat a bit early so they can reproduce
+                    if (this.energy < 120 && foods.length > 0) {
+                        let food = this.findClosest(foods);
+                        if (food) return { obj: food, action: 'eat' };
+                    }
+
+                    // Are we carrying a plant? Go breed!
+                    if (this.hasPlant) {
+                        let populatedPen = pens.find(p => !p.dead && p.animals.length > 0 && p.animals.length < p.capacity);
+                        if (populatedPen) return { obj: populatedPen, action: 'breed_animal' };
+                        else this.hasPlant = false; // Drop it if no pen needs it
+                    }
+
+                    // Do we need to build a pen?
+                    if (pens.length === 0 || pens.every(p => p.animals.length >= p.capacity)) {
+                        if (this.wood >= 3) return { obj: this.group, action: 'build_pen' };
+                        let tree = this.findClosest(trees);
+                        if (tree) return { obj: tree, action: 'chop' }; // Farmers can chop a little for pens
+                    }
+
+                    // Herd wild animals
+                    let wildAnimal = animals.find(a => !a.dead && a.state === 'wild');
+                    let spacePen = pens.find(p => !p.dead && p.animals.length < p.capacity);
+                    if (wildAnimal && spacePen) return { obj: wildAnimal, action: 'herd_animal' };
+
+                    // Fetch food to breed animals
+                    let breedablePen = pens.find(p => !p.dead && p.animals.length > 0 && p.animals.length < p.capacity);
+                    if (breedablePen) {
+                        let food = this.findClosest(foods);
+                        if (food) return { obj: food, action: 'fetch_plant' };
+                    }
+                }
+
+                // Default Wander
                 return { obj: null, action: 'wander' };
             }
 
             update(delta) {
                 if (this.dead) return;
 
-                // HP Bar UI Update
                 let pct = Math.max(0, this.health / this.maxHealth);
-                this.hpBarData.fgMesh.scale.x = pct;
-                this.hpBarData.fgMesh.position.x = -(1 - pct);
+                this.hpBarData.fgMesh.scale.x = pct; this.hpBarData.fgMesh.position.x = -(1 - pct);
 
-                // Physics (Meteor strike)
+                // Herded animal logic (make it follow the farmer)
+                if (this.followingAnimal && !this.followingAnimal.dead) {
+                    let offset = new THREE.Vector3(Math.sin(this.group.rotation.y + Math.PI), 0, Math.cos(this.group.rotation.y + Math.PI)).multiplyScalar(1.5);
+                    this.followingAnimal.mesh.position.lerp(this.group.position.clone().add(offset), delta * 4);
+                    this.followingAnimal.mesh.lookAt(this.group.position);
+                }
+
                 if (this.flying) {
-                    this.velocity.y -= 80 * delta; 
-                    this.group.position.addScaledVector(this.velocity, delta);
-                    this.innerGroup.rotation.x += delta * 15;
-                    this.innerGroup.rotation.y += delta * 10;
+                    this.velocity.y -= 80 * delta; this.group.position.addScaledVector(this.velocity, delta);
+                    this.innerGroup.rotation.x += delta * 15; this.innerGroup.rotation.y += delta * 10;
                     if (this.group.position.y <= 0) this.takeDamage(999);
                     return; 
                 }
 
-                // Death Animation
                 if (this.dying) {
-                    this.deathTimer += delta;
-                    this.innerGroup.rotation.x += delta * 2;
+                    this.deathTimer += delta; this.innerGroup.rotation.x += delta * 2;
                     this.bodyMat.color.lerp(new THREE.Color(0x000000), delta * 5);
                     this.hpBarData.group.visible = false;
                     if (this.deathTimer >= 1.0) {
                         this.dead = true; scene.remove(this.group);
                         if(this.house) this.house.owner = null;
+                        if(this.followingAnimal) this.followingAnimal.state = 'wild';
                     }
                     return; 
                 }
 
-                // Scale up when born
                 if (this.birthTimer < 1.0) {
-                    this.birthTimer += delta * 3; 
-                    this.group.scale.setScalar(Math.min(this.birthTimer, 1.0));
+                    this.birthTimer += delta * 3; this.group.scale.setScalar(Math.min(this.birthTimer, 1.0));
                 }
 
                 this.energy -= SIM_SETTINGS.energyDrainPerTick * delta * 60;
-                if(this.energy <= 0) this.takeDamage(delta * 10); // Starvation damage
+                if(this.energy <= 0) this.takeDamage(delta * 10); 
 
-                // Evaluate AI Target periodically or if target is dead
                 if (!this.targetObj || this.currentAction === 'wander' || (this.targetObj && this.targetObj.dead)) {
                     let decision = this.decideTarget();
-                    this.targetObj = decision.obj;
-                    this.currentAction = decision.action;
+                    this.targetObj = decision.obj; this.currentAction = decision.action;
                 }
 
                 let moveDir = new THREE.Vector3();
 
-                // Actions that don't need a target object (Building right here)
-                if (this.currentAction === 'build_house') {
+                // --- INSTANT ACTIONS ---
+                if (this.currentAction === 'start_house') {
                     this.wood -= SIM_SETTINGS.houseWoodCost;
                     this.house = new House(this.group.position.clone(), this);
-                    this.currentAction = 'wander';
-                    this.targetObj = null;
+                    this.targetObj = this.house; this.currentAction = 'build_house'; 
                 } 
-                else if (this.currentAction === 'build_table') {
-                    this.wood -= 1;
-                    tables.push(new CraftingTable(this.group.position.clone()));
-                    this.currentAction = 'wander';
+                else if (this.currentAction === 'build_pen') {
+                    this.wood -= 3;
+                    pens.push(new Pen(this.group.position.clone()));
+                    this.currentAction = 'wander'; this.targetObj = null;
                 }
-                // Actions targeting an object
+                else if (this.currentAction === 'start_upgrade') {
+                    this.wood -= SIM_SETTINGS.houseUpgradeCost;
+                    this.house = this.targetObj; // Claim the house they are upgrading
+                    this.house.startUpgrade();
+                    this.currentAction = 'build_house'; 
+                }
+                else if (this.currentAction === 'craft_stone_armor') {
+                    this.stone -= 3; this.armorTier = 1; this.pickaxeTier = 1; this.axeTier = 1; this.updateArmorVisuals();
+                    this.currentAction = 'wander'; this.targetObj = null;
+                }
+                else if (this.currentAction === 'craft_iron_gear') {
+                    this.iron -= 3; 
+                    if(this.pickaxeTier < 2) this.pickaxeTier = 2;
+                    else if(this.armorTier < 2) { this.armorTier = 2; this.updateArmorVisuals(); }
+                    this.currentAction = 'wander'; this.targetObj = null;
+                }
+
+                // --- TRAVEL ACTIONS ---
                 else if (this.targetObj && !this.targetObj.dead) {
                     let dist = this.group.position.distanceTo(this.targetObj.mesh.position);
-                    let reach = (this.currentAction === 'fix_house' || this.currentAction === 'upgrade_house') ? 3.5 : 1.8;
+                    let reach = (this.currentAction === 'fix_house' || this.currentAction === 'build_house' || this.currentAction === 'lead_to_pen' || this.currentAction === 'breed_animal') ? 4.0 : 1.8;
                     
                     if (dist > reach) {
-                        // Move to target
                         moveDir.subVectors(this.targetObj.mesh.position, this.group.position).normalize();
                         moveDir.y = 0;
-                        this.group.position.addScaledVector(moveDir, SIM_SETTINGS.blobSpeed * delta * 60);
-                        this.toolGroup.visible = false; // Put away tool while walking
+                        this.group.position.addScaledVector(moveDir, SIM_SETTINGS.gusSpeed * delta * 60);
+                        this.toolGroup.visible = false; 
                     } else {
-                        // Reached Target! Interact based on action:
+                        // Reached Target!
                         if (this.currentAction === 'eat') {
                             this.energy += SIM_SETTINGS.energyFromFood;
                             this.health = Math.min(this.maxHealth, this.health + 30);
                             this.targetObj.destroy();
                         } 
+                        else if (this.currentAction === 'eat_animal') {
+                            this.energy += SIM_SETTINGS.energyFromAnimal;
+                            this.health = this.maxHealth; // Full heal
+                            this.targetObj.destroy();
+                            this.innerGroup.scale.set(1.5, 1.5, 1.5); // Bloat temporarily
+                            setTimeout(() => this.innerGroup.scale.set(1,1,1), 2000);
+                        }
+                        else if (this.currentAction === 'fetch_plant') {
+                            this.hasPlant = true;
+                            this.targetObj.destroy(); // Grab plant
+                        }
+                        else if (this.currentAction === 'breed_animal') {
+                            this.hasPlant = false;
+                            this.innerGroup.position.y = Math.sin(Date.now() * 0.01) * 0.5; // Happy hop
+                            // Spawn new animal
+                            let newAnim = new Animal(this.targetObj.mesh.position.clone());
+                            this.targetObj.addAnimal(newAnim);
+                        }
+                        else if (this.currentAction === 'herd_animal') {
+                            this.followingAnimal = this.targetObj;
+                            this.followingAnimal.state = 'following';
+                            let spacePen = pens.find(p => !p.dead && p.animals.length < p.capacity);
+                            if (spacePen) {
+                                this.targetObj = spacePen;
+                                this.currentAction = 'lead_to_pen';
+                            } else {
+                                this.followingAnimal.state = 'wild';
+                                this.followingAnimal = null;
+                                this.targetObj = null;
+                                this.currentAction = 'wander';
+                            }
+                        }
+                        else if (this.currentAction === 'lead_to_pen') {
+                            if (this.followingAnimal) {
+                                if (this.targetObj.addAnimal(this.followingAnimal)) {
+                                    // Successfully penned
+                                    this.followingAnimal = null;
+                                } else {
+                                    this.followingAnimal.state = 'wild';
+                                    this.followingAnimal = null;
+                                }
+                            }
+                        }
                         else if (this.currentAction === 'chop') {
                             moveDir.subVectors(this.targetObj.mesh.position, this.group.position).normalize();
-                            this.toolGroup.visible = true;
-                            this.toolHead.material.color.setHex(0x555555); // Look like an axe
-                            this.toolGroup.rotation.z = Math.sin(Date.now() * 0.02); // Swinging
-                            
-                            if (this.targetObj.chop(25 * delta)) this.wood += 2;
-                        }
-                        else if (this.currentAction === 'mine') {
-                            moveDir.subVectors(this.targetObj.mesh.position, this.group.position).normalize();
-                            this.toolGroup.visible = true;
-                            this.toolHead.material.color.setHex(0xaaaaaa); // Look like a pickaxe
+                            this.toolGroup.visible = true; this.toolHead.material = this.axeTier === 2 ? mats.toolIron : mats.toolWood; 
                             this.toolGroup.rotation.z = Math.sin(Date.now() * 0.02); 
-                            
-                            if (this.targetObj.mine(30 * delta)) this.stone += 2;
+                            let dmg = this.axeTier === 2 ? 80 : 30; 
+                            if (this.targetObj.chop(dmg * delta)) this.wood += 2;
+                        }
+                        else if (this.currentAction === 'mine_stone' || this.currentAction === 'mine_iron') {
+                            moveDir.subVectors(this.targetObj.mesh.position, this.group.position).normalize();
+                            this.toolGroup.visible = true; this.toolHead.material = this.pickaxeTier === 2 ? mats.toolIron : mats.toolStone; 
+                            this.toolGroup.rotation.z = Math.sin(Date.now() * 0.02); 
+                            let dmg = this.pickaxeTier === 2 ? 60 : 25; 
+                            if (this.targetObj.mine(dmg * delta)) {
+                                if (this.currentAction === 'mine_iron') this.iron += 2; else this.stone += 2;
+                            }
+                        }
+                        else if (this.currentAction === 'build_house') {
+                            moveDir.subVectors(this.targetObj.mesh.position, this.group.position).normalize();
+                            this.toolGroup.visible = true; this.toolHead.material = mats.toolWood; this.toolGroup.rotation.z = Math.sin(Date.now() * 0.02);
+                            if (this.targetObj.addBuildProgress(40 * delta)) {
+                                this.targetObj = null; this.currentAction = 'wander';
+                            }
                         }
                         else if (this.currentAction === 'fix_house') {
-                            this.wood -= 1;
-                            this.targetObj.repair(50);
-                            // Jump for joy
+                            this.wood -= 1; this.targetObj.repair(50);
                             this.innerGroup.position.y = Math.sin(Date.now() * 0.01) * 0.5;
                         }
-                        else if (this.currentAction === 'upgrade_house') {
-                            this.wood -= SIM_SETTINGS.houseUpgradeCost;
-                            this.targetObj.upgrade();
-                        }
-                        else if (this.currentAction === 'craft_pickaxe') {
-                            this.wood -= SIM_SETTINGS.pickaxeWoodCost;
-                            this.hasPickaxe = true;
-                        }
-                        else if (this.currentAction === 'craft_armor') {
-                            this.stone -= SIM_SETTINGS.armorStoneCost;
-                            if(!this.hasHelmet) {
-                                this.hasHelmet = true;
-                                this.helmetMesh.visible = true;
-                            } else {
-                                this.hasChestplate = true;
-                                this.chestMesh.visible = true;
-                            }
-                            this.updateStats();
-                        }
                         
-                        // If not a continuous action (like chopping/mining), reset target
-                        if (!['chop', 'mine'].includes(this.currentAction) || this.targetObj.dead) {
-                            this.targetObj = null;
-                            this.currentAction = 'wander';
-                            this.innerGroup.position.y = 0;
+                        if (!['chop', 'mine_stone', 'mine_iron', 'build_house'].includes(this.currentAction) || (this.targetObj && this.targetObj.dead)) {
+                            this.targetObj = null; this.currentAction = 'wander'; this.innerGroup.position.y = 0;
                         }
                     }
                 } else {
                     // Wander
-                    this.theta += (Math.random() - 0.5) * 0.3;
-                    moveDir.set(Math.sin(this.theta), 0, Math.cos(this.theta));
-                    this.group.position.addScaledVector(moveDir, (SIM_SETTINGS.blobSpeed * 0.5) * delta * 60);
+                    this.theta += (Math.random() - 0.5) * 0.3; moveDir.set(Math.sin(this.theta), 0, Math.cos(this.theta));
+                    this.group.position.addScaledVector(moveDir, (SIM_SETTINGS.gusSpeed * 0.5) * delta * 60);
                     this.toolGroup.visible = false;
                 }
 
@@ -850,7 +952,6 @@
                     this.group.quaternion.slerp(targetQuat, delta * 8); 
                 }
 
-                // Enforce Disk Bounds
                 const distFromCenter = Math.sqrt(this.group.position.x ** 2 + this.group.position.z ** 2);
                 if (distFromCenter > SIM_SETTINGS.diskRadius - 1.5) {
                     const angle = Math.atan2(this.group.position.x, this.group.position.z);
@@ -859,13 +960,13 @@
                     this.theta += Math.PI; 
                 }
 
-                // Reproduction
+                // REPRODUCTION
                 if (this.energy >= SIM_SETTINGS.reproductionEnergy) {
                     this.energy -= 80; 
                     const spawnPos = this.group.position.clone();
                     const forwardVector = new THREE.Vector3(Math.sin(this.group.rotation.y), 0, Math.cos(this.group.rotation.y));
                     spawnPos.addScaledVector(forwardVector, 2.5);
-                    blobs.push(new Blob(spawnPos, 60));
+                    gussArray.push(new Gus(spawnPos, 60)); // Role randomly assigned inside constructor
                 }
             }
         }
@@ -876,43 +977,33 @@
         class Meteor {
             constructor(targetPoint) {
                 this.target = targetPoint; this.dead = false;
-                this.group = new THREE.Group();
-                this.group.position.set(targetPoint.x, 100, targetPoint.z); 
-                this.group.add(new THREE.Mesh(new THREE.SphereGeometry(2, 12, 12), new THREE.MeshStandardMaterial({ color: 0xff4400, emissive: 0xff2200 })));
+                this.group = new THREE.Group(); this.group.position.set(targetPoint.x, 100, targetPoint.z); 
+                this.group.add(new THREE.Mesh(new THREE.SphereGeometry(2.5, 12, 12), new THREE.MeshStandardMaterial({ color: 0xff4400, emissive: 0xff2200 })));
                 this.group.add(new THREE.PointLight(0xff6600, 3, 100));
                 scene.add(this.group);
             }
             update(delta) {
-                this.group.position.y -= 120 * delta;
-                if (this.group.position.y <= 0) this.explode();
+                this.group.position.y -= 120 * delta; if (this.group.position.y <= 0) this.explode();
             }
             explode() {
-                this.dead = true; scene.remove(this.group);
-                explosions.push(new Explosion(this.target));
-
-                const blastRadius = 10; 
+                this.dead = true; scene.remove(this.group); explosions.push(new Explosion(this.target));
+                const blastRadius = 14; 
                 
-                // Destroy things
-                [foods, stones, trees, tables, houses].forEach(list => {
+                [foods, stones, irons, trees, tables, houses, pens, animals].forEach(list => {
                     list.forEach(item => {
                         if (!item.dead && item.mesh.position.distanceTo(this.target) < blastRadius) {
-                            if(item.chop) { item.chop(999); } 
-                            else if(item.mine) { item.mine(999); }
-                            else { item.destroy(); }
+                            if(item.chop) item.chop(999); else if(item.mine) item.mine(999); else item.destroy();
                         }
                     });
                 });
 
-                // Launch and damage Blobs
-                blobs.forEach(b => {
-                    if (!b.dead && !b.dying) {
-                        const dist = b.group.position.distanceTo(this.target);
+                gussArray.forEach(g => {
+                    if (!g.dead && !g.dying) {
+                        const dist = g.group.position.distanceTo(this.target);
                         if (dist < blastRadius) {
-                            b.flying = true; 
-                            b.takeDamage(150); // Will likely kill them unless max armor
-                            b.velocity = new THREE.Vector3().subVectors(b.group.position, this.target).normalize();
-                            b.velocity.y = 1.5; 
-                            b.velocity.multiplyScalar(40 * (1 - (dist / blastRadius)) + 15);
+                            g.flying = true; g.takeDamage(200); 
+                            g.velocity = new THREE.Vector3().subVectors(g.group.position, this.target).normalize();
+                            g.velocity.y = 1.5; g.velocity.multiplyScalar(45 * (1 - (dist / blastRadius)) + 15);
                         }
                     }
                 });
@@ -926,12 +1017,9 @@
                 this.mesh.position.copy(pos); scene.add(this.mesh);
             }
             update(delta) {
-                this.timer += delta;
-                this.mesh.scale.addScalar(delta * 60); 
-                this.mesh.material.opacity -= delta * 2;
+                this.timer += delta; this.mesh.scale.addScalar(delta * 70); this.mesh.material.opacity -= delta * 2;
                 if (this.timer > 0.5) {
-                    this.dead = true; scene.remove(this.mesh);
-                    this.mesh.material.dispose(); this.mesh.geometry.dispose();
+                    this.dead = true; scene.remove(this.mesh); this.mesh.material.dispose(); this.mesh.geometry.dispose();
                 }
             }
         }
@@ -964,72 +1052,80 @@
 
         function initPopulation() {
             for (let i = 0; i < SIM_SETTINGS.initialTrees; i++) {
-                let t = new Tree(getRandomSpawnPos());
-                t.sprouting = false; t.mesh.scale.set(1,1,1); // Initial trees start fully grown
+                let t = new Tree(getRandomSpawnPos()); t.sprouting = false; t.mesh.scale.set(1,1,1); 
             }
             for (let i = 0; i < SIM_SETTINGS.initialStones; i++) stones.push(new StoneNode(getRandomSpawnPos()));
-            for (let i = 0; i < SIM_SETTINGS.initialBlobs; i++) blobs.push(new Blob(getRandomSpawnPos()));
+            for (let i = 0; i < SIM_SETTINGS.initialIrons; i++) irons.push(new IronNode(getRandomSpawnPos()));
+            for (let i = 0; i < SIM_SETTINGS.initialAnimals; i++) animals.push(new Animal(getRandomSpawnPos()));
+            for (let i = 0; i < SIM_SETTINGS.initialGuss; i++) gussArray.push(new Gus(getRandomSpawnPos()));
             for (let i = 0; i < SIM_SETTINGS.initialFood; i++) foods.push(new Food(getRandomSpawnPos()));
         }
 
-        let timers = { food: 0, tree: 0, stone: 0 };
+        let timers = { food: 0, tree: 0, stone: 0, iron: 0, animal: 0 };
 
         function updateSim() {
             const delta = Math.min(clock.getDelta(), 0.1); 
             totalTime += delta;
 
-            // Dynamic Spawning Rates based on Sliders
             let actualFoodRate = SIM_SETTINGS.foodBaseRate * currentFoodRateMultiplier;
             let actualTreeRate = SIM_SETTINGS.treeBaseRate * currentTreeRateMultiplier;
 
-            // Spawning Logic
+            // Spawning
             timers.food += delta;
-            if (actualFoodRate > 0 && timers.food > (1 / actualFoodRate) && foods.length < 200) {
+            if (actualFoodRate > 0 && timers.food > (1 / actualFoodRate) && foods.length < 300) {
                 foods.push(new Food(getRandomSpawnPos())); timers.food = 0;
             }
             
             timers.tree += delta;
-            if (actualTreeRate > 0 && timers.tree > (1 / actualTreeRate) && trees.length < 40) {
+            if (actualTreeRate > 0 && timers.tree > (1 / actualTreeRate) && trees.length < 50) {
                 trees.push(new Tree(getRandomSpawnPos())); timers.tree = 0;
             }
 
             timers.stone += delta;
-            if (timers.stone > 2 && stones.length < 20) { // Stones respawn slowly natively
+            if (timers.stone > 3.0 && stones.length < 20) { 
                 stones.push(new StoneNode(getRandomSpawnPos())); timers.stone = 0;
             }
 
-            // Cleanup Dead Objects Function
+            timers.iron += delta;
+            if (timers.iron > 6.0 && irons.length < 10) { 
+                irons.push(new IronNode(getRandomSpawnPos())); timers.iron = 0;
+            }
+            
+            timers.animal += delta;
+            if (timers.animal > 10.0 && animals.length < 15) { // Wild slow respawn
+                animals.push(new Animal(getRandomSpawnPos())); timers.animal = 0;
+            }
+
             const cleanup = (arr) => {
-                for (let i = arr.length - 1; i >= 0; i--) {
-                    if (arr[i].dead) arr.splice(i, 1);
-                }
+                for (let i = arr.length - 1; i >= 0; i--) { if (arr[i].dead) arr.splice(i, 1); }
             };
 
-            // Update entities
             meteors.forEach(m => m.update(delta));
             explosions.forEach(e => e.update(delta));
             trees.forEach(t => t.update(delta));
             houses.forEach(h => h.update(delta));
+            pens.forEach(p => p.update(delta));
+            animals.forEach(a => a.update(delta));
             
-            let liveBlobCount = 0;
-            blobs.forEach(b => {
-                b.update(delta);
-                if (!b.dying && !b.dead) liveBlobCount++;
+            let liveGussCount = 0;
+            gussArray.forEach(g => {
+                g.update(delta);
+                if (!g.dying && !g.dead) liveGussCount++;
             });
 
-            // Clean arrays
-            cleanup(blobs); cleanup(foods); cleanup(trees); 
-            cleanup(stones); cleanup(tables); cleanup(houses); 
-            cleanup(meteors); cleanup(explosions);
+            cleanup(gussArray); cleanup(foods); cleanup(trees); cleanup(animals);
+            cleanup(stones); cleanup(irons); cleanup(tables); cleanup(houses); 
+            cleanup(pens); cleanup(meteors); cleanup(explosions);
 
             frameCount++;
             if (frameCount % 10 === 0) {
                 elTime.innerText = Math.floor(totalTime);
-                elBlobs.innerText = liveBlobCount;
+                elGuss.innerText = liveGussCount;
                 elFood.innerText = foods.length;
+                elAnimals.innerText = animals.length;
             }
             if (frameCount % 15 === 0) {
-                popGraph.addValue(liveBlobCount);
+                popGraph.addValue(liveGussCount);
                 foodGraph.addValue(foods.length);
             }
         }
