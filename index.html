@@ -3,1533 +3,1087 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Chat</title>
+    <title>Smooth Disk Sim - Civilization Update</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 20px;
-            background: #f0f0f0;
-        }
-        
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             overflow: hidden;
-            position: relative;
+            background-color: #87CEEB; /* Bright sky background */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            text-shadow: 1px 1px 2px #000;
         }
-        
-        .header {
-            background: #007aff;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            position: relative;
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
         }
-        
-        .settings-btn {
+
+        #ui-panel {
             position: absolute;
-            top: 15px;
-            left: 15px;
-            background: rgba(255,255,255,0.3);
-            border: 2px solid white;
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 18px;
-            display: none;
-            align-items: center;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(to bottom, rgba(10, 10, 15, 0.8), rgba(10, 10, 15, 0));
+            display: flex;
+            padding: 15px 20px;
+            box-sizing: border-box;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .stats-digital {
+            width: 220px;
+            display: flex;
+            flex-direction: column;
             justify-content: center;
+            border-right: 1px solid rgba(255,255,255,0.3);
+            padding-right: 20px;
+            margin-right: 20px;
         }
-        
-        .settings-btn:hover {
-            background: rgba(255,255,255,0.5);
-            transform: scale(1.1);
-            transition: all 0.3s ease;
+
+        .stat-line {
+            display: flex;
+            justify-content: space-between;
+            font-size: 15px;
+            margin: 3px 0;
+            letter-spacing: 1px;
         }
-        
-        .auth-screen {
-            padding: 20px;
-        }
-        
-        .chat-main {
-            display: none;
-        }
-        
-        .messages {
-            height: 400px;
-            overflow-y: auto;
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .message {
-            margin-bottom: 10px;
-            padding: 10px;
-            background: #f5f5f5;
-            border-radius: 10px;
-            position: relative;
-        }
-        
-        .message.own {
-            background: #007aff;
-            color: white;
-            margin-left: 50px;
-        }
-        
-        .message.system {
-            background: #ffeb3b !important;
-            color: #333 !important;
-            font-style: italic;
-        }
-        
-        .message-user {
+
+        .stat-value {
             font-weight: bold;
-            font-size: 12px;
-            margin-bottom: 5px;
+            font-family: monospace;
+            font-size: 16px;
+            text-shadow: none;
         }
-        
-        .input-area {
-            padding: 20px;
+
+        .graph-container {
+            flex-grow: 1;
             display: flex;
-            gap: 10px;
+            gap: 20px;
+            height: 70px;
         }
-        
-        input, textarea {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-        
-        .message-input {
+
+        .graph-box {
             flex: 1;
-            resize: none;
-            height: 40px;
-        }
-        
-        button {
-            padding: 10px 20px;
-            background: #007aff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        
-        button:hover {
-            background: #0056b3;
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        .form-group input {
-            width: 100%;
-            box-sizing: border-box;
-        }
-        
-        .error {
-            color: red;
-            font-size: 12px;
-            margin-top: 10px;
-        }
-        
-        .success {
-            color: green;
-            font-size: 12px;
-            margin-top: 10px;
-        }
-        
-        .tabs {
-            display: flex;
-            margin-bottom: 20px;
-        }
-        
-        .tab {
-            flex: 1;
-            padding: 10px;
-            background: #f0f0f0;
-            border: none;
-            cursor: pointer;
-        }
-        
-        .tab.active {
-            background: #007aff;
-            color: white;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .online-count {
-            font-size: 12px;
-            opacity: 0.8;
-        }
-        
-        .delete-btn {
-            background: #ff3b30;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            padding: 2px 6px;
-            font-size: 10px;
-            cursor: pointer;
-            margin-left: 10px;
-            display: none;
-        }
-        
-        .delete-btn.show {
-            display: inline-block;
-            background: #ff6b6b;
-        }
-        
-        .delete-btn:hover {
-            background: #d70015;
+            position: relative;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
         }
 
-        .settings-panel {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 1000;
-        }
-
-        .settings-content {
-            background: white;
-            margin: 100px auto;
-            padding: 30px;
-            width: 90%;
-            max-width: 400px;
-            border-radius: 10px;
-        }
-
-        .settings-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #007aff;
-        }
-
-        .close-settings {
-            background: #ff3b30;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-
-        .logout-btn {
-            background: #ff3b30;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 10px 20px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 20px;
-        }
-
-        .logout-btn:hover {
-            background: #d70015;
-        }
-
-        .admin-panel {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 1000;
-        }
-        
-        .admin-content {
-            background: white;
-            margin: 50px auto;
-            padding: 20px;
-            width: 80%;
-            max-width: 600px;
-            border-radius: 10px;
-            max-height: 80%;
-            overflow-y: auto;
-        }
-        
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #007aff;
-        }
-        
-        .close-admin {
-            background: #ff3b30;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-
-        .admin-section {
-            margin-bottom: 30px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 5px;
-        }
-
-        .admin-section h3 {
-            color: #007aff;
-            margin-bottom: 15px;
-            margin-top: 0;
-        }
-
-        .user-item {
-            background: white;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-        }
-
-        .kicked-user {
-            opacity: 0.5;
-            background: #ffebee !important;
-        }
-
-        .user-actions {
-            margin-top: 15px;
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .kick-btn {
-            background: #ff9500;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            padding: 4px 8px;
-            font-size: 11px;
-            cursor: pointer;
-            margin-right: 5px;
-        }
-
-        .kick-btn:hover {
-            background: #cc7700;
-        }
-
-        .untimeout-btn {
-            background: #34c759;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            padding: 4px 8px;
-            font-size: 11px;
-            cursor: pointer;
-            margin-right: 15px;
-        }
-
-        .untimeout-btn:hover {
-            background: #28a745;
-        }
-
-        .delete-account-btn {
-            background: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            padding: 4px 8px;
-            font-size: 11px;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-
-        .delete-account-btn:hover {
-            background: #c82333;
-        }
-
-        .clear-messages-btn {
-            background: #ff3b30;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 10px 20px;
-            cursor: pointer;
-            width: 100%;
-            margin-bottom: 10px;
-        }
-
-        .clear-messages-btn:hover {
-            background: #d70015;
-        }
-
-        .admin-password-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 1001;
-        }
-
-        .admin-password-content {
-            background: white;
-            margin: 200px auto;
-            padding: 30px;
-            width: 90%;
-            max-width: 300px;
-            border-radius: 10px;
-            text-align: center;
-        }
-
-        .admin-password-input {
-            width: 100%;
-            padding: 10px;
-            margin: 15px 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-
-        .password-hidden {
-            color: transparent;
-            background: #333;
-            user-select: none;
-            cursor: pointer;
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-
-        .password-visible {
-            color: inherit;
-            background: inherit;
-        }
-
-        .connection-status {
+        .graph-label {
             position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #ff3b30;
+            top: 5px;
+            left: 8px;
+            font-size: 11px;
+            color: #ccc;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: none;
         }
 
-        .connection-status.connected {
-            background: #34c759;
+        canvas.graph-canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 6px;
+        }
+
+        #control-panel {
+            position: absolute;
+            top: 120px;
+            right: 20px;
+            width: 280px;
+            background: rgba(20, 20, 25, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 15px;
+            z-index: 100;
+            backdrop-filter: blur(8px);
+        }
+
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .slider-label {
+            font-size: 12px;
+            color: #eee;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        input[type=range] {
+            width: 100%;
+            cursor: pointer;
+            accent-color: #55ff55;
+        }
+
+        .ai-logic-box {
+            font-size: 11px; 
+            color: #ddd; 
+            margin-top: 10px; 
+            text-align: left; 
+            line-height: 1.5;
+            background: rgba(0,0,0,0.4);
+            padding: 10px;
+            border-radius: 4px;
+            text-shadow: none;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <button class="settings-btn" id="settingsButton" onclick="openSettings()" title="Settings">⚙️</button>
-            <div class="connection-status" id="connectionStatus" title="Connection Status"></div>
-            <h2 id="chatTitle">Simple Chat</h2>
-            <div class="online-count" id="onlineCount">0 users online</div>
+
+    <div id="ui-panel">
+        <div class="stats-digital">
+            <div style="font-size: 12px; color: #ddd; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px;">Sim Status</div>
+            <div class="stat-line"><span style="color: #eee;">Time:</span> <span id="stat-time" class="stat-value" style="color: #fff;">0</span></div>
+            <div class="stat-line"><span style="color: #eee;">Population:</span> <span id="stat-blobs" class="stat-value" style="color: #44aaff;">0</span></div>
+            <div class="stat-line"><span style="color: #eee;">Total Food:</span> <span id="stat-food" class="stat-value" style="color: #55ff55;">0</span></div>
+        </div>
+        <div class="graph-container">
+            <div class="graph-box">
+                <div class="graph-label">Population (All Time)</div>
+                <canvas id="graph-pop" class="graph-canvas"></canvas>
+            </div>
+            <div class="graph-box">
+                <div class="graph-label">Food Supply (All Time)</div>
+                <canvas id="graph-food" class="graph-canvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div id="control-panel">
+        <div class="slider-container">
+            <div class="slider-label">
+                <span>Plant Growth</span>
+                <span id="food-rate-val" style="color: #55ff55; font-weight: bold;">50x</span>
+            </div>
+            <input type="range" id="food-rate-slider" min="1" max="100" step="1" value="50">
         </div>
         
-        <!-- Auth Screen -->
-        <div class="auth-screen" id="authScreen">
-            <div class="tabs">
-                <button class="tab active" onclick="switchTab('login')">Login</button>
-                <button class="tab" onclick="switchTab('register')">Register</button>
+        <div class="slider-container">
+            <div class="slider-label">
+                <span>Tree Sprouting</span>
+                <span id="tree-rate-val" style="color: #ffaa00; font-weight: bold;">20x</span>
             </div>
-            
-            <!-- Login -->
-            <div class="tab-content active" id="loginTab">
-                <div class="form-group">
-                    <input type="text" id="loginUsername" placeholder="Username" maxlength="20">
-                </div>
-                <div class="form-group">
-                    <input type="password" id="loginPassword" placeholder="Password">
-                </div>
-                <button onclick="login()">Login</button>
-            </div>
-            
-            <!-- Register -->
-            <div class="tab-content" id="registerTab">
-                <div class="form-group">
-                    <input type="text" id="regUsername" placeholder="Username" maxlength="20">
-                </div>
-                <div class="form-group">
-                    <input type="password" id="regPassword" placeholder="Password">
-                </div>
-                <div class="form-group">
-                    <input type="password" id="regConfirm" placeholder="Confirm Password">
-                </div>
-                <div class="form-group">
-                    <input type="password" id="regActivationCode" placeholder="Activation Code">
-                </div>
-                <button onclick="register()">Create Account</button>
-            </div>
-            
-            <div id="message"></div>
+            <input type="range" id="tree-rate-slider" min="1" max="100" step="1" value="20">
         </div>
-        
-        <!-- Chat Screen -->
-        <div class="chat-main" id="chatMain">
-            <div class="messages" id="messages"></div>
-            <div class="input-area">
-                <textarea id="messageInput" class="message-input" placeholder="Type a message..."></textarea>
-                <button onclick="sendMessage()">Send</button>
-            </div>
+
+        <div class="ai-logic-box">
+            <b>New AI Priorities:</b><br>
+            1. Hungry? -> Eat Food<br>
+            2. No House? -> Chop wood, build House<br>
+            3. House Broken? -> Chop wood, fix it<br>
+            4. Need Tools? -> Build Table, craft Pickaxe<br>
+            5. Need Armor? -> Mine stone, craft Helm/Chest<br>
+            6. Have wood? -> Upgrade House<br>
+        </div>
+        <div style="font-size: 11px; color: #ff6600; margin-top: 10px; text-align: center; font-weight: bold;">
+            Double-click for Meteor Strike!
         </div>
     </div>
 
-    <!-- Settings Panel -->
-    <div class="settings-panel" id="settingsPanel">
-        <div class="settings-content">
-            <div class="settings-header">
-                <h2>Settings</h2>
-                <button class="close-settings" onclick="closeSettings()">Close</button>
-            </div>
-            
-            <div class="form-group">
-                <label>Current Username:</label>
-                <input type="text" id="currentUsername" readonly style="background: #f5f5f5;">
-            </div>
-            
-            <div class="form-group">
-                <label>Current Password:</label>
-                <input type="password" id="currentPassword" placeholder="Enter current password">
-            </div>
-            
-            <div class="form-group">
-                <label>New Password:</label>
-                <input type="password" id="newPassword" placeholder="Enter new password">
-            </div>
-            
-            <div class="form-group">
-                <label>Confirm New Password:</label>
-                <input type="password" id="confirmNewPassword" placeholder="Confirm new password">
-            </div>
-            
-            <button onclick="changePassword()">Change Password</button>
-            
-            <button class="logout-btn" onclick="logout()">Logout</button>
-            
-            <div id="settingsMessage"></div>
-        </div>
-    </div>
+    <div id="canvas-container"></div>
 
-    <!-- Admin Password Modal -->
-    <div class="admin-password-modal" id="adminPasswordModal">
-        <div class="admin-password-content">
-            <h3 id="adminActionTitle">Enter Admin Security Code</h3>
-            <input type="password" class="admin-password-input" id="adminPasswordInput" placeholder="Enter security code">
-            <div>
-                <button onclick="confirmAdminAction()">Confirm</button>
-                <button onclick="cancelAdminAction()">Cancel</button>
-            </div>
-            <div id="adminPasswordError" class="error"></div>
-        </div>
-    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
-    <!-- Admin Panel -->
-    <div class="admin-panel" id="adminPanel">
-        <div class="admin-content">
-            <div class="admin-header">
-                <h2>Admin Panel</h2>
-                <button class="close-admin" onclick="closeAdminPanel()">Close</button>
-            </div>
-            
-            <div class="admin-section">
-                <h3>Chat Settings</h3>
-                <div style="margin-bottom: 15px;">
-                    <label>Chat Name:</label>
-                    <input type="text" id="chatNameInput" style="width: 100%; margin-top: 5px; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
-                    <button onclick="requestChangeChatName()" style="margin-top: 10px; padding: 8px 15px; font-size: 12px;">Change Name</button>
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <label>Activation Code:</label>
-                    <input type="text" id="activationCodeInput" style="width: 100%; margin-top: 5px; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
-                    <button onclick="requestChangeActivationCode()" style="margin-top: 10px; padding: 8px 15px; font-size: 12px;">Change Code</button>
-                </div>
-            </div>
-            
-            <div class="admin-section">
-                <h3>Message Management</h3>
-                <button class="clear-messages-btn" onclick="requestClearMessages()">Clear All Messages</button>
-                <small>This will delete all chat messages permanently</small>
-            </div>
-            
-            <div class="admin-section">
-                <h3>Online Users</h3>
-                <div id="onlineUsersList">No users online</div>
-            </div>
-            
-            <div class="admin-section">
-                <h3>All Registered Users</h3>
-                <div id="allUsersList">No registered users</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-compat.js"></script>
-    
     <script>
-        // Firebase config
-        var firebaseConfig = {
-            apiKey: "AIzaSyAyCOxYlNRn-tveI9G22BHYI8EEpMAEWEI",
-            authDomain: "schoolchat-60b44.firebaseapp.com",
-            databaseURL: "https://schoolchat-60b44-default-rtdb.firebaseio.com",
-            projectId: "schoolchat-60b44",
-            storageBucket: "schoolchat-60b44.firebasestorage.app",
-            messagingSenderId: "209703349541",
-            appId: "1:209703349541:web:d89ba692f5f5c322503ecc"
+        // ==========================================
+        // --- Configuration & Constants ---
+        // ==========================================
+        const SIM_SETTINGS = {
+            diskRadius: 60,         
+            initialBlobs: 10,
+            initialFood: 60,        
+            initialTrees: 15,
+            initialStones: 15,
+
+            foodBaseRate: 0.1, // Multiplied by slider 1-100
+            treeBaseRate: 0.05, // Multiplied by slider 1-100
+            
+            blobSpeed: 0.20,        
+            viewDistance: 45,    
+            
+            energyDrainPerTick: 0.05, 
+            energyFromFood: 40,
+            reproductionEnergy: 180,
+
+            // New mechanics costs
+            houseWoodCost: 3,
+            houseUpgradeCost: 5,
+            pickaxeWoodCost: 2,
+            armorStoneCost: 3
         };
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        var database = firebase.database();
-        
-        // Global variables
-        var currentUser = '';
-        var isCurrentUserAdmin = false;
-        var messageIdCounter = 1;
-        var deleteTimers = {};
-        var pendingAdminAction = null;
-        var passwordTimers = {};
-        var userRef = null;
+        let currentFoodRateMultiplier = 50;
+        let currentTreeRateMultiplier = 20;
 
-        // Connection status
-        database.ref('.info/connected').on('value', function(snapshot) {
-            var connectionStatus = document.getElementById('connectionStatus');
-            if (snapshot.val() === true) {
-                connectionStatus.classList.add('connected');
-                connectionStatus.title = 'Connected to Firebase';
-            } else {
-                connectionStatus.classList.remove('connected');
-                connectionStatus.title = 'Disconnected from Firebase';
-            }
-        });
+        // Arrays to hold all world objects
+        const blobs = [];
+        const foods = [];
+        const trees = [];
+        const stones = [];
+        const tables = [];
+        const houses = [];
+        const meteors = [];
+        const explosions = [];
 
-        // Helper functions
-        function escapeHtml(text) {
-            var div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+        let scene, camera, renderer, controls, diskMesh; 
+        let clock = new THREE.Clock();
+        let totalTime = 0, frameCount = 0;
+
+        // UI Elements
+        const elTime = document.getElementById('stat-time');
+        const elBlobs = document.getElementById('stat-blobs');
+        const elFood = document.getElementById('stat-food');
+
+        function init3D() {
+            const container = document.getElementById('canvas-container');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB); // Bright sky
+            // Removed dark fog, added light haze
+            scene.fog = new THREE.FogExp2(0x87CEEB, 0.005); 
+
+            camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 60, 100);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2 - 0.05; 
+
+            // Much brighter lighting
+            const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.8);
+            hemiLight.position.set(0, 50, 0);
+            scene.add(hemiLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            dirLight.position.set(40, 80, -40);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            dirLight.shadow.camera.near = 0.5;
+            dirLight.shadow.camera.far = 200;
+            const d = SIM_SETTINGS.diskRadius + 10;
+            dirLight.shadow.camera.left = -d; dirLight.shadow.camera.right = d;
+            dirLight.shadow.camera.top = d; dirLight.shadow.camera.bottom = -d;
+            dirLight.shadow.bias = -0.0005;
+            scene.add(dirLight);
+
+            // White Ground Disk
+            const diskGeo = new THREE.CylinderGeometry(SIM_SETTINGS.diskRadius, SIM_SETTINGS.diskRadius, 2, 64);
+            const diskMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 });
+            diskMesh = new THREE.Mesh(diskGeo, diskMat);
+            diskMesh.position.y = -1; 
+            diskMesh.receiveShadow = true;
+            scene.add(diskMesh);
+
+            const ringGeo = new THREE.RingGeometry(SIM_SETTINGS.diskRadius, SIM_SETTINGS.diskRadius + 0.5, 64);
+            const ring = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: 0xcccccc, side: THREE.DoubleSide }));
+            ring.rotation.x = -Math.PI / 2;
+            ring.position.y = 0.01; 
+            scene.add(ring);
+
+            setupUI();
+            setupInteractions();
+            window.addEventListener('resize', onWindowResize);
         }
 
-        function addSystemMessage(text) {
-            database.ref('messages').push({
-                username: 'System',
-                message: text,
-                timestamp: Date.now(),
-                isSystem: true
-            });
+        function getRandomSpawnPos() {
+            const angle = Math.random() * Math.PI * 2;
+            const radius = Math.random() * (SIM_SETTINGS.diskRadius - 4); 
+            return new THREE.Vector3(Math.sin(angle) * radius, 0, Math.cos(angle) * radius);
         }
 
-        // Tab switching
-        function switchTab(tab) {
-            var tabs = document.querySelectorAll('.tab');
-            var contents = document.querySelectorAll('.tab-content');
+        // Helper function for Health/Durability Bars
+        function createBarSprite(colorHex) {
+            const group = new THREE.Group();
             
-            for (var i = 0; i < tabs.length; i++) {
-                tabs[i].classList.remove('active');
+            // Background (Red)
+            const bgMat = new THREE.MeshBasicMaterial({ color: 0xff0000, depthTest: false });
+            const bgGeo = new THREE.PlaneGeometry(2, 0.3);
+            const bg = new THREE.Mesh(bgGeo, bgMat);
+            bg.renderOrder = 999;
+            
+            // Foreground (Color)
+            const fgMat = new THREE.MeshBasicMaterial({ color: colorHex, depthTest: false });
+            const fgGeo = new THREE.PlaneGeometry(2, 0.3);
+            const fg = new THREE.Mesh(fgGeo, fgMat);
+            fg.position.z = 0.01; 
+            fg.renderOrder = 1000;
+
+            group.add(bg, fg);
+            
+            // Always face camera
+            group.onBeforeRender = function(renderer, scene, camera) {
+                group.quaternion.copy(camera.quaternion);
+            };
+
+            return { group, fgMesh: fg };
+        }
+
+        // ==========================================
+        // --- Geometries & Materials ---
+        // ==========================================
+        const mats = {
+            food: new THREE.MeshStandardMaterial({ color: 0x55ff55, roughness: 0.4 }),
+            wood: new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.9 }),
+            leaves: new THREE.MeshStandardMaterial({ color: 0x228b22, roughness: 0.8 }),
+            stone: new THREE.MeshStandardMaterial({ color: 0x777777, roughness: 0.8 }),
+            houseWood: new THREE.MeshStandardMaterial({ color: 0xa0522d, roughness: 1.0 }),
+            houseRoof: new THREE.MeshStandardMaterial({ color: 0x8b0000, roughness: 0.9 }),
+            toolHead: new THREE.MeshStandardMaterial({ color: 0xaaaaaa }),
+            armor: new THREE.MeshStandardMaterial({ color: 0x666666, metalness: 0.3, roughness: 0.7 }),
+            pupil: new THREE.MeshBasicMaterial({ color: 0x000000 })
+        };
+
+        const geos = {
+            food: new THREE.SphereGeometry(0.5, 16, 16),
+            stone: new THREE.DodecahedronGeometry(0.8),
+            table: new THREE.BoxGeometry(1.5, 1.2, 1.5),
+            treeTrunk: new THREE.CylinderGeometry(0.5, 0.7, 4, 8),
+            treeLeaves: new THREE.DodecahedronGeometry(2.5),
+            blobBody: new THREE.SphereGeometry(1, 16, 16),
+            eye: new THREE.SphereGeometry(0.35, 16, 16), // Bigger eyeballs
+            pupil: new THREE.SphereGeometry(0.18, 8, 8),
+            houseBase: new THREE.BoxGeometry(3, 2, 3),
+            houseRoof: new THREE.ConeGeometry(2.5, 2, 4)
+        };
+        geos.blobBody.scale(0.7, 1.2, 0.7); 
+
+        // ==========================================
+        // --- World Object Classes ---
+        // ==========================================
+        class WorldObject {
+            constructor(mesh, list) {
+                this.mesh = mesh;
+                this.dead = false;
+                this.list = list;
+                if(this.list) this.list.push(this);
+                scene.add(this.mesh);
             }
-            for (var i = 0; i < contents.length; i++) {
-                contents[i].classList.remove('active');
+            destroy() {
+                if(this.dead) return;
+                this.dead = true;
+                scene.remove(this.mesh);
+            }
+            update(delta) {}
+        }
+
+        class Food extends WorldObject {
+            constructor(pos) {
+                const mesh = new THREE.Mesh(geos.food, mats.food);
+                mesh.position.copy(pos); mesh.position.y = 0.5;
+                mesh.castShadow = true; mesh.receiveShadow = true;
+                super(mesh, foods);
+            }
+        }
+
+        class StoneNode extends WorldObject {
+            constructor(pos) {
+                const mesh = new THREE.Mesh(geos.stone, mats.stone);
+                mesh.position.copy(pos); mesh.position.y = 0.8;
+                mesh.castShadow = true; mesh.receiveShadow = true;
+                super(mesh, stones);
+                this.health = 50;
+            }
+            mine(damage) {
+                this.health -= damage;
+                this.mesh.rotation.y += 0.1;
+                this.mesh.rotation.z = Math.sin(Date.now() * 0.05) * 0.1;
+                if (this.health <= 0) {
+                    this.destroy();
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        class CraftingTable extends WorldObject {
+            constructor(pos) {
+                const mesh = new THREE.Mesh(geos.table, mats.wood);
+                mesh.position.copy(pos); mesh.position.y = 0.6;
+                mesh.castShadow = true; mesh.receiveShadow = true;
+                super(mesh, tables);
+            }
+        }
+
+        class Tree extends WorldObject {
+            constructor(pos) {
+                const group = new THREE.Group();
+                group.position.copy(pos);
+                
+                const trunk = new THREE.Mesh(geos.treeTrunk, mats.wood);
+                trunk.position.y = 2;
+                trunk.castShadow = true; trunk.receiveShadow = true;
+                
+                const leaves = new THREE.Mesh(geos.treeLeaves, mats.leaves);
+                leaves.position.y = 4.5;
+                leaves.castShadow = true; leaves.receiveShadow = true;
+                
+                group.add(trunk, leaves);
+                super(group, trees);
+                
+                this.health = 100;
+                
+                // Sprouting Animation Setup
+                this.sprouting = true;
+                this.sproutTimer = 0;
+                this.mesh.scale.set(0.01, 0.01, 0.01);
             }
             
-            if (tab === 'login') {
-                document.querySelector('.tab:first-child').classList.add('active');
-                document.getElementById('loginTab').classList.add('active');
-            } else {
-                document.querySelector('.tab:last-child').classList.add('active');
-                document.getElementById('registerTab').classList.add('active');
+            update(delta) {
+                if (this.sprouting) {
+                    this.sproutTimer += delta;
+                    let s = Math.min(this.sproutTimer / 1.5, 1);
+                    // Add a little bounce to the sprouting
+                    let bounce = s + Math.sin(s * Math.PI) * 0.2; 
+                    this.mesh.scale.set(bounce, bounce, bounce);
+                    if (s === 1) this.sprouting = false;
+                }
             }
-            clearMessage();
+
+            chop(damage) {
+                this.health -= damage;
+                this.mesh.rotation.z = Math.sin(Date.now() * 0.05) * 0.1; // Wiggle
+                if (this.health <= 0) {
+                    this.destroy();
+                    return true; 
+                }
+                return false;
+            }
         }
 
-        // Message functions
-        function showMessage(text, isError) {
-            var messageDiv = document.getElementById('message');
-            messageDiv.textContent = text;
-            messageDiv.className = isError ? 'error' : 'success';
+        class House extends WorldObject {
+            constructor(pos, owner) {
+                const group = new THREE.Group();
+                group.position.copy(pos);
+                
+                const base = new THREE.Mesh(geos.houseBase, mats.houseWood);
+                base.position.y = 1;
+                base.castShadow = true; base.receiveShadow = true;
+                group.add(base);
+                
+                super(group, houses);
+                
+                this.owner = owner;
+                this.level = 1;
+                this.maxDurability = 100;
+                this.durability = 100;
+                
+                // Durability Bar
+                this.barData = createBarSprite(0x00aaff);
+                this.barData.group.position.y = 4;
+                this.mesh.add(this.barData.group);
+                
+                this.roof = null; // Added at level 2
+                
+                // Pop-in animation
+                this.mesh.scale.set(0.01, 0.01, 0.01);
+                this.sproutTimer = 0;
+            }
+
+            upgrade() {
+                if (this.level === 1) {
+                    this.level = 2;
+                    this.maxDurability = 200;
+                    this.durability = 200;
+                    
+                    this.roof = new THREE.Mesh(geos.houseRoof, mats.houseRoof);
+                    this.roof.position.y = 3;
+                    this.roof.rotation.y = Math.PI / 4;
+                    this.roof.castShadow = true;
+                    this.mesh.add(this.roof);
+                    
+                    this.mesh.scale.setScalar(1.2); // Bigger overall
+                    this.barData.group.position.y = 5;
+                }
+            }
+
+            repair(amount) {
+                this.durability = Math.min(this.durability + amount, this.maxDurability);
+            }
+
+            update(delta) {
+                if(this.sproutTimer < 1) {
+                    this.sproutTimer += delta * 2;
+                    let s = Math.min(this.sproutTimer, 1);
+                    this.mesh.scale.setScalar(s * (this.level === 1 ? 1 : 1.2));
+                }
+
+                // Decay
+                this.durability -= delta * 1.5;
+                
+                // Update Bar UI
+                let pct = Math.max(0, this.durability / this.maxDurability);
+                this.barData.fgMesh.scale.x = pct;
+                this.barData.fgMesh.position.x = -(1 - pct); // keep left-aligned (width 2 / 2)
+
+                if (this.durability <= 0) {
+                    this.destroy();
+                    if(this.owner && !this.owner.dead) this.owner.house = null;
+                }
+            }
         }
 
-        function clearMessage() {
-            document.getElementById('message').textContent = '';
-        }
+        // ==========================================
+        // --- The AI Creature ---
+        // ==========================================
+        class Blob {
+            constructor(pos, energy = 70) {
+                this.dead = false; this.dying = false;
+                this.flying = false; this.velocity = new THREE.Vector3();
+                this.deathTimer = 0; this.birthTimer = 0;
+                
+                // Stats
+                this.energy = energy;
+                this.maxHealth = 100;
+                this.health = 100;
+                
+                // Inventory & Equipment
+                this.wood = 0;
+                this.stone = 0;
+                this.hasPickaxe = false;
+                this.hasHelmet = false;
+                this.hasChestplate = false;
+                this.house = null;
+                this.targetObj = null;
+                this.currentAction = 'wander';
 
-        function showSettingsMessage(text, isError) {
-            var messageDiv = document.getElementById('settingsMessage');
-            messageDiv.textContent = text;
-            messageDiv.className = isError ? 'error' : 'success';
-        }
+                // Visuals Setup
+                this.group = new THREE.Group();
+                this.group.position.copy(pos);
+                this.innerGroup = new THREE.Group();
+                this.group.add(this.innerGroup);
 
-        // Check if user is kicked
-        function checkIfKicked(username) {
-            return database.ref('kicks/' + username).once('value')
-            .then(function(snapshot) {
-                if (snapshot.exists()) {
-                    var kickData = snapshot.val();
-                    if (kickData.until === -1 || kickData.until > Date.now()) {
-                        if (kickData.until === -1) {
-                            throw new Error('You are in timeout forever');
-                        } else {
-                            throw new Error('You are in timeout until ' + new Date(kickData.until).toLocaleString());
-                        }
+                this.bodyMat = new THREE.MeshStandardMaterial({ color: 0x44aaff, roughness: 0.3 });
+                this.eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1 });
+
+                this.bodyMesh = new THREE.Mesh(geos.blobBody, this.bodyMat);
+                this.bodyMesh.position.y = 1.2; 
+                this.bodyMesh.castShadow = true;
+                this.innerGroup.add(this.bodyMesh);
+
+                // Prominent Eyeballs
+                const rightEye = new THREE.Mesh(geos.eye, this.eyeMat); rightEye.position.set(0.35, 1.8, 0.5);
+                const leftEye = new THREE.Mesh(geos.eye, this.eyeMat); leftEye.position.set(-0.35, 1.8, 0.5);
+                const rPupil = new THREE.Mesh(geos.pupil, mats.pupil); rPupil.position.set(0.35, 1.8, 0.8);
+                const lPupil = new THREE.Mesh(geos.pupil, mats.pupil); lPupil.position.set(-0.35, 1.8, 0.8);
+                this.innerGroup.add(rightEye, leftEye, rPupil, lPupil);
+
+                // Tools Setup
+                this.toolGroup = new THREE.Group();
+                const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.2), mats.wood);
+                this.toolHead = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.3, 0.1), mats.toolHead);
+                this.toolHead.position.set(0.2, 0.4, 0);
+                this.toolGroup.add(handle, this.toolHead);
+                this.toolGroup.position.set(0.9, 1.2, 0.3);
+                this.toolGroup.rotation.x = Math.PI / 4;
+                this.innerGroup.add(this.toolGroup);
+                this.toolGroup.visible = false; // Hidden until axe/pickaxe needed
+
+                // Armor Setup
+                this.helmetMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.5, 16), mats.armor);
+                this.helmetMesh.position.y = 2.4;
+                this.helmetMesh.visible = false;
+                this.innerGroup.add(this.helmetMesh);
+
+                this.chestMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 1.0, 16), mats.armor);
+                this.chestMesh.position.y = 1.0;
+                this.chestMesh.visible = false;
+                this.innerGroup.add(this.chestMesh);
+
+                // Health Bar
+                this.hpBarData = createBarSprite(0x00ff00);
+                this.hpBarData.group.position.y = 3.5;
+                this.group.add(this.hpBarData.group);
+
+                this.group.scale.set(0.01, 0.01, 0.01);
+                scene.add(this.group);
+                this.theta = Math.random() * Math.PI * 2; 
+                this.group.rotation.y = this.theta; 
+            }
+
+            takeDamage(amount) {
+                this.health -= amount;
+                if(this.health <= 0 && !this.dying) this.dying = true;
+            }
+
+            updateStats() {
+                this.maxHealth = 100 + (this.hasHelmet ? 100 : 0) + (this.hasChestplate ? 100 : 0);
+                if(this.health > this.maxHealth) this.health = this.maxHealth;
+            }
+
+            findClosest(array) {
+                let closest = null;
+                let minDist = SIM_SETTINGS.viewDistance;
+                for (let obj of array) {
+                    if (obj.dead) continue;
+                    let d = this.group.position.distanceTo(obj.mesh.position);
+                    if (d < minDist) { minDist = d; closest = obj; }
+                }
+                return closest;
+            }
+
+            decideTarget() {
+                // 1. Hungry / Low HP -> Find Food (Food heals and gives energy)
+                if (this.energy < 80 || this.health < this.maxHealth * 0.5) {
+                    let food = this.findClosest(foods);
+                    if (food) return { obj: food, action: 'eat' };
+                }
+                
+                // 2. House Logic
+                if (!this.house || this.house.dead) {
+                    if (this.wood >= SIM_SETTINGS.houseWoodCost) {
+                        return { obj: null, action: 'build_house' }; // Build right here
                     } else {
-                        // Remove expired kick
-                        database.ref('kicks/' + username).remove();
+                        let tree = this.findClosest(trees);
+                        if (tree) return { obj: tree, action: 'chop' };
+                    }
+                } 
+                else if (this.house.durability < this.house.maxDurability * 0.4) {
+                    // House needs fixing
+                    if (this.wood > 0) return { obj: this.house, action: 'fix_house' };
+                    let tree = this.findClosest(trees);
+                    if (tree) return { obj: tree, action: 'chop' };
+                }
+
+                // 3. Tool Logic (Needs Pickaxe)
+                if (!this.hasPickaxe) {
+                    if (this.wood >= SIM_SETTINGS.pickaxeWoodCost) {
+                        let table = this.findClosest(tables);
+                        if (table) return { obj: table, action: 'craft_pickaxe' };
+                        // No table? Build one
+                        return { obj: null, action: 'build_table' };
+                    } else {
+                        let tree = this.findClosest(trees);
+                        if (tree) return { obj: tree, action: 'chop' };
                     }
                 }
-            });
-        }
 
-        // Registration
-        function register() {
-            var username = document.getElementById('regUsername').value.trim();
-            var password = document.getElementById('regPassword').value.trim();
-            var confirm = document.getElementById('regConfirm').value.trim();
-            var activationCode = document.getElementById('regActivationCode').value.trim();
-            
-            if (!username || !password || !confirm || !activationCode) {
-                showMessage('Please fill in all fields', true);
-                return;
-            }
-            
-            if (username.length < 3) {
-                showMessage('Username must be at least 3 characters', true);
-                return;
-            }
-            
-            if (password.length < 4) {
-                showMessage('Password must be at least 4 characters', true);
-                return;
-            }
-            
-            if (password !== confirm) {
-                showMessage('Passwords do not match', true);
-                return;
-            }
-
-            // Check activation code
-            database.ref('settings/activationCode').once('value')
-            .then(function(snapshot) {
-                var correctCode = snapshot.val() || 'code';
-                if (activationCode !== correctCode) {
-                    throw new Error('Invalid activation code');
-                }
-                
-                // Check if username exists
-                return database.ref('accounts').orderByChild('username').equalTo(username).once('value');
-            })
-            .then(function(snapshot) {
-                if (snapshot.exists()) {
-                    throw new Error('Username already taken');
-                }
-                
-                // Create account
-                var accountId = database.ref('accounts').push().key;
-                return database.ref('accounts/' + accountId).set({
-                    username: username,
-                    password: password,
-                    created: Date.now(),
-                    isAdmin: false
-                });
-            })
-            .then(function() {
-                showMessage('Account created! You can now login.');
-                document.getElementById('regUsername').value = '';
-                document.getElementById('regPassword').value = '';
-                document.getElementById('regConfirm').value = '';
-                document.getElementById('regActivationCode').value = '';
-                document.getElementById('loginUsername').value = username;
-                switchTab('login');
-            })
-            .catch(function(error) {
-                showMessage(error.message, true);
-            });
-        }
-
-        // Login
-        function login() {
-            var username = document.getElementById('loginUsername').value.trim();
-            var password = document.getElementById('loginPassword').value.trim();
-            
-            if (!username || !password) {
-                showMessage('Please enter username and password', true);
-                return;
-            }
-            
-            // Check if kicked
-            checkIfKicked(username)
-            .then(function() {
-                // Check if already online
-                return database.ref('users').orderByChild('username').equalTo(username).once('value');
-            })
-            .then(function(snapshot) {
-                if (snapshot.exists()) {
-                    throw new Error('User already online');
-                }
-                
-                // Check credentials
-                return database.ref('accounts').orderByChild('username').equalTo(username).once('value');
-            })
-            .then(function(snapshot) {
-                if (!snapshot.exists()) {
-                    throw new Error('Username not found');
-                }
-                
-                var accounts = snapshot.val();
-                var accountData = Object.values(accounts)[0];
-                
-                if (accountData.password !== password) {
-                    throw new Error('Wrong password');
-                }
-                
-                // Login successful
-                currentUser = username;
-                isCurrentUserAdmin = accountData.isAdmin || false;
-                enterChat();
-            })
-            .catch(function(error) {
-                showMessage(error.message, true);
-            });
-        }
-
-        // Enter chat
-        function enterChat() {
-            // Add user to online list
-            var userId = Date.now().toString();
-            userRef = database.ref('users/' + userId);
-            userRef.set({
-                username: currentUser,
-                timestamp: Date.now()
-            });
-            
-            // Remove user when disconnected
-            userRef.onDisconnect().remove();
-            
-            // Show chat screen
-            document.getElementById('authScreen').style.display = 'none';
-            document.getElementById('chatMain').style.display = 'block';
-            document.getElementById('settingsButton').style.display = 'flex';
-            
-            // Start listening
-            listenForMessages();
-            listenForUsers();
-            loadChatSettings();
-            
-            document.getElementById('messageInput').focus();
-        }
-
-        // Load chat settings
-        function loadChatSettings() {
-            database.ref('settings').once('value')
-            .then(function(snapshot) {
-                if (snapshot.exists()) {
-                    var settings = snapshot.val();
-                    if (settings.chatName) {
-                        document.getElementById('chatTitle').textContent = settings.chatName;
+                // 4. Armor Logic
+                if (!this.hasHelmet || !this.hasChestplate) {
+                    if (this.stone >= SIM_SETTINGS.armorStoneCost) {
+                        let table = this.findClosest(tables);
+                        if (table) return { obj: table, action: 'craft_armor' };
+                    } else {
+                        let stoneNode = this.findClosest(stones);
+                        if (stoneNode) return { obj: stoneNode, action: 'mine' };
                     }
                 }
-            });
-        }
 
-        // Send message
-        function sendMessage() {
-            var messageInput = document.getElementById('messageInput');
-            var message = messageInput.value.trim();
-            
-            if (!message) return;
-            
-            // Handle special commands
-            if (handleSpecialCommands(message)) {
-                messageInput.value = '';
-                return;
-            }
-            
-            // Send regular message
-            database.ref('messages').push({
-                username: currentUser,
-                message: message,
-                timestamp: Date.now()
-            });
-            
-            messageInput.value = '';
-        }
-
-        // Handle special commands
-        function handleSpecialCommands(message) {
-            if (message === '/admin') {
-                requestAdminStatus();
-                return true;
-            }
-            
-            if (message === '/adminpanel') {
-                if (!isCurrentUserAdmin) {
-                    addSystemMessage('You must be admin to use /adminpanel command');
-                } else {
-                    requestAdminPanel();
+                // 5. House Upgrades
+                if (this.house && this.house.level === 1) {
+                    if (this.wood >= SIM_SETTINGS.houseUpgradeCost) {
+                        return { obj: this.house, action: 'upgrade_house' };
+                    } else {
+                        let tree = this.findClosest(trees);
+                        if (tree) return { obj: tree, action: 'chop' };
+                    }
                 }
-                return true;
+
+                // Default: wander, gather random resources, or eat
+                if (Math.random() < 0.5) {
+                    let food = this.findClosest(foods);
+                    if (food) return { obj: food, action: 'eat' };
+                }
+                
+                return { obj: null, action: 'wander' };
             }
-            
-            return false;
-        }
 
-        // Admin request functions
-        function requestAdminStatus() {
-            pendingAdminAction = { action: 'becomeAdmin' };
-            document.getElementById('adminActionTitle').textContent = 'Enter Admin Security Code to Become Admin';
-            document.getElementById('adminPasswordInput').value = '';
-            document.getElementById('adminPasswordError').textContent = '';
-            document.getElementById('adminPasswordModal').style.display = 'block';
-        }
+            update(delta) {
+                if (this.dead) return;
 
-        function requestAdminPanel() {
-            pendingAdminAction = { action: 'openPanel' };
-            document.getElementById('adminActionTitle').textContent = 'Enter Admin Security Code to Access Panel';
-            document.getElementById('adminPasswordInput').value = '';
-            document.getElementById('adminPasswordError').textContent = '';
-            document.getElementById('adminPasswordModal').style.display = 'block';
-        }
+                // HP Bar UI Update
+                let pct = Math.max(0, this.health / this.maxHealth);
+                this.hpBarData.fgMesh.scale.x = pct;
+                this.hpBarData.fgMesh.position.x = -(1 - pct);
 
-        function requestClearMessages() {
-            pendingAdminAction = { action: 'clearMessages' };
-            document.getElementById('adminActionTitle').textContent = 'Enter Admin Security Code to Clear All Messages';
-            document.getElementById('adminPasswordInput').value = '';
-            document.getElementById('adminPasswordError').textContent = '';
-            document.getElementById('adminPasswordModal').style.display = 'block';
-        }
+                // Physics (Meteor strike)
+                if (this.flying) {
+                    this.velocity.y -= 80 * delta; 
+                    this.group.position.addScaledVector(this.velocity, delta);
+                    this.innerGroup.rotation.x += delta * 15;
+                    this.innerGroup.rotation.y += delta * 10;
+                    if (this.group.position.y <= 0) this.takeDamage(999);
+                    return; 
+                }
 
-        function requestTimeoutUser(username, minutes) {
-            if (!isCurrentUserAdmin) return;
-            pendingAdminAction = { action: 'timeout', username: username, minutes: minutes };
-            var title = 'Enter Admin Security Code to ';
-            if (minutes === -1) {
-                title += 'timeout ' + username + ' forever';
-            } else {
-                title += 'timeout ' + username + ' for ' + minutes + ' minute' + (minutes > 1 ? 's' : '');
-            }
-            document.getElementById('adminActionTitle').textContent = title;
-            document.getElementById('adminPasswordInput').value = '';
-            document.getElementById('adminPasswordError').textContent = '';
-            document.getElementById('adminPasswordModal').style.display = 'block';
-        }
+                // Death Animation
+                if (this.dying) {
+                    this.deathTimer += delta;
+                    this.innerGroup.rotation.x += delta * 2;
+                    this.bodyMat.color.lerp(new THREE.Color(0x000000), delta * 5);
+                    this.hpBarData.group.visible = false;
+                    if (this.deathTimer >= 1.0) {
+                        this.dead = true; scene.remove(this.group);
+                        if(this.house) this.house.owner = null;
+                    }
+                    return; 
+                }
 
-        function requestUntimeoutUser(username) {
-            if (!isCurrentUserAdmin) return;
-            pendingAdminAction = { action: 'untimeout', username: username };
-            document.getElementById('adminActionTitle').textContent = 'Enter Admin Security Code to Remove Timeout from ' + username;
-            document.getElementById('adminPasswordInput').value = '';
-            document.getElementById('adminPasswordError').textContent = '';
-            document.getElementById('adminPasswordModal').style.display = 'block';
-        }
+                // Scale up when born
+                if (this.birthTimer < 1.0) {
+                    this.birthTimer += delta * 3; 
+                    this.group.scale.setScalar(Math.min(this.birthTimer, 1.0));
+                }
 
-        function requestDeleteAccount(username) {
-            if (!isCurrentUserAdmin) return;
-            if (username === currentUser) {
-                alert('You cannot delete your own account');
-                return;
-            }
-            pendingAdminAction = { action: 'deleteAccount', username: username };
-            document.getElementById('adminActionTitle').textContent = 'Enter Admin Security Code to DELETE ACCOUNT: ' + username;
-            document.getElementById('adminPasswordInput').value = '';
-            document.getElementById('adminPasswordError').textContent = '';
-            document.getElementById('adminPasswordModal').style.display = 'block';
-        }
+                this.energy -= SIM_SETTINGS.energyDrainPerTick * delta * 60;
+                if(this.energy <= 0) this.takeDamage(delta * 10); // Starvation damage
 
-        function requestChangeChatName() {
-            if (!isCurrentUserAdmin) return;
-            var chatNameInput = document.getElementById('chatNameInput');
-            if (!chatNameInput) return;
-            
-            var newName = chatNameInput.value.trim();
-            if (!newName) {
-                alert('Please enter a chat name');
-                return;
-            }
-            pendingAdminAction = { action: 'changeChatName', newName: newName };
-            document.getElementById('adminActionTitle').textContent = 'Enter Admin Security Code to Change Chat Name';
-            document.getElementById('adminPasswordInput').value = '';
-            document.getElementById('adminPasswordError').textContent = '';
-            document.getElementById('adminPasswordModal').style.display = 'block';
-        }
+                // Evaluate AI Target periodically or if target is dead
+                if (!this.targetObj || this.currentAction === 'wander' || (this.targetObj && this.targetObj.dead)) {
+                    let decision = this.decideTarget();
+                    this.targetObj = decision.obj;
+                    this.currentAction = decision.action;
+                }
 
-        function requestChangeActivationCode() {
-            if (!isCurrentUserAdmin) return;
-            var activationCodeInput = document.getElementById('activationCodeInput');
-            if (!activationCodeInput) return;
-            
-            var newCode = activationCodeInput.value.trim();
-            if (!newCode) {
-                alert('Please enter an activation code');
-                return;
-            }
-            pendingAdminAction = { action: 'changeActivationCode', newCode: newCode };
-            document.getElementById('adminActionTitle').textContent = 'Enter Admin Security Code to Change Activation Code';
-            document.getElementById('adminPasswordInput').value = '';
-            document.getElementById('adminPasswordError').textContent = '';
-            document.getElementById('adminPasswordModal').style.display = 'block';
-        }
+                let moveDir = new THREE.Vector3();
 
-        // Admin action confirmation
-        function confirmAdminAction() {
-            var password = document.getElementById('adminPasswordInput').value;
-            
-            if (password !== '76897689') {
-                document.getElementById('adminPasswordError').textContent = 'Incorrect security code';
-                return;
-            }
-            
-            var action = pendingAdminAction;
-            if (!action) return;
-            
-            if (action.action === 'becomeAdmin') {
-                becomeAdmin();
-            } else if (action.action === 'openPanel') {
-                openAdminPanel();
-            } else if (action.action === 'clearMessages') {
-                clearAllMessages();
-            } else if (action.action === 'timeout') {
-                timeoutUser(action.username, action.minutes);
-            } else if (action.action === 'untimeout') {
-                untimeoutUser(action.username);
-            } else if (action.action === 'deleteAccount') {
-                deleteAccount(action.username);
-            } else if (action.action === 'changeChatName') {
-                changeChatName(action.newName);
-            } else if (action.action === 'changeActivationCode') {
-                changeActivationCode(action.newCode);
-            }
-            
-            cancelAdminAction();
-        }
-
-        function cancelAdminAction() {
-            pendingAdminAction = null;
-            document.getElementById('adminPasswordModal').style.display = 'none';
-        }
-
-        // Admin functions
-        function becomeAdmin() {
-            // Remove admin from all users
-            database.ref('accounts').once('value')
-            .then(function(snapshot) {
-                if (snapshot.exists()) {
-                    var accounts = snapshot.val();
-                    var updates = {};
+                // Actions that don't need a target object (Building right here)
+                if (this.currentAction === 'build_house') {
+                    this.wood -= SIM_SETTINGS.houseWoodCost;
+                    this.house = new House(this.group.position.clone(), this);
+                    this.currentAction = 'wander';
+                    this.targetObj = null;
+                } 
+                else if (this.currentAction === 'build_table') {
+                    this.wood -= 1;
+                    tables.push(new CraftingTable(this.group.position.clone()));
+                    this.currentAction = 'wander';
+                }
+                // Actions targeting an object
+                else if (this.targetObj && !this.targetObj.dead) {
+                    let dist = this.group.position.distanceTo(this.targetObj.mesh.position);
+                    let reach = (this.currentAction === 'fix_house' || this.currentAction === 'upgrade_house') ? 3.5 : 1.8;
                     
-                    // Remove admin from all accounts
-                    Object.keys(accounts).forEach(function(accountId) {
-                        if (accounts[accountId].isAdmin) {
-                            updates['accounts/' + accountId + '/isAdmin'] = false;
+                    if (dist > reach) {
+                        // Move to target
+                        moveDir.subVectors(this.targetObj.mesh.position, this.group.position).normalize();
+                        moveDir.y = 0;
+                        this.group.position.addScaledVector(moveDir, SIM_SETTINGS.blobSpeed * delta * 60);
+                        this.toolGroup.visible = false; // Put away tool while walking
+                    } else {
+                        // Reached Target! Interact based on action:
+                        if (this.currentAction === 'eat') {
+                            this.energy += SIM_SETTINGS.energyFromFood;
+                            this.health = Math.min(this.maxHealth, this.health + 30);
+                            this.targetObj.destroy();
+                        } 
+                        else if (this.currentAction === 'chop') {
+                            moveDir.subVectors(this.targetObj.mesh.position, this.group.position).normalize();
+                            this.toolGroup.visible = true;
+                            this.toolHead.material.color.setHex(0x555555); // Look like an axe
+                            this.toolGroup.rotation.z = Math.sin(Date.now() * 0.02); // Swinging
+                            
+                            if (this.targetObj.chop(25 * delta)) this.wood += 2;
                         }
-                    });
-                    
-                    return database.ref().update(updates);
-                }
-            })
-            .then(function() {
-                // Now make current user admin
-                return database.ref('accounts').orderByChild('username').equalTo(currentUser).once('value');
-            })
-            .then(function(snapshot) {
-                if (snapshot.exists()) {
-                    var accounts = snapshot.val();
-                    var accountId = Object.keys(accounts)[0];
-                    
-                    return database.ref('accounts/' + accountId + '/isAdmin').set(true);
-                }
-            })
-            .then(function() {
-                isCurrentUserAdmin = true;
-                addSystemMessage(currentUser + ' is now the admin');
-            })
-            .catch(function(error) {
-                console.error('Error becoming admin:', error);
-            });
-        }
-
-        function clearAllMessages() {
-            database.ref('messages').remove()
-            .then(function() {
-                addSystemMessage('All messages have been cleared by ' + currentUser);
-            });
-        }
-
-        function timeoutUser(username, minutes) {
-            if (!isCurrentUserAdmin) return;
-            
-            var timeoutUntil;
-            var message;
-            
-            if (minutes === -1) {
-                timeoutUntil = -1;
-                message = username + ' was put in timeout forever by ' + currentUser;
-            } else {
-                timeoutUntil = Date.now() + (minutes * 60 * 1000);
-                message = username + ' was put in timeout for ' + minutes + ' minute' + (minutes > 1 ? 's' : '') + ' by ' + currentUser;
-            }
-            
-            // Set kick
-            database.ref('kicks/' + username).set({
-                kickedBy: currentUser,
-                until: timeoutUntil,
-                timestamp: Date.now()
-            });
-            
-            // Remove user from online list if they're online
-            database.ref('users').orderByChild('username').equalTo(username).once('value')
-            .then(function(snapshot) {
-                if (snapshot.exists()) {
-                    var users = snapshot.val();
-                    Object.keys(users).forEach(function(userId) {
-                        database.ref('users/' + userId).remove();
-                    });
-                }
-            });
-            
-            addSystemMessage(message);
-        }
-
-        function untimeoutUser(username) {
-            if (!isCurrentUserAdmin) return;
-            
-            database.ref('kicks/' + username).remove()
-            .then(function() {
-                addSystemMessage(username + ' was removed from timeout by ' + currentUser);
-            });
-        }
-
-        function deleteAccount(username) {
-            if (!isCurrentUserAdmin) return;
-            if (username === currentUser) return;
-            
-            // Remove from accounts
-            database.ref('accounts').orderByChild('username').equalTo(username).once('value')
-            .then(function(snapshot) {
-                if (snapshot.exists()) {
-                    var accounts = snapshot.val();
-                    Object.keys(accounts).forEach(function(accountId) {
-                        database.ref('accounts/' + accountId).remove();
-                    });
-                }
-            });
-            
-            // Remove from online users
-            database.ref('users').orderByChild('username').equalTo(username).once('value')
-            .then(function(snapshot) {
-                if (snapshot.exists()) {
-                    var users = snapshot.val();
-                    Object.keys(users).forEach(function(userId) {
-                        database.ref('users/' + userId).remove();
-                    });
-                }
-            });
-            
-            // Remove from kicks if exists
-            database.ref('kicks/' + username).remove();
-            
-            addSystemMessage('Account ' + username + ' was deleted by ' + currentUser);
-        }
-
-        function changeChatName(newName) {
-            if (!isCurrentUserAdmin) return;
-            
-            database.ref('settings/chatName').set(newName)
-            .then(function() {
-                document.getElementById('chatTitle').textContent = newName;
-                addSystemMessage('Chat name changed to "' + newName + '" by ' + currentUser);
-            });
-        }
-
-        function changeActivationCode(newCode) {
-            if (!isCurrentUserAdmin) return;
-            
-            database.ref('settings/activationCode').set(newCode)
-            .then(function() {
-                addSystemMessage('Activation code was changed by ' + currentUser);
-            });
-        }
-
-        // Admin panel functions
-        function openAdminPanel() {
-            document.getElementById('adminPanel').style.display = 'block';
-            loadAdminData();
-        }
-
-        function closeAdminPanel() {
-            document.getElementById('adminPanel').style.display = 'none';
-        }
-
-        function loadAdminData() {
-            loadOnlineUsers();
-            loadAllUsers();
-            loadAdminSettings();
-        }
-
-        function loadAdminSettings() {
-            database.ref('settings').once('value')
-            .then(function(snapshot) {
-                var settings = snapshot.val() || {};
-                
-                var chatNameInput = document.getElementById('chatNameInput');
-                var activationCodeInput = document.getElementById('activationCodeInput');
-                
-                if (chatNameInput) {
-                    chatNameInput.value = settings.chatName || 'Simple Chat';
-                }
-                if (activationCodeInput) {
-                    activationCodeInput.value = settings.activationCode || 'code';
-                }
-            });
-        }
-
-        function loadOnlineUsers() {
-            database.ref('users').once('value')
-            .then(function(snapshot) {
-                var onlineList = document.getElementById('onlineUsersList');
-                onlineList.innerHTML = '';
-                
-                if (snapshot.exists()) {
-                    var users = snapshot.val();
-                    Object.entries(users).forEach(function(entry) {
-                        var userData = entry[1];
-                        var userDiv = document.createElement('div');
-                        userDiv.className = 'user-item';
-                        
-                        if (userData.username !== currentUser) {
-                            userDiv.innerHTML = '<strong>' + escapeHtml(userData.username) + '</strong><br>' +
-                                               '<small>Online since: ' + new Date(userData.timestamp).toLocaleTimeString() + '</small>' +
-                                               '<div class="user-actions">' +
-                                                   '<button class="kick-btn" onclick="requestTimeoutUser(\'' + userData.username + '\', 1)" title="Timeout for 1 minute">1m</button>' +
-                                                   '<button class="kick-btn" onclick="requestTimeoutUser(\'' + userData.username + '\', 5)" title="Timeout for 5 minutes">5m</button>' +
-                                                   '<button class="kick-btn" onclick="requestTimeoutUser(\'' + userData.username + '\', 15)" title="Timeout for 15 minutes">15m</button>' +
-                                                   '<button class="kick-btn" onclick="requestTimeoutUser(\'' + userData.username + '\', 60)" title="Timeout for 1 hour">1h</button>' +
-                                                   '<button class="kick-btn" onclick="requestTimeoutUser(\'' + userData.username + '\', -1)" title="Timeout forever">∞</button>' +
-                                                   '<button class="delete-account-btn" onclick="requestDeleteAccount(\'' + userData.username + '\')" title="Delete account permanently">Delete</button>' +
-                                               '</div>';
-                        } else {
-                            userDiv.innerHTML = '<strong>' + escapeHtml(userData.username) + '</strong><br>' +
-                                               '<small>Online since: ' + new Date(userData.timestamp).toLocaleTimeString() + '</small>' +
-                                               '<div class="user-actions"><small>(You)</small></div>';
+                        else if (this.currentAction === 'mine') {
+                            moveDir.subVectors(this.targetObj.mesh.position, this.group.position).normalize();
+                            this.toolGroup.visible = true;
+                            this.toolHead.material.color.setHex(0xaaaaaa); // Look like a pickaxe
+                            this.toolGroup.rotation.z = Math.sin(Date.now() * 0.02); 
+                            
+                            if (this.targetObj.mine(30 * delta)) this.stone += 2;
                         }
-                        
-                        onlineList.appendChild(userDiv);
-                    });
-                } else {
-                    onlineList.innerHTML = 'No users online';
-                }
-            });
-        }
-
-        function loadAllUsers() {
-            database.ref('accounts').once('value')
-            .then(function(snapshot) {
-                var allList = document.getElementById('allUsersList');
-                allList.innerHTML = '';
-                
-                if (snapshot.exists()) {
-                    var accounts = snapshot.val();
-                    Object.entries(accounts).forEach(function(entry) {
-                        var accountId = entry[0];
-                        var accountData = entry[1];
-                        
-                        database.ref('kicks/' + accountData.username).once('value')
-                        .then(function(kickSnapshot) {
-                            var kickData = kickSnapshot.val();
-                            var isKicked = kickData && (kickData.until === -1 || kickData.until > Date.now());
-                            var isPermanentKick = kickData && kickData.until === -1;
-                            
-                            var userDiv = document.createElement('div');
-                            userDiv.className = 'user-item' + (isKicked ? ' kicked-user' : '');
-                            
-                            var passwordId = 'pass-' + accountId;
-                            var statusText = '';
-                            if (isPermanentKick) {
-                                statusText = ' <small>(Timeout Forever)</small>';
-                            } else if (isKicked) {
-                                statusText = ' <small>(Timeout until: ' + new Date(kickData.until).toLocaleString() + ')</small>';
-                            }
-                            
-                            var actionsHtml = '';
-                            if (accountData.username !== currentUser) {
-                                if (!isKicked) {
-                                    actionsHtml = '<div class="user-actions">' +
-                                        '<button class="kick-btn" onclick="requestTimeoutUser(\'' + accountData.username + '\', 1)" title="Timeout for 1 minute">1m</button>' +
-                                        '<button class="kick-btn" onclick="requestTimeoutUser(\'' + accountData.username + '\', 5)" title="Timeout for 5 minutes">5m</button>' +
-                                        '<button class="kick-btn" onclick="requestTimeoutUser(\'' + accountData.username + '\', 15)" title="Timeout for 15 minutes">15m</button>' +
-                                        '<button class="kick-btn" onclick="requestTimeoutUser(\'' + accountData.username + '\', 60)" title="Timeout for 1 hour">1h</button>' +
-                                        '<button class="kick-btn" onclick="requestTimeoutUser(\'' + accountData.username + '\', -1)" title="Timeout forever">∞</button>' +
-                                        '<button class="delete-account-btn" onclick="requestDeleteAccount(\'' + accountData.username + '\')" title="Delete account permanently">Delete</button>' +
-                                        '</div>';
-                                } else {
-                                    actionsHtml = '<div class="user-actions">' +
-                                        '<button class="untimeout-btn" onclick="requestUntimeoutUser(\'' + accountData.username + '\')" title="Remove timeout">Untimeout</button>' +
-                                        '<button class="delete-account-btn" onclick="requestDeleteAccount(\'' + accountData.username + '\')" title="Delete account permanently">Delete</button>' +
-                                        '</div>';
-                                }
+                        else if (this.currentAction === 'fix_house') {
+                            this.wood -= 1;
+                            this.targetObj.repair(50);
+                            // Jump for joy
+                            this.innerGroup.position.y = Math.sin(Date.now() * 0.01) * 0.5;
+                        }
+                        else if (this.currentAction === 'upgrade_house') {
+                            this.wood -= SIM_SETTINGS.houseUpgradeCost;
+                            this.targetObj.upgrade();
+                        }
+                        else if (this.currentAction === 'craft_pickaxe') {
+                            this.wood -= SIM_SETTINGS.pickaxeWoodCost;
+                            this.hasPickaxe = true;
+                        }
+                        else if (this.currentAction === 'craft_armor') {
+                            this.stone -= SIM_SETTINGS.armorStoneCost;
+                            if(!this.hasHelmet) {
+                                this.hasHelmet = true;
+                                this.helmetMesh.visible = true;
                             } else {
-                                actionsHtml = '<div class="user-actions"><small>(You)</small></div>';
+                                this.hasChestplate = true;
+                                this.chestMesh.visible = true;
                             }
-                            
-                            userDiv.innerHTML = '<strong>' + escapeHtml(accountData.username) + '</strong>' +
-                                               (accountData.isAdmin ? ' <small>(Admin)</small>' : '') + statusText + '<br>' +
-                                               '<small>Password: <span id="' + passwordId + '" class="password-hidden" onmouseenter="showPassword(\'' + passwordId + '\')" onmouseleave="hidePassword(\'' + passwordId + '\')">' + escapeHtml(accountData.password) + '</span></small><br>' +
-                                               '<small>Created: ' + new Date(accountData.created).toLocaleDateString() + '</small>' +
-                                               actionsHtml;
-                            allList.appendChild(userDiv);
-                        });
-                    });
-                } else {
-                    allList.innerHTML = 'No registered users';
-                }
-            });
-        }
-
-        // Password visibility functions
-        function showPassword(passwordId) {
-            if (!isCurrentUserAdmin) return;
-            
-            passwordTimers[passwordId] = setTimeout(function() {
-                var element = document.getElementById(passwordId);
-                if (element) {
-                    element.classList.remove('password-hidden');
-                    element.classList.add('password-visible');
-                }
-            }, 1000);
-        }
-
-        function hidePassword(passwordId) {
-            if (passwordTimers[passwordId]) {
-                clearTimeout(passwordTimers[passwordId]);
-                delete passwordTimers[passwordId];
-            }
-            
-            var element = document.getElementById(passwordId);
-            if (element) {
-                element.classList.remove('password-visible');
-                element.classList.add('password-hidden');
-            }
-        }
-
-        // Listen for messages
-        function listenForMessages() {
-            database.ref('messages').limitToLast(200).on('value', function(snapshot) {
-                var messagesDiv = document.getElementById('messages');
-                messagesDiv.innerHTML = '';
-                
-                if (snapshot.exists()) {
-                    var messages = snapshot.val();
-                    var messageEntries = Object.entries(messages);
-                    messageEntries.forEach(function(entry) {
-                        var messageId = entry[0];
-                        var msg = entry[1];
-                        
-                        var messageDiv = document.createElement('div');
-                        var className = 'message';
-                        if (msg.username === currentUser) className += ' own';
-                        if (msg.isSystem) className += ' system';
-                        messageDiv.className = className;
-                        
-                        messageDiv.innerHTML = '<div class="message-user">' + escapeHtml(msg.username) + '</div>' +
-                                             '<div>' + escapeHtml(msg.message) + '</div>' +
-                                             (isCurrentUserAdmin && !msg.isSystem ? '<button class="delete-btn" id="del-' + messageId + '" onclick="deleteMessage(\'' + messageId + '\')">Delete</button>' : '');
-                        
-                        if (isCurrentUserAdmin && !msg.isSystem) {
-                            messageDiv.addEventListener('mouseenter', function() { startDeleteTimer(messageId); });
-                            messageDiv.addEventListener('mouseleave', function() { cancelDeleteTimer(messageId); });
+                            this.updateStats();
                         }
                         
-                        messagesDiv.appendChild(messageDiv);
+                        // If not a continuous action (like chopping/mining), reset target
+                        if (!['chop', 'mine'].includes(this.currentAction) || this.targetObj.dead) {
+                            this.targetObj = null;
+                            this.currentAction = 'wander';
+                            this.innerGroup.position.y = 0;
+                        }
+                    }
+                } else {
+                    // Wander
+                    this.theta += (Math.random() - 0.5) * 0.3;
+                    moveDir.set(Math.sin(this.theta), 0, Math.cos(this.theta));
+                    this.group.position.addScaledVector(moveDir, (SIM_SETTINGS.blobSpeed * 0.5) * delta * 60);
+                    this.toolGroup.visible = false;
+                }
+
+                // Smooth Rotation
+                if (moveDir.lengthSq() > 0.001) {
+                    let targetRotation = Math.atan2(moveDir.x, moveDir.z);
+                    let targetQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), targetRotation);
+                    this.group.quaternion.slerp(targetQuat, delta * 8); 
+                }
+
+                // Enforce Disk Bounds
+                const distFromCenter = Math.sqrt(this.group.position.x ** 2 + this.group.position.z ** 2);
+                if (distFromCenter > SIM_SETTINGS.diskRadius - 1.5) {
+                    const angle = Math.atan2(this.group.position.x, this.group.position.z);
+                    this.group.position.x = Math.sin(angle) * (SIM_SETTINGS.diskRadius - 1.5);
+                    this.group.position.z = Math.cos(angle) * (SIM_SETTINGS.diskRadius - 1.5);
+                    this.theta += Math.PI; 
+                }
+
+                // Reproduction
+                if (this.energy >= SIM_SETTINGS.reproductionEnergy) {
+                    this.energy -= 80; 
+                    const spawnPos = this.group.position.clone();
+                    const forwardVector = new THREE.Vector3(Math.sin(this.group.rotation.y), 0, Math.cos(this.group.rotation.y));
+                    spawnPos.addScaledVector(forwardVector, 2.5);
+                    blobs.push(new Blob(spawnPos, 60));
+                }
+            }
+        }
+
+        // ==========================================
+        // --- Meteors & Explosions ---
+        // ==========================================
+        class Meteor {
+            constructor(targetPoint) {
+                this.target = targetPoint; this.dead = false;
+                this.group = new THREE.Group();
+                this.group.position.set(targetPoint.x, 100, targetPoint.z); 
+                this.group.add(new THREE.Mesh(new THREE.SphereGeometry(2, 12, 12), new THREE.MeshStandardMaterial({ color: 0xff4400, emissive: 0xff2200 })));
+                this.group.add(new THREE.PointLight(0xff6600, 3, 100));
+                scene.add(this.group);
+            }
+            update(delta) {
+                this.group.position.y -= 120 * delta;
+                if (this.group.position.y <= 0) this.explode();
+            }
+            explode() {
+                this.dead = true; scene.remove(this.group);
+                explosions.push(new Explosion(this.target));
+
+                const blastRadius = 10; 
+                
+                // Destroy things
+                [foods, stones, trees, tables, houses].forEach(list => {
+                    list.forEach(item => {
+                        if (!item.dead && item.mesh.position.distanceTo(this.target) < blastRadius) {
+                            if(item.chop) { item.chop(999); } 
+                            else if(item.mine) { item.mine(999); }
+                            else { item.destroy(); }
+                        }
                     });
-                    
-                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-                }
-            });
-        }
+                });
 
-        // Listen for users
-        function listenForUsers() {
-            database.ref('users').on('value', function(snapshot) {
-                var count = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
-                document.getElementById('onlineCount').textContent = count + ' users online';
-            });
-        }
-
-        // Delete timer functions
-        function startDeleteTimer(messageId) {
-            if (!isCurrentUserAdmin) return;
-            
-            deleteTimers[messageId] = setTimeout(function() {
-                var deleteBtn = document.getElementById('del-' + messageId);
-                if (deleteBtn) {
-                    deleteBtn.classList.add('show');
-                    deleteBtn.textContent = 'Click to Delete';
-                }
-            }, 500);
-        }
-
-        function cancelDeleteTimer(messageId) {
-            if (deleteTimers[messageId]) {
-                clearTimeout(deleteTimers[messageId]);
-                delete deleteTimers[messageId];
-                
-                var deleteBtn = document.getElementById('del-' + messageId);
-                if (deleteBtn) {
-                    deleteBtn.classList.remove('show');
-                    deleteBtn.textContent = 'Delete';
-                }
-            }
-        }
-
-        function deleteMessage(messageId) {
-            if (!isCurrentUserAdmin) return;
-            
-            var deleteBtn = document.getElementById('del-' + messageId);
-            if (!deleteBtn || !deleteBtn.classList.contains('show')) {
-                return;
-            }
-            
-            database.ref('messages/' + messageId).remove();
-            
-            if (deleteTimers[messageId]) {
-                clearTimeout(deleteTimers[messageId]);
-                delete deleteTimers[messageId];
-            }
-        }
-
-        // Settings functions
-        function openSettings() {
-            document.getElementById('settingsPanel').style.display = 'block';
-            document.getElementById('currentUsername').value = currentUser;
-            document.getElementById('currentPassword').value = '';
-            document.getElementById('newPassword').value = '';
-            document.getElementById('confirmNewPassword').value = '';
-            document.getElementById('settingsMessage').textContent = '';
-        }
-
-        function closeSettings() {
-            document.getElementById('settingsPanel').style.display = 'none';
-        }
-
-        function changePassword() {
-            var currentPassword = document.getElementById('currentPassword').value.trim();
-            var newPassword = document.getElementById('newPassword').value.trim();
-            var confirmPassword = document.getElementById('confirmNewPassword').value.trim();
-            
-            if (!currentPassword || !newPassword || !confirmPassword) {
-                showSettingsMessage('Please fill in all password fields', true);
-                return;
-            }
-            
-            if (newPassword.length < 4) {
-                showSettingsMessage('New password must be at least 4 characters', true);
-                return;
-            }
-            
-            if (newPassword !== confirmPassword) {
-                showSettingsMessage('New passwords do not match', true);
-                return;
-            }
-            
-            // Find and update password
-            database.ref('accounts').orderByChild('username').equalTo(currentUser).once('value')
-            .then(function(snapshot) {
-                if (!snapshot.exists()) {
-                    throw new Error('User account not found');
-                }
-                
-                var accounts = snapshot.val();
-                var accountId = Object.keys(accounts)[0];
-                var accountData = accounts[accountId];
-                
-                if (accountData.password !== currentPassword) {
-                    throw new Error('Current password is incorrect');
-                }
-                
-                return database.ref('accounts/' + accountId + '/password').set(newPassword);
-            })
-            .then(function() {
-                showSettingsMessage('Password changed successfully!', false);
-                document.getElementById('currentPassword').value = '';
-                document.getElementById('newPassword').value = '';
-                document.getElementById('confirmNewPassword').value = '';
-            })
-            .catch(function(error) {
-                showSettingsMessage(error.message, true);
-            });
-        }
-
-        function logout() {
-            // Remove user from online list
-            if (userRef) {
-                userRef.remove();
-            }
-            
-            currentUser = '';
-            isCurrentUserAdmin = false;
-            userRef = null;
-            
-            closeSettings();
-            document.getElementById('chatMain').style.display = 'none';
-            document.getElementById('settingsButton').style.display = 'none';
-            document.getElementById('authScreen').style.display = 'block';
-            
-            document.getElementById('loginUsername').value = '';
-            document.getElementById('loginPassword').value = '';
-            clearMessage();
-        }
-
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            var messageInput = document.getElementById('messageInput');
-            if (messageInput) {
-                messageInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
+                // Launch and damage Blobs
+                blobs.forEach(b => {
+                    if (!b.dead && !b.dying) {
+                        const dist = b.group.position.distanceTo(this.target);
+                        if (dist < blastRadius) {
+                            b.flying = true; 
+                            b.takeDamage(150); // Will likely kill them unless max armor
+                            b.velocity = new THREE.Vector3().subVectors(b.group.position, this.target).normalize();
+                            b.velocity.y = 1.5; 
+                            b.velocity.multiplyScalar(40 * (1 - (dist / blastRadius)) + 15);
+                        }
                     }
                 });
             }
-            
-            var loginUsername = document.getElementById('loginUsername');
-            if (loginUsername) {
-                loginUsername.focus();
+        }
+
+        class Explosion {
+            constructor(pos) {
+                this.dead = false; this.timer = 0;
+                this.mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 32), new THREE.MeshBasicMaterial({ color: 0xff8800, transparent: true }));
+                this.mesh.position.copy(pos); scene.add(this.mesh);
+            }
+            update(delta) {
+                this.timer += delta;
+                this.mesh.scale.addScalar(delta * 60); 
+                this.mesh.material.opacity -= delta * 2;
+                if (this.timer > 0.5) {
+                    this.dead = true; scene.remove(this.mesh);
+                    this.mesh.material.dispose(); this.mesh.geometry.dispose();
+                }
+            }
+        }
+
+        // ==========================================
+        // --- Main Simulation Loop ---
+        // ==========================================
+        function setupUI() {
+            document.getElementById('food-rate-slider').addEventListener('input', (e) => {
+                currentFoodRateMultiplier = parseInt(e.target.value);
+                document.getElementById('food-rate-val').innerText = currentFoodRateMultiplier + 'x';
+            });
+            document.getElementById('tree-rate-slider').addEventListener('input', (e) => {
+                currentTreeRateMultiplier = parseInt(e.target.value);
+                document.getElementById('tree-rate-val').innerText = currentTreeRateMultiplier + 'x';
+            });
+        }
+
+        function setupInteractions() {
+            const raycaster = new THREE.Raycaster(); const mouse = new THREE.Vector2();
+            window.addEventListener('dblclick', (event) => {
+                if (event.target.closest('#ui-panel') || event.target.closest('#control-panel')) return;
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObject(diskMesh);
+                if (intersects.length > 0) meteors.push(new Meteor(intersects[0].point));
+            });
+        }
+
+        function initPopulation() {
+            for (let i = 0; i < SIM_SETTINGS.initialTrees; i++) {
+                let t = new Tree(getRandomSpawnPos());
+                t.sprouting = false; t.mesh.scale.set(1,1,1); // Initial trees start fully grown
+            }
+            for (let i = 0; i < SIM_SETTINGS.initialStones; i++) stones.push(new StoneNode(getRandomSpawnPos()));
+            for (let i = 0; i < SIM_SETTINGS.initialBlobs; i++) blobs.push(new Blob(getRandomSpawnPos()));
+            for (let i = 0; i < SIM_SETTINGS.initialFood; i++) foods.push(new Food(getRandomSpawnPos()));
+        }
+
+        let timers = { food: 0, tree: 0, stone: 0 };
+
+        function updateSim() {
+            const delta = Math.min(clock.getDelta(), 0.1); 
+            totalTime += delta;
+
+            // Dynamic Spawning Rates based on Sliders
+            let actualFoodRate = SIM_SETTINGS.foodBaseRate * currentFoodRateMultiplier;
+            let actualTreeRate = SIM_SETTINGS.treeBaseRate * currentTreeRateMultiplier;
+
+            // Spawning Logic
+            timers.food += delta;
+            if (actualFoodRate > 0 && timers.food > (1 / actualFoodRate) && foods.length < 200) {
+                foods.push(new Food(getRandomSpawnPos())); timers.food = 0;
             }
             
-            var adminPasswordInput = document.getElementById('adminPasswordInput');
-            if (adminPasswordInput) {
-                adminPasswordInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        confirmAdminAction();
-                    }
-                });
+            timers.tree += delta;
+            if (actualTreeRate > 0 && timers.tree > (1 / actualTreeRate) && trees.length < 40) {
+                trees.push(new Tree(getRandomSpawnPos())); timers.tree = 0;
             }
-        });
+
+            timers.stone += delta;
+            if (timers.stone > 2 && stones.length < 20) { // Stones respawn slowly natively
+                stones.push(new StoneNode(getRandomSpawnPos())); timers.stone = 0;
+            }
+
+            // Cleanup Dead Objects Function
+            const cleanup = (arr) => {
+                for (let i = arr.length - 1; i >= 0; i--) {
+                    if (arr[i].dead) arr.splice(i, 1);
+                }
+            };
+
+            // Update entities
+            meteors.forEach(m => m.update(delta));
+            explosions.forEach(e => e.update(delta));
+            trees.forEach(t => t.update(delta));
+            houses.forEach(h => h.update(delta));
+            
+            let liveBlobCount = 0;
+            blobs.forEach(b => {
+                b.update(delta);
+                if (!b.dying && !b.dead) liveBlobCount++;
+            });
+
+            // Clean arrays
+            cleanup(blobs); cleanup(foods); cleanup(trees); 
+            cleanup(stones); cleanup(tables); cleanup(houses); 
+            cleanup(meteors); cleanup(explosions);
+
+            frameCount++;
+            if (frameCount % 10 === 0) {
+                elTime.innerText = Math.floor(totalTime);
+                elBlobs.innerText = liveBlobCount;
+                elFood.innerText = foods.length;
+            }
+            if (frameCount % 15 === 0) {
+                popGraph.addValue(liveBlobCount);
+                foodGraph.addValue(foods.length);
+            }
+        }
+
+        // --- Graph Setup ---
+        class MiniGraph {
+            constructor(canvasId, color) {
+                this.canvas = document.getElementById(canvasId); this.ctx = this.canvas.getContext('2d');
+                this.color = color; this.dataInfo = []; 
+                this.resize(); window.addEventListener('resize', () => this.resize());
+            }
+            resize() {
+                const rect = this.canvas.parentElement.getBoundingClientRect();
+                this.canvas.width = rect.width * window.devicePixelRatio; this.canvas.height = rect.height * window.devicePixelRatio;
+                this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+                this.w = rect.width; this.h = rect.height;
+            }
+            addValue(val) { this.dataInfo.push(val); this.draw(); }
+            draw() {
+                this.ctx.clearRect(0, 0, this.w, this.h);
+                if (this.dataInfo.length < 2) return;
+                let max = Math.max(...this.dataInfo, 10); 
+                let grad = this.ctx.createLinearGradient(0, 0, 0, this.h);
+                grad.addColorStop(0, this.color + 'aa'); grad.addColorStop(1, this.color + '00'); 
+                this.ctx.strokeStyle = this.color; this.ctx.lineWidth = 2; this.ctx.beginPath();
+                const step = this.w / (Math.max(this.dataInfo.length, 2) - 1);
+                for (let i = 0; i < this.dataInfo.length; i++) {
+                    const y = this.h - (this.dataInfo[i] / max) * this.h * 0.6 - (this.h * 0.1); 
+                    const x = i * step;
+                    if (i === 0) this.ctx.moveTo(x, y); else this.ctx.lineTo(x, y);
+                }
+                this.ctx.stroke(); this.ctx.lineTo(this.w, this.h); this.ctx.lineTo(0, this.h);
+                this.ctx.fillStyle = grad; this.ctx.fill();
+            }
+        }
+
+        let popGraph, foodGraph;
+        function initGraphs() {
+            popGraph = new MiniGraph('graph-pop', '#44aaff'); 
+            foodGraph = new MiniGraph('graph-food', '#55ff55'); 
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            updateSim(); controls.update(); renderer.render(scene, camera);
+        }
+
+        init3D(); initGraphs(); initPopulation(); animate();
+
     </script>
 </body>
 </html>
