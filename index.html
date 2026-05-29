@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smooth Disk Sim - Crash-Proof Empire</title>
+    <title>Smooth Disk Sim - Empire Mechanics Final</title>
     <style>
         body {
             margin: 0; overflow: hidden; background-color: #000; 
@@ -98,11 +98,11 @@
         </div>
 
         <div class="ai-logic-box">
-            <b>Ultimate Anti-Crash Updates Applied:</b><br>
-            - <span style="color:#55ff55;">Vector Sanitization:</span> Div-by-Zero `NaN` matrix crashes have been fully eliminated.<br>
-            - <span style="color:#ffcc00;">Bale Overload Fixed:</span> Wheat bales are now capped so farmers won't infinitely spawn memory leaks.<br>
-            - <span style="color:#ff99cc;">Orphaned UI Fixed:</span> Health bars are properly destroyed when hunted or hit by meteors.<br>
-            - Every single feature runs natively smooth now!
+            <b>Empire Ecosystem Features:</b><br>
+            - <span style="color:#ff99cc;">Evolving Livestock:</span> Animals wander, eat wild food, and grow to massive sizes. <br>
+            - <span style="color:#ffaa55;">The Hunt:</span> Armored Miners hunt fully-grown animals for massive loot drops.<br>
+            - <span style="color:#44aaff;">Smooth Trails:</span> Walk paths pack dirt for +60% movement speed!<br>
+            - <span style="color:#55ff55;">Aggressive Building:</span> AI logic bugs fixed! Builders will now violently construct and auto-build an empire of houses.
         </div>
         <div style="font-size: 11px; color: #ff6600; margin-top: 10px; text-align: center; font-weight: bold;">
             Double-click for Meteor Strike!
@@ -132,7 +132,7 @@
             farmGrowthMult: 15, 
             
             gusSpeed: 0.22,        
-            viewDistance: 65,    
+            viewDistance: 200, // They have global awareness now
             
             energyDrainPerTick: 0.06, 
             energyFromFood: 40,
@@ -145,12 +145,14 @@
             shoesHideCost: 1
         };
 
+        // UI Values
         let currentFoodRateMultiplier = 50;
         let currentTreeRateMultiplier = 20;
         let priFarm = 1.0;
         let priBuild = 1.0;
         let priMine = 1.0;
 
+        // Central Arrays
         const gussArray = [];
         const foods = [];
         const bales = []; 
@@ -263,20 +265,21 @@
             };
         }
 
-        // Custom Canvas Shader for Beautiful Soft Trails
         function createTrailTexture() {
             const canvas = document.createElement('canvas');
             canvas.width = 64; canvas.height = 64;
             const context = canvas.getContext('2d');
             const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
-            gradient.addColorStop(0, 'rgba(160, 130, 90, 0.6)'); 
+            gradient.addColorStop(0, 'rgba(160, 130, 90, 0.5)'); 
             gradient.addColorStop(1, 'rgba(160, 130, 90, 0)');   
             context.fillStyle = gradient;
             context.fillRect(0,0,64,64);
             return new THREE.CanvasTexture(canvas);
         }
 
-        // Shared Materials to prevent memory blowouts
+        // ==========================================
+        // --- Shared Materials/Geometries ---
+        // ==========================================
         const mats = {
             food: new THREE.MeshStandardMaterial({ color: 0x55ff55, roughness: 0.4 }),
             bale: new THREE.MeshStandardMaterial({ color: 0xffcc00, roughness: 0.9 }), 
@@ -321,7 +324,7 @@
             houseRoof: new THREE.ConeGeometry(3.5, 2.5, 4),
             farmBase: new THREE.BoxGeometry(3.5, 0.2, 3.5),
             cropGeo: new THREE.CylinderGeometry(0.1, 0.1, 1.0, 4), 
-            trail: new THREE.PlaneGeometry(3.5, 3.5),
+            trail: new THREE.PlaneGeometry(4.5, 4.5), // Beautiful large soft trail blend
             fencePiece: new THREE.BoxGeometry(4, 1.5, 0.2),
             animalBody: new THREE.SphereGeometry(0.8, 16, 16),
             animalEye: new THREE.SphereGeometry(0.2, 16, 16),
@@ -332,11 +335,10 @@
             pupil: new THREE.SphereGeometry(0.18, 8, 8),
             meteor: new THREE.SphereGeometry(2.5, 12, 12)
         };
-
         geos.trail.rotateX(-Math.PI / 2); 
 
         // Memory Leak Prevention: Object Pool for trails
-        const MAX_TRAILS = 250;
+        const MAX_TRAILS = 300;
         let trailIndex = 0;
         const trailsPool = [];
         function initTrails() {
@@ -482,15 +484,14 @@
             }
 
             die() {
-                this.destroy(); // Safely calls overridden destroy to prevent leaks
-                // Loot explosions
+                this.destroy(); // Safely calls overridden destroy
                 if (bales.length < 150) {
                     for(let i=0; i<5; i++) {
                         let pos = this.mesh.position.clone().add(new THREE.Vector3((Math.random()-0.5)*4, 0, (Math.random()-0.5)*4));
                         new WheatBale(pos);
                     }
                 }
-                if (foods.length < 250) {
+                if (foods.length < 300) {
                     for(let i=0; i<5; i++) {
                         let pos = this.mesh.position.clone().add(new THREE.Vector3((Math.random()-0.5)*4, 0, (Math.random()-0.5)*4));
                         new Food(pos);
@@ -530,17 +531,15 @@
                 }
 
                 if (this.targetFood && !this.targetFood.dead) {
-                    // Safe Vector Math
                     let subVec = new THREE.Vector3().subVectors(this.targetFood.mesh.position, this.mesh.position);
                     if (subVec.lengthSq() > 0.0001) {
                         let moveDir = subVec.normalize();
                         this.mesh.position.addScaledVector(moveDir, delta * 3);
                         this.mesh.rotation.y = Math.atan2(moveDir.x, moveDir.z);
                     }
-                    
                     if (this.mesh.position.distanceToSquared(this.targetFood.mesh.position) < 4) {
                         this.targetFood.destroy(); this.targetFood = null;
-                        this.size = Math.min(3.5, this.size + 0.4);
+                        this.size = Math.min(3.5, this.size + 0.5);
                         this.maxHealth = this.size * 50; this.health = this.maxHealth;
                     }
                 } else {
@@ -633,7 +632,6 @@
                 if(this.isReady) {
                     this.growth = 0; this.isReady = false;
                     this.crops.forEach(c => c.scale.setScalar(0.01));
-                    // Safe Bounding
                     if (bales.length < 150) {
                         for(let i=0; i<3; i++) {
                             let balePos = this.mesh.position.clone().add(new THREE.Vector3((Math.random()-0.5)*3, 0, (Math.random()-0.5)*3));
@@ -650,8 +648,10 @@
             constructor(pos) {
                 const group = new THREE.Group(); group.position.copy(pos);
                 super(group, houses);
-                this.level = 0; this.targetLevel = 1;
+                this.level = 1; this.targetLevel = 1;
                 this.maxDurability = 100; this.durability = 100;
+                
+                // AUTO BUILD LOGIC FIX!
                 this.buildProgress = 0; this.isBuilding = true;
                 
                 this.baseMesh = new THREE.Mesh(geos.houseBase, mats.houseWood); this.baseMesh.position.y = 1; this.baseMesh.castShadow = true;
@@ -661,30 +661,29 @@
 
                 this.barData = createBarSprite(0x00aaff); this.barData.group.position.y = 3; this.mesh.add(this.barData.group);
                 this.progressBarData = createBarSprite(0xffaa00, 0x333333); this.progressBarData.group.position.y = 3.5; this.mesh.add(this.progressBarData.group);
-                this.mesh.scale.set(0.01, 0.01, 0.01);
+                
+                this.mesh.add(this.baseMesh);
+                this.baseMesh.scale.y = 0.01; // Start tiny!
             }
-            addBuildProgress(amount) {
-                this.buildProgress += amount;
-                this.mesh.scale.y = Math.max(0.01, this.buildProgress / 100);
-                if (this.buildProgress >= 100) { this.completeUpgrade(); return true; }
-                return false;
-            }
+            
             startUpgrade() {
                 if (this.level >= 6 || this.isBuilding) return;
                 this.targetLevel = this.level + 1; this.isBuilding = true; this.buildProgress = 0;
                 if(this.targetLevel === 2) { this.mesh.add(this.extMesh); this.extMesh.scale.y = 0.01; }
                 if(this.targetLevel === 3) { this.mesh.add(this.storyMesh); this.storyMesh.scale.y = 0.01; }
                 if(this.targetLevel === 4) { this.mesh.add(this.roofMesh); this.roofMesh.scale.y = 0.01; }
-                if(this.targetLevel === 5) { this.baseMesh.material = mats.houseStone; this.baseMesh.scale.set(1.05, 1.05, 1.05); } 
-                if(this.targetLevel === 6) { this.roofMesh.material = mats.houseIron; this.roofMesh.scale.set(1.1, 1.1, 1.1); } 
+                if(this.targetLevel === 5) { this.baseMesh.material = mats.houseStone; } 
+                if(this.targetLevel === 6) { this.roofMesh.material = mats.houseIron; } 
             }
+            
             completeUpgrade() {
                 this.isBuilding = false; this.level = this.targetLevel; this.buildProgress = 0;
-                this.mesh.scale.set(1,1,1);
-                if(this.level >= 1 && !this.baseMesh.parent) this.mesh.add(this.baseMesh);
-                if(this.level >= 2) this.extMesh.scale.y = 1;
-                if(this.level >= 3) this.storyMesh.scale.y = 1;
-                if(this.level >= 4) this.roofMesh.scale.y = 1;
+                if(this.level >= 1) this.baseMesh.scale.set(1,1,1);
+                if(this.level >= 2) this.extMesh.scale.set(1,1,1);
+                if(this.level >= 3) this.storyMesh.scale.set(1,1,1);
+                if(this.level >= 4) this.roofMesh.scale.set(1,1,1);
+                if(this.level >= 5) this.baseMesh.scale.set(1.05,1.05,1.05);
+                if(this.level >= 6) this.roofMesh.scale.set(1.1,1.1,1.1);
                 
                 this.maxDurability = this.level * 150; 
                 if(this.level >= 5) this.maxDurability += 500; 
@@ -704,13 +703,22 @@
                 if (!this.isBuilding) {
                     this.durability -= delta * 1.0; this.progressBarData.group.visible = false;
                 } else {
-                    this.progressBarData.group.visible = true;
-                    let pctProg = Math.max(0, this.buildProgress / 100);
-                    this.progressBarData.fgMesh.scale.x = pctProg; this.progressBarData.fgMesh.position.x = -(1 - pctProg);
-                    if(this.targetLevel === 1) this.mesh.scale.y = Math.max(0.01, pctProg);
-                    if(this.targetLevel === 2) this.extMesh.scale.y = Math.max(0.01, pctProg);
-                    if(this.targetLevel === 3) this.storyMesh.scale.y = Math.max(0.01, pctProg);
-                    if(this.targetLevel === 4) this.roofMesh.scale.y = Math.max(0.01, pctProg);
+                    // Auto build magic happens here
+                    this.buildProgress += delta * 25; 
+                    if (this.buildProgress >= 100) {
+                        this.completeUpgrade();
+                    } else {
+                        this.progressBarData.group.visible = true;
+                        let pctProg = Math.max(0, this.buildProgress / 100);
+                        this.progressBarData.fgMesh.scale.x = pctProg; this.progressBarData.fgMesh.position.x = -(1 - pctProg);
+                        let sc = Math.max(0.01, pctProg);
+                        if(this.targetLevel === 1) this.baseMesh.scale.y = sc;
+                        if(this.targetLevel === 2) this.extMesh.scale.y = sc;
+                        if(this.targetLevel === 3) this.storyMesh.scale.y = sc;
+                        if(this.targetLevel === 4) this.roofMesh.scale.y = sc;
+                        if(this.targetLevel === 5) this.baseMesh.scale.set(1+sc*0.05, 1+sc*0.05, 1+sc*0.05);
+                        if(this.targetLevel === 6) this.roofMesh.scale.set(1+sc*0.1, 1+sc*0.1, 1+sc*0.1);
+                    }
                 }
                 let pct = Math.max(0, this.durability / this.maxDurability);
                 this.barData.fgMesh.scale.x = pct; this.barData.fgMesh.position.x = -(1 - pct); 
@@ -808,6 +816,12 @@
                 return closest;
             }
 
+            goTo(array, actionStr, range = SIM_SETTINGS.viewDistance) {
+                let obj = this.findClosest(array, range);
+                if (obj) return { obj: obj, action: actionStr };
+                return { obj: null, action: 'wander' };
+            }
+
             decideTarget() {
                 if (this.energy < 50 || this.health < this.maxHealth * 0.4) {
                     let bale = this.findClosest(bales);
@@ -822,30 +836,42 @@
                     if(this.wood >= 1) return { obj: this.group, action: 'build_table' }; 
                 }
 
+                // AI LOGIC OVERHAUL:
                 if (this.role === 'builder' && Math.random() < priBuild) {
                     let brokenHouse = houses.find(h => !h.dead && h.durability < h.maxDurability * 0.5);
                     if (brokenHouse && this.wood >= 1) return { obj: brokenHouse, action: 'fix_house' };
 
-                    let upgradeable = houses.find(h => !h.dead && h.level < 6 && !h.isBuilding);
-                    if (upgradeable) {
-                        if(upgradeable.level === 4 && this.stone < 5) return { obj: this.findClosest(stones), action: 'mine_stone' } || { obj: null, action: 'wander' };
-                        if(upgradeable.level === 5 && this.iron < 5) return { obj: this.findClosest(irons), action: 'mine_iron' } || { obj: null, action: 'wander' };
-                        if(upgradeable.level < 4 && this.wood < SIM_SETTINGS.houseWoodCost) return { obj: this.findClosest(trees), action: 'chop' } || { obj: null, action: 'wander' };
-                        return { obj: upgradeable, action: 'start_upgrade' };
-                    }
-
+                    // 1. Build houses first if homeless!
                     if (houses.length < gussArray.length / 2 && houses.length < 60) {
                         if (this.wood >= SIM_SETTINGS.houseWoodCost) return { obj: this.group, action: 'build_house' };
-                        return { obj: this.findClosest(trees), action: 'chop' } || { obj: null, action: 'wander' };
+                        return this.goTo(trees, 'chop');
                     }
 
+                    // 2. Upgrade existing houses
+                    let upgradeable = houses.find(h => !h.dead && h.level < 6 && !h.isBuilding);
+                    if (upgradeable) {
+                        if(upgradeable.level === 4) {
+                            if (this.stone >= 5) return { obj: upgradeable, action: 'start_upgrade' };
+                            return this.goTo(stones, 'mine_stone');
+                        }
+                        if(upgradeable.level === 5) {
+                            if (this.iron >= 5) return { obj: upgradeable, action: 'start_upgrade' };
+                            return this.goTo(irons, 'mine_iron');
+                        }
+                        if(upgradeable.level < 4) {
+                            if (this.wood >= SIM_SETTINGS.houseWoodCost) return { obj: upgradeable, action: 'start_upgrade' };
+                            return this.goTo(trees, 'chop');
+                        }
+                    }
+
+                    // 3. Upgrade Pens
                     let smallPen = pens.find(p => !p.dead && p.level < 3 && p.animals.length >= p.capacity);
                     if (smallPen) {
                         if (this.wood >= 3) return { obj: smallPen, action: 'upgrade_pen' };
-                        return { obj: this.findClosest(trees), action: 'chop' } || { obj: null, action: 'wander' };
+                        return this.goTo(trees, 'chop');
                     }
                     
-                    return { obj: this.findClosest(trees), action: 'chop' } || { obj: null, action: 'wander' };
+                    return this.goTo(trees, 'chop');
                 }
                 else if (this.role === 'farmer' && Math.random() < priFarm) {
                     let readyFarm = farms.find(f => !f.dead && f.isReady);
@@ -853,7 +879,7 @@
 
                     if (farms.length < gussArray.length / 2 && farms.length < 40) {
                         if (this.wood >= SIM_SETTINGS.farmWoodCost) return { obj: this.group, action: 'build_farm' };
-                        return { obj: this.findClosest(trees), action: 'chop' } || { obj: null, action: 'wander' }; 
+                        return this.goTo(trees, 'chop');
                     }
 
                     if (this.hasPlant) {
@@ -861,9 +887,10 @@
                         if (populatedPen) return { obj: populatedPen, action: 'breed_animal' };
                         else this.hasPlant = false; 
                     }
+                    
                     if (pens.length === 0 || pens.every(p => p.animals.length >= p.capacity)) {
                         if (this.wood >= SIM_SETTINGS.penWoodCost && pens.length < 15) return { obj: this.group, action: 'build_pen' };
-                        return { obj: this.findClosest(trees), action: 'chop' } || { obj: null, action: 'wander' }; 
+                        return this.goTo(trees, 'chop');
                     }
                     
                     let wildAnimal = animals.find(a => !a.dead && a.state === 'wild');
@@ -871,10 +898,7 @@
                     if (wildAnimal && spacePen) return { obj: wildAnimal, action: 'herd_animal' };
 
                     let breedablePen = pens.find(p => !p.dead && p.animals.length > 0 && p.animals.length < p.capacity);
-                    if (breedablePen) {
-                        let food = this.findClosest(foods);
-                        if (food) return { obj: food, action: 'fetch_plant' };
-                    }
+                    if (breedablePen) return this.goTo(foods, 'fetch_plant');
                 }
                 else if (this.role === 'miner' && Math.random() < priMine) {
                     if (this.armorTier > 0) {
@@ -885,22 +909,17 @@
                     if (this.iron >= 3 && (this.pickaxeTier < 2 || this.armorTier < 2)) return { obj: this.group, action: 'craft_iron_gear' }; 
                     if (this.stone >= 3 && this.armorTier === 0) return { obj: this.group, action: 'craft_stone_armor' };
                     
-                    let ironNode = this.findClosest(irons);
-                    if (ironNode) return { obj: ironNode, action: 'mine_iron' };
-                    let stoneNode = this.findClosest(stones);
-                    if (stoneNode) return { obj: stoneNode, action: 'mine_stone' };
+                    if (this.armorTier > 0 && this.pickaxeTier > 0 && this.iron < 3) return this.goTo(irons, 'mine_iron');
+                    return this.goTo(stones, 'mine_stone');
                 }
 
-                if (Math.random() < 0.2) {
-                    let f = this.findClosest(foods);
-                    if (f) return { obj: f, action: 'eat' };
-                }
+                if (Math.random() < 0.2) return this.goTo(foods, 'eat');
                 return { obj: null, action: 'wander' };
             }
 
             isOnTrail() {
                 for(let i=0; i<MAX_TRAILS; i++) {
-                    if (trailsPool[i].position.y > 0 && this.group.position.distanceToSquared(trailsPool[i].position) < 5) return true;
+                    if (trailsPool[i].position.y > 0 && this.group.position.distanceToSquared(trailsPool[i].position) < 6) return true;
                 }
                 return false;
             }
@@ -909,11 +928,13 @@
                 if (Math.random() < 0.05) {
                     let near = false;
                     for(let i=0; i<MAX_TRAILS; i++) {
-                        if (trailsPool[i].position.y > 0 && this.group.position.distanceToSquared(trailsPool[i].position) < 10) { near = true; break; }
+                        if (trailsPool[i].position.y > 0 && this.group.position.distanceToSquared(trailsPool[i].position) < 12) { near = true; break; }
                     }
                     if (!near) {
                         trailsPool[trailIndex].position.copy(this.group.position);
                         trailsPool[trailIndex].position.y = 0.02; 
+                        // Random rotation makes trails look organic
+                        trailsPool[trailIndex].rotation.z = Math.random() * Math.PI;
                         trailIndex = (trailIndex + 1) % MAX_TRAILS;
                     }
                 }
@@ -963,7 +984,7 @@
                 let speedBoost = this.isOnTrail() ? 1.6 : 1.0;
                 if(this.hasShoes) speedBoost *= 1.8;
 
-                const instantActions = ['build_house', 'build_farm', 'build_pen', 'build_table', 'start_upgrade', 'craft_stone_armor', 'craft_iron_gear'];
+                const instantActions = ['build_house', 'build_farm', 'build_pen', 'build_table', 'craft_stone_armor', 'craft_iron_gear'];
                 
                 if (instantActions.includes(this.currentAction)) {
                     if (this.currentAction === 'build_house') {
@@ -974,13 +995,6 @@
                         this.wood -= SIM_SETTINGS.penWoodCost; new Pen(this.group.position.clone());
                     } else if (this.currentAction === 'build_table') {
                         this.wood -= 1; new CraftingTable(this.group.position.clone());
-                    } else if (this.currentAction === 'start_upgrade') {
-                        if(this.targetObj && !this.targetObj.dead) {
-                            if(this.targetObj.level === 4) this.stone -= 5;
-                            else if(this.targetObj.level === 5) this.iron -= 5;
-                            else this.wood -= SIM_SETTINGS.houseWoodCost;
-                            this.targetObj.startUpgrade();
-                        }
                     } else if (this.currentAction === 'craft_stone_armor') {
                         this.stone -= 3; this.armorTier = 1; this.pickaxeTier = 1; this.axeTier = 1; this.updateArmorVisuals();
                     } else if (this.currentAction === 'craft_iron_gear') {
@@ -991,10 +1005,9 @@
                 }
                 else if (this.targetObj && !this.targetObj.dead) {
                     let distSq = this.group.position.distanceToSquared(this.targetObj.mesh.position);
-                    let reach = (this.currentAction === 'fix_house' || this.currentAction === 'lead_to_pen' || this.currentAction === 'breed_animal' || this.currentAction === 'upgrade_pen' || this.currentAction === 'craft_shoes' || this.currentAction === 'harvest_farm') ? 16.0 : 3.24; // 4.0^2 or 1.8^2
+                    let reach = (this.currentAction === 'fix_house' || this.currentAction === 'lead_to_pen' || this.currentAction === 'breed_animal' || this.currentAction === 'upgrade_pen' || this.currentAction === 'craft_shoes' || this.currentAction === 'harvest_farm' || this.currentAction === 'start_upgrade') ? 16.0 : 3.24; 
                     
                     if (distSq > reach) {
-                        // Math Crash Fix! Safe Vectors
                         let subVec = new THREE.Vector3().subVectors(this.targetObj.mesh.position, this.group.position);
                         if (subVec.lengthSq() > 0.0001) {
                             moveDir = subVec.normalize();
@@ -1032,6 +1045,13 @@
                             if (this.targetObj.takeDamage(60 * delta)) {
                                 this.targetObj = null; this.currentAction = 'wander'; this.toolGroup.visible = false;
                             }
+                        }
+                        else if (this.currentAction === 'start_upgrade') {
+                            if(this.targetObj.level === 4) this.stone -= 5;
+                            else if(this.targetObj.level === 5) this.iron -= 5;
+                            else this.wood -= SIM_SETTINGS.houseWoodCost;
+                            this.targetObj.startUpgrade();
+                            this.targetObj = null; this.currentAction = 'wander';
                         }
                         else if (this.currentAction === 'harvest_farm') {
                             this.targetObj.harvest();
@@ -1103,6 +1123,7 @@
                                 this.targetObj = null; this.currentAction = 'wander'; this.toolGroup.visible = false;
                             }
                         }
+                        
                         if (this.targetObj && this.targetObj.dead) {
                             this.targetObj = null; this.currentAction = 'wander';
                         }
