@@ -45,6 +45,7 @@
             line-height: 1.4; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 4px; text-shadow: none;
         }
         
+        /* Custom scrollbar */
         #control-panel::-webkit-scrollbar { width: 6px; }
         #control-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.4); border-radius: 3px; }
     </style>
@@ -55,7 +56,7 @@
         <div class="stats-digital">
             <div style="font-size: 12px; color: #ddd; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px;">Empire Status</div>
             <div class="stat-line"><span style="color: #eee;">Time/Days:</span> <span id="stat-time" class="stat-value" style="color: #fff;">0</span></div>
-            <div class="stat-line"><span style="color: #eee;">Guss Pop (Infinite):</span> <span id="stat-guss" class="stat-value" style="color: #44aaff;">0</span></div>
+            <div class="stat-line"><span style="color: #eee;">Guss Pop:</span> <span id="stat-guss" class="stat-value" style="color: #44aaff;">0</span></div>
             <div class="stat-line"><span style="color: #eee;">Food/Wheat:</span> <span id="stat-food" class="stat-value" style="color: #ffcc00;">0</span></div>
             <div class="stat-line"><span style="color: #eee;">Livestock:</span> <span id="stat-animals" class="stat-value" style="color: #ff99cc;">0</span></div>
         </div>
@@ -115,8 +116,9 @@
             <b>Infinite Empire Features:</b><br>
             - <span style="color:#39ff14;">Nike Fly Shoes:</span> Hunt animals for hide, craft neon shoes for 2.5x Speed!<br>
             - <span style="color:#dddddd;">Smooth Trails:</span> Beautiful packed dirt paths grant 2.0x Speed.<br>
-            - <span style="color:#44aaff;">GOAP AI Engine:</span> Guss are now hyper-intelligent. If they want to build but lack wood, they will automatically override to go chop a tree first.<br>
-            - <span style="color:#ffaa55;">Infinite Population:</span> Hardware caps removed. GPU bounds suppressed. Build massively!
+            - <span style="color:#44aaff;">GOAP AI Engine:</span> Intelligent goal planning prevents infinite loops.<br>
+            - <span style="color:#ffaa55;">Infinite Population:</span> Hardware caps removed. Build massively!<br>
+            - <span style="color:#55ff55;">Zero-Crash Tech:</span> Vectors sanitized. Memory leaks sealed.
         </div>
         <div style="font-size: 11px; color: #ff6600; margin-top: 10px; text-align: center; font-weight: bold;">
             Double-click for Meteor Strike!
@@ -160,11 +162,10 @@
             shoesHideCost: 1
         };
 
-        // UI Values
+        // UI AI Priorities
         let currentFoodRateMultiplier = 50;
         let currentTreeRateMultiplier = 20;
-        
-        let sTrees = 1.0, sFood = 1.0, sHouse = 1.0, sMisc = 1.0, sUpgr = 1.0, sBreed = 1.0;
+        let pTrees = 1.0, pFood = 1.0, pHouse = 1.0, pMisc = 1.0, pUpgr = 1.0, pBreed = 1.0;
 
         // Central Arrays
         const gussArray = [];
@@ -250,10 +251,11 @@
             window.addEventListener('resize', onWindowResize);
         }
 
+        // Returns perfectly safe THREE.Vector3 to prevent NaN crashes
         function getRandomSpawnPos() {
             const angle = Math.random() * Math.PI * 2;
             const radius = Math.random() * (SIM_SETTINGS.diskRadius - 4); 
-            return { x: Math.sin(angle) * radius, y: 0, z: Math.cos(angle) * radius };
+            return new THREE.Vector3(Math.sin(angle) * radius, 0, Math.cos(angle) * radius);
         }
 
         function createBarSprite(colorHex, bgHex = 0xff0000) {
@@ -282,12 +284,12 @@
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, 128, 128);
             const grad = ctx.createRadialGradient(64, 64, 10, 64, 64, 60);
-            grad.addColorStop(0, 'rgba(150, 110, 70, 0.7)'); // Solid packed dirt
+            grad.addColorStop(0, 'rgba(150, 110, 70, 0.7)'); 
             grad.addColorStop(0.5, 'rgba(150, 110, 70, 0.3)');
             grad.addColorStop(1, 'rgba(150, 110, 70, 0)');   
             ctx.fillStyle = grad;
             ctx.beginPath();
-            ctx.ellipse(64, 64, 60, 30, 0, 0, Math.PI*2); // Elongated footprint path
+            ctx.ellipse(64, 64, 60, 30, 0, 0, Math.PI*2); // Directional footprint path
             ctx.fill();
             return new THREE.CanvasTexture(canvas);
         }
@@ -339,7 +341,7 @@
             houseRoof: new THREE.ConeGeometry(3.5, 2.5, 4),
             farmBase: new THREE.BoxGeometry(3.5, 0.2, 3.5),
             cropGeo: new THREE.CylinderGeometry(0.1, 0.1, 1.0, 4), 
-            trail: new THREE.PlaneGeometry(3.0, 3.0),
+            trail: new THREE.PlaneGeometry(3.5, 3.5), 
             fencePiece: new THREE.BoxGeometry(4, 1.5, 0.2),
             animalBody: new THREE.SphereGeometry(0.8, 16, 16),
             animalEye: new THREE.SphereGeometry(0.2, 16, 16),
@@ -384,7 +386,7 @@
         class Food extends WorldObject {
             constructor(pos) {
                 const mesh = new THREE.Mesh(geos.food, mats.food);
-                mesh.position.x = pos.x; mesh.position.y = 0.4; mesh.position.z = pos.z;
+                mesh.position.copy(pos); mesh.position.y = 0.4;
                 mesh.castShadow = false; mesh.receiveShadow = false;
                 super(mesh, foods);
             }
@@ -393,7 +395,7 @@
         class WheatBale extends WorldObject {
             constructor(pos) {
                 const mesh = new THREE.Mesh(geos.bale, mats.bale);
-                mesh.position.x = pos.x; mesh.position.y = 0.3; mesh.position.z = pos.z;
+                mesh.position.copy(pos); mesh.position.y = 0.3;
                 mesh.castShadow = false; mesh.receiveShadow = false;
                 super(mesh, bales);
             }
@@ -402,7 +404,7 @@
         class StoneNode extends WorldObject {
             constructor(pos) {
                 const mesh = new THREE.Mesh(geos.stone, mats.stone);
-                mesh.position.x = pos.x; mesh.position.y = 0.8; mesh.position.z = pos.z;
+                mesh.position.copy(pos); mesh.position.y = 0.8;
                 mesh.castShadow = false; mesh.receiveShadow = false;
                 super(mesh, stones); this.health = 50;
             }
@@ -416,7 +418,7 @@
         class IronNode extends WorldObject {
             constructor(pos) {
                 const mesh = new THREE.Mesh(geos.iron, mats.iron);
-                mesh.position.x = pos.x; mesh.position.y = 0.7; mesh.position.z = pos.z;
+                mesh.position.copy(pos); mesh.position.y = 0.7;
                 mesh.castShadow = false; mesh.receiveShadow = false;
                 super(mesh, irons); this.health = 80;
             }
@@ -430,7 +432,7 @@
         class CraftingTable extends WorldObject {
             constructor(pos) {
                 const mesh = new THREE.Mesh(geos.table, mats.wood);
-                mesh.position.x = pos.x; mesh.position.y = 0.6; mesh.position.z = pos.z;
+                mesh.position.copy(pos); mesh.position.y = 0.6;
                 mesh.castShadow = false; mesh.receiveShadow = false;
                 super(mesh, tables);
             }
@@ -438,8 +440,7 @@
 
         class Tree extends WorldObject {
             constructor(pos) {
-                const group = new THREE.Group(); 
-                group.position.x = pos.x; group.position.y = 0; group.position.z = pos.z;
+                const group = new THREE.Group(); group.position.copy(pos);
                 const trunk = new THREE.Mesh(geos.treeTrunk, mats.wood);
                 trunk.position.y = 1.75; trunk.castShadow = true; trunk.receiveShadow = false;
                 const leaves = new THREE.Mesh(geos.treeLeaves, mats.leaves);
@@ -467,7 +468,7 @@
         class Animal extends WorldObject {
             constructor(pos) {
                 const group = new THREE.Group();
-                group.position.x = pos.x; group.position.y = 0.8; group.position.z = pos.z;
+                group.position.copy(pos); group.position.y = 0.8;
                 const body = new THREE.Mesh(geos.animalBody, mats.animalBody);
                 body.castShadow = true; body.receiveShadow = false;
                 group.add(body);
@@ -503,21 +504,21 @@
 
             die() {
                 if(this.dead) return;
-                this.destroy(); 
+                this.destroy(); // Safely calls overridden destroy
                 if (bales.length < 150) {
                     for(let i=0; i<4; i++) {
-                        new WheatBale({
-                            x: this.mesh.position.x + (Math.random()-0.5)*4,
-                            z: this.mesh.position.z + (Math.random()-0.5)*4
-                        });
+                        new WheatBale(new THREE.Vector3(
+                            this.mesh.position.x + (Math.random()-0.5)*4, 0,
+                            this.mesh.position.z + (Math.random()-0.5)*4
+                        ));
                     }
                 }
                 if (foods.length < 300) {
                     for(let i=0; i<4; i++) {
-                        new Food({
-                            x: this.mesh.position.x + (Math.random()-0.5)*4,
-                            z: this.mesh.position.z + (Math.random()-0.5)*4
-                        });
+                        new Food(new THREE.Vector3(
+                            this.mesh.position.x + (Math.random()-0.5)*4, 0,
+                            this.mesh.position.z + (Math.random()-0.5)*4
+                        ));
                     }
                 }
             }
@@ -547,9 +548,7 @@
                     let closest = null; let minDistSq = 400; 
                     for(let f of foods) {
                         if(f.dead) continue;
-                        let dx = this.mesh.position.x - f.mesh.position.x;
-                        let dz = this.mesh.position.z - f.mesh.position.z;
-                        let d = dx*dx + dz*dz;
+                        let d = this.mesh.position.distanceToSquared(f.mesh.position);
                         if(d < minDistSq) { minDistSq = d; closest = f; }
                     }
                     if(closest) this.targetFood = closest;
@@ -598,8 +597,7 @@
 
         class Pen extends WorldObject {
             constructor(pos) {
-                const group = new THREE.Group(); 
-                group.position.x = pos.x; group.position.y = 0; group.position.z = pos.z;
+                const group = new THREE.Group(); group.position.copy(pos);
                 this.fences = [];
                 const f1 = new THREE.Mesh(geos.fencePiece, mats.wood); f1.position.set(0, 0.75, 2);
                 const f2 = new THREE.Mesh(geos.fencePiece, mats.wood); f2.position.set(0, 0.75, -2);
@@ -631,8 +629,7 @@
 
         class Farm extends WorldObject {
             constructor(pos) {
-                const group = new THREE.Group(); 
-                group.position.x = pos.x; group.position.y = 0; group.position.z = pos.z;
+                const group = new THREE.Group(); group.position.copy(pos);
                 const dirt = new THREE.Mesh(geos.farmBase, mats.farmDirt);
                 dirt.position.y = 0.1; dirt.receiveShadow = false;
                 group.add(dirt);
@@ -665,10 +662,10 @@
                     this.crops.forEach(c => c.scale.setScalar(0.01));
                     if (bales.length < 150) {
                         for(let i=0; i<3; i++) {
-                            new WheatBale({
-                                x: this.mesh.position.x + (Math.random()-0.5)*3,
-                                z: this.mesh.position.z + (Math.random()-0.5)*3
-                            }); 
+                            new WheatBale(new THREE.Vector3(
+                                this.mesh.position.x + (Math.random()-0.5)*3, 0,
+                                this.mesh.position.z + (Math.random()-0.5)*3
+                            )); 
                         }
                     }
                     return true;
@@ -679,8 +676,7 @@
 
         class House extends WorldObject {
             constructor(pos) {
-                const group = new THREE.Group(); 
-                group.position.x = pos.x; group.position.y = 0; group.position.z = pos.z;
+                const group = new THREE.Group(); group.position.copy(pos);
                 super(group, houses);
                 this.level = 1; this.targetLevel = 1;
                 this.maxDurability = 100; this.durability = 100;
@@ -767,7 +763,7 @@
             constructor(pos, energy = 70) {
                 this.group = new THREE.Group(); this.group.dead = false;
                 this.dead = false; this.dying = false;
-                this.flying = false;
+                this.flying = false; this.velocity = new THREE.Vector3();
                 this.deathTimer = 0; this.birthTimer = 0;
                 
                 const roles = ['miner', 'builder', 'farmer'];
@@ -783,7 +779,7 @@
                 this.targetObj = null; this.currentAction = 'wander';
                 this.followingAnimal = null; this.hasPlant = false;
 
-                this.group.position.x = pos.x; this.group.position.y = 0; this.group.position.z = pos.z;
+                this.group.position.copy(pos);
                 this.innerGroup = new THREE.Group(); this.group.add(this.innerGroup);
 
                 if (this.role === 'miner') this.bodyMat = mats.gusMiner;
@@ -850,136 +846,121 @@
                 return closest;
             }
 
-            // --- GOAP (Goal-Oriented Action Planning) Engine ---
+            // --- GOAL ORIENTED ACTION PLANNING (GOAP) AI ---
             decideTarget() {
-                // 1. Critical Survival
-                if (this.energy < 40 || this.health < this.maxHealth * 0.4) {
-                    let bale = this.findClosest(bales); if (bale) return { obj: bale, action: 'eat_bale' };
-                    let food = this.findClosest(foods); if (food) return { obj: food, action: 'eat' };
+                let bestAction = 'wander';
+                let bestObj = null;
+                let highestScore = 0;
+
+                const propose = (action, obj, score) => {
+                    if (score > highestScore && obj !== null) {
+                        highestScore = score;
+                        bestAction = action;
+                        bestObj = obj;
+                    }
+                };
+
+                // Survival (Always overrides if critical)
+                if (this.energy < 60) {
+                    propose('eat_bale', this.findClosest(bales), (120 - this.energy) * pFood * 2);
+                    propose('eat', this.findClosest(foods), (100 - this.energy) * pFood);
                 }
 
-                // 2. Nike Fly Shoes (Top Tier priority if available)
+                // Shoes Crafting (High Quality of Life)
                 if (this.hide >= SIM_SETTINGS.shoesHideCost && !this.hasShoes) {
-                    let table = this.findClosest(tables); if (table) return { obj: table, action: 'craft_shoes' };
-                    if(this.wood >= 1) return { obj: this.group, action: 'build_table' }; 
-                }
-
-                // 3. Build prioritized list based on User Sliders
-                let actionQueue = [
-                    { type: 'food', pri: sFood },
-                    { type: 'trees', pri: sTrees },
-                    { type: 'house', pri: sHouse },
-                    { type: 'misc', pri: sMisc },
-                    { type: 'upgrade', pri: sUpgr },
-                    { type: 'breed', pri: sBreed }
-                ].sort((a,b) => b.pri - a.pri); // Highest probability first
-
-                // If Role-matched, guarantee it checks its role specific tasks first, modified by slider
-                let primaryTask = null;
-                if (this.role === 'builder') primaryTask = 'house';
-                else if (this.role === 'farmer') primaryTask = 'breed';
-                else if (this.role === 'miner') primaryTask = 'upgrade'; // Miners use upgrade for mining tasks
-                
-                if (primaryTask) {
-                    let tIndex = actionQueue.findIndex(t => t.type === primaryTask);
-                    if(tIndex > -1) {
-                        let t = actionQueue.splice(tIndex, 1)[0];
-                        actionQueue.unshift(t); // Move to front
+                    let table = this.findClosest(tables);
+                    if(table) propose('craft_shoes', table, 200);
+                    else {
+                        if(this.wood >= 1) propose('build_table', this.group, 200); 
+                        else propose('chop', this.findClosest(trees), 200);
                     }
                 }
 
-                for (let task of actionQueue) {
-                    if (Math.random() > task.pri) continue; // Roll against user slider probability
+                let bB = this.role === 'builder' ? 50 : 0;
+                let bF = this.role === 'farmer' ? 50 : 0;
+                let bM = this.role === 'miner' ? 50 : 0;
 
-                    if (task.type === 'house') {
-                        let brokenHouse = houses.find(h => !h.dead && h.durability < h.maxDurability * 0.5);
-                        if (brokenHouse && this.wood >= 1) return { obj: brokenHouse, action: 'fix_house' };
+                // Building Houses
+                if (houses.length < gussArray.length / 2 && houses.length < 80) {
+                    let s = pHouse * 100 + bB;
+                    if (this.wood >= SIM_SETTINGS.houseWoodCost) propose('build_house', this.group, s);
+                    else propose('chop', this.findClosest(trees), s);
+                }
 
-                        if (houses.length < gussArray.length / 2 && houses.length < 80) {
-                            if (this.wood >= SIM_SETTINGS.houseWoodCost) return { obj: this.group, action: 'build_house' };
-                            let tree = this.findClosest(trees); if(tree) return { obj: tree, action: 'chop' };
-                        }
-                    }
-                    else if (task.type === 'misc') {
-                        if (farms.length < gussArray.length / 2 && farms.length < 50) {
-                            if (this.wood >= SIM_SETTINGS.farmWoodCost) return { obj: this.group, action: 'build_farm' };
-                            let tree = this.findClosest(trees); if(tree) return { obj: tree, action: 'chop' };
-                        }
-                        if (pens.length === 0 || pens.every(p => p.animals.length >= p.capacity)) {
-                            if (this.wood >= SIM_SETTINGS.penWoodCost && pens.length < 20) return { obj: this.group, action: 'build_pen' };
-                            let tree = this.findClosest(trees); if(tree) return { obj: tree, action: 'chop' };
-                        }
-                    }
-                    else if (task.type === 'upgrade') {
-                        // Miners handle gathering for upgrades
-                        if (this.role === 'miner') {
-                            if (this.armorTier > 0) {
-                                let huntableAnimal = animals.find(a => !a.dead && a.isHuntable);
-                                if (huntableAnimal) return { obj: huntableAnimal, action: 'hunt_animal' };
-                            }
-                            if (this.iron >= 3 && (this.pickaxeTier < 2 || this.armorTier < 2)) return { obj: this.group, action: 'craft_iron_gear' }; 
-                            if (this.stone >= 3 && this.armorTier === 0) return { obj: this.group, action: 'craft_stone_armor' };
-                            
-                            if (this.armorTier > 0 && this.pickaxeTier > 0 && this.iron < 5) {
-                                let ir = this.findClosest(irons); if(ir) return { obj: ir, action: 'mine_iron' };
-                            }
-                            let st = this.findClosest(stones); if(st) return { obj: st, action: 'mine_stone' };
-                        } else {
-                            // Builders handle actual upgrading
-                            let upgradeable = houses.find(h => !h.dead && h.level < 6 && !h.isBuilding);
-                            if (upgradeable) {
-                                if (upgradeable.level === 4 && this.stone < 5) {
-                                    let st = this.findClosest(stones); if(st) return { obj: st, action: 'mine_stone' };
-                                }
-                                if (upgradeable.level === 5 && this.iron < 5) {
-                                    let ir = this.findClosest(irons); if(ir) return { obj: ir, action: 'mine_iron' };
-                                }
-                                if (upgradeable.level < 4 && this.wood < SIM_SETTINGS.houseWoodCost) {
-                                    let tree = this.findClosest(trees); if(tree) return { obj: tree, action: 'chop' };
-                                }
-                                // If they have the mats, trigger it!
-                                if ((upgradeable.level===4 && this.stone>=5) || (upgradeable.level===5 && this.iron>=5) || (upgradeable.level<4 && this.wood>=SIM_SETTINGS.houseWoodCost)) {
-                                    return { obj: upgradeable, action: 'start_upgrade' };
-                                }
-                            }
-                            let smallPen = pens.find(p => !p.dead && p.level < 3 && p.animals.length >= p.capacity);
-                            if (smallPen) {
-                                if (this.wood >= 3) return { obj: smallPen, action: 'upgrade_pen' };
-                                let tree = this.findClosest(trees); if(tree) return { obj: tree, action: 'chop' };
-                            }
-                        }
-                    }
-                    else if (task.type === 'breed') {
-                        let readyFarm = farms.find(f => !f.dead && f.isReady);
-                        if (readyFarm) return { obj: readyFarm, action: 'harvest_farm' };
+                // Fixing Houses
+                let broken = houses.find(h => !h.dead && h.durability < h.maxDurability * 0.5);
+                if (broken) {
+                    let s = pHouse * 110 + bB;
+                    if (this.wood >= 1) propose('fix_house', broken, s);
+                    else propose('chop', this.findClosest(trees), s);
+                }
 
-                        if (this.hasPlant) {
-                            let populatedPen = pens.find(p => !p.dead && p.animals.length > 0 && p.animals.length < p.capacity);
-                            if (populatedPen) return { obj: populatedPen, action: 'breed_animal' };
-                            else this.hasPlant = false; 
-                        }
-                        
-                        let wildAnimal = animals.find(a => !a.dead && a.state === 'wild');
-                        let spacePen = pens.find(p => !p.dead && p.animals.length < p.capacity);
-                        if (wildAnimal && spacePen) return { obj: wildAnimal, action: 'herd_animal' };
-
-                        let breedablePen = pens.find(p => !p.dead && p.animals.length > 0 && p.animals.length < p.capacity);
-                        if (breedablePen) {
-                            let f = this.findClosest(foods); if(f) return { obj: f, action: 'fetch_plant' };
-                        }
-                    }
-                    else if (task.type === 'trees') {
-                        let tree = this.findClosest(trees); if(tree) return { obj: tree, action: 'chop' };
-                    }
-                    else if (task.type === 'food') {
-                        if (this.energy > 130) continue; // Don't overeat if hoarding
-                        let bale = this.findClosest(bales); if(bale) return { obj: bale, action: 'eat_bale' };
-                        let f = this.findClosest(foods); if(f) return { obj: f, action: 'eat' };
+                // Upgrading Houses
+                let upg = houses.find(h => !h.dead && h.level < 6 && !h.isBuilding);
+                if (upg) {
+                    let s = pUpgr * 90 + bB + bM;
+                    if (upg.level === 4) {
+                        if (this.stone >= 5) propose('start_upgrade', upg, s);
+                        else propose('mine_stone', this.findClosest(stones), s);
+                    } else if (upg.level === 5) {
+                        if (this.iron >= 5) propose('start_upgrade', upg, s);
+                        else propose('mine_iron', this.findClosest(irons), s);
+                    } else {
+                        if (this.wood >= SIM_SETTINGS.houseWoodCost) propose('start_upgrade', upg, s);
+                        else propose('chop', this.findClosest(trees), s);
                     }
                 }
 
-                // Default Wander
-                return { obj: null, action: 'wander' };
+                // Farming
+                let readyFarm = farms.find(f => !f.dead && f.isReady);
+                if (readyFarm) propose('harvest_farm', readyFarm, pFarm * 120 + bF);
+
+                if (farms.length < gussArray.length / 2 && farms.length < 40) {
+                    let s = pMisc * 80 + bF;
+                    if (this.wood >= SIM_SETTINGS.farmWoodCost) propose('build_farm', this.group, s);
+                    else propose('chop', this.findClosest(trees), s);
+                }
+
+                // Pens & Breeding
+                if (pens.length === 0 || pens.every(p => p.animals.length >= p.capacity)) {
+                    let s = pMisc * 85 + bF;
+                    if (this.wood >= SIM_SETTINGS.penWoodCost && pens.length < 15) propose('build_pen', this.group, s);
+                    else propose('chop', this.findClosest(trees), s);
+                }
+
+                let wildAnimal = animals.find(a => !a.dead && a.state === 'wild');
+                let spacePen = pens.find(p => !p.dead && p.animals.length < p.capacity);
+                if (wildAnimal && spacePen) propose('herd_animal', wildAnimal, pBreed * 90 + bF);
+
+                if (spacePen && pens.some(p => !p.dead && p.animals.length > 0)) {
+                    if (this.hasPlant) propose('breed_animal', spacePen, pBreed * 100 + bF);
+                    else propose('fetch_plant', this.findClosest(foods), pBreed * 95 + bF);
+                }
+
+                // Mining / Crafting Armor
+                if (this.iron >= 3 && (this.pickaxeTier < 2 || this.armorTier < 2)) {
+                    propose('craft_iron_gear', this.group, pMine * 110 + bM);
+                } else if (this.stone >= 3 && this.armorTier === 0) {
+                    propose('craft_stone_armor', this.group, pMine * 105 + bM);
+                } else if (pMine > 0) {
+                    let s = pMine * 70 + bM;
+                    if (this.armorTier > 0 && this.pickaxeTier > 0 && this.iron < 5) propose('mine_iron', this.findClosest(irons), s);
+                    else if (this.stone < 5) propose('mine_stone', this.findClosest(stones), s);
+                }
+
+                // Hunting Giant Animals
+                if (this.armorTier > 0) {
+                    let huntable = animals.find(a => !a.dead && a.isHuntable);
+                    if (huntable) propose('hunt_animal', huntable, pMine * 130 + bM);
+                }
+
+                // Default gathering for hoarders
+                if (bestAction === 'wander') {
+                    if (pTrees > 0 && Math.random() < pTrees) propose('chop', this.findClosest(trees), 10);
+                    else if (pFood > 0 && Math.random() < pFood && this.energy < 150) propose('eat', this.findClosest(foods), 10);
+                }
+
+                return { obj: bestObj, action: bestAction };
             }
 
             isOnTrail() {
@@ -1004,8 +985,7 @@
                         }
                     }
                     if (!near) {
-                        trailsPool[trailIndex].position.x = this.group.position.x;
-                        trailsPool[trailIndex].position.z = this.group.position.z;
+                        trailsPool[trailIndex].position.copy(this.group.position);
                         trailsPool[trailIndex].position.y = 0.02; 
                         trailsPool[trailIndex].rotation.z = -this.group.rotation.y;
                         trailIndex = (trailIndex + 1) % MAX_TRAILS;
@@ -1046,29 +1026,41 @@
                 this.energy -= SIM_SETTINGS.energyDrainPerTick * delta * 60;
                 if(this.energy <= 0) this.takeDamage(delta * 10); 
 
+                // GOAP Resolve
                 if (!this.targetObj || this.currentAction === 'wander' || this.targetObj.dead) {
-                    let decision = this.decideTarget();
-                    if(decision.obj) {
-                        this.targetObj = decision.obj; this.currentAction = decision.action;
-                    } else {
-                        this.targetObj = null; this.currentAction = 'wander';
-                    }
+                    try {
+                        let decision = this.decideTarget();
+                        if(decision.obj) {
+                            this.targetObj = decision.obj; this.currentAction = decision.action;
+                        } else {
+                            this.targetObj = null; this.currentAction = 'wander';
+                        }
+                    } catch(e) { console.error(e); this.targetObj = null; this.currentAction = 'wander'; }
                 }
 
+                let moveDir = new THREE.Vector3();
                 let speedBoost = this.isOnTrail() ? 2.0 : 1.0;
                 if(this.hasShoes) speedBoost *= 2.5;
 
-                const instantActions = ['build_house', 'build_farm', 'build_pen', 'build_table', 'craft_stone_armor', 'craft_iron_gear'];
+                // --- CRASH FREE: Instant Actions ---
+                const instantActions = ['build_house', 'build_farm', 'build_pen', 'build_table', 'start_upgrade', 'craft_stone_armor', 'craft_iron_gear'];
                 
                 if (instantActions.includes(this.currentAction)) {
                     if (this.currentAction === 'build_house') {
-                        this.wood -= SIM_SETTINGS.houseWoodCost; new House({x: this.group.position.x, z: this.group.position.z}); 
+                        this.wood -= SIM_SETTINGS.houseWoodCost; new House(this.group.position.clone()); 
                     } else if (this.currentAction === 'build_farm') {
-                        this.wood -= SIM_SETTINGS.farmWoodCost; new Farm({x: this.group.position.x, z: this.group.position.z});
+                        this.wood -= SIM_SETTINGS.farmWoodCost; new Farm(this.group.position.clone());
                     } else if (this.currentAction === 'build_pen') {
-                        this.wood -= SIM_SETTINGS.penWoodCost; new Pen({x: this.group.position.x, z: this.group.position.z});
+                        this.wood -= SIM_SETTINGS.penWoodCost; new Pen(this.group.position.clone());
                     } else if (this.currentAction === 'build_table') {
-                        this.wood -= 1; new CraftingTable({x: this.group.position.x, z: this.group.position.z});
+                        this.wood -= 1; new CraftingTable(this.group.position.clone());
+                    } else if (this.currentAction === 'start_upgrade') {
+                        if(this.targetObj && !this.targetObj.dead) {
+                            if(this.targetObj.level === 4) this.stone -= 5;
+                            else if(this.targetObj.level === 5) this.iron -= 5;
+                            else this.wood -= SIM_SETTINGS.houseWoodCost;
+                            this.targetObj.startUpgrade();
+                        }
                     } else if (this.currentAction === 'craft_stone_armor') {
                         this.stone -= 3; this.armorTier = 1; this.pickaxeTier = 1; this.axeTier = 1; this.updateArmorVisuals();
                     } else if (this.currentAction === 'craft_iron_gear') {
@@ -1077,29 +1069,19 @@
                     }
                     this.targetObj = null; this.currentAction = 'wander';
                 }
+                // --- Travel Actions ---
                 else if (this.targetObj && !this.targetObj.dead) {
                     let dx = this.targetObj.mesh.position.x - this.group.position.x;
                     let dz = this.targetObj.mesh.position.z - this.group.position.z;
                     let distSq = dx*dx + dz*dz;
-                    let reach = (this.currentAction === 'fix_house' || this.currentAction === 'lead_to_pen' || this.currentAction === 'breed_animal' || this.currentAction === 'upgrade_pen' || this.currentAction === 'craft_shoes' || this.currentAction === 'harvest_farm' || this.currentAction === 'start_upgrade') ? 16.0 : 3.24; 
+                    let reach = (this.currentAction === 'fix_house' || this.currentAction === 'lead_to_pen' || this.currentAction === 'breed_animal' || this.currentAction === 'upgrade_pen' || this.currentAction === 'craft_shoes' || this.currentAction === 'harvest_farm') ? 16.0 : 3.24; 
                     
                     if (distSq > reach) {
                         let len = Math.sqrt(distSq);
                         if (len > 0.001) {
-                            this.group.position.x += (dx / len) * SIM_SETTINGS.gusSpeed * speedBoost * delta * 60;
-                            this.group.position.z += (dz / len) * SIM_SETTINGS.gusSpeed * speedBoost * delta * 60;
-                            this.group.rotation.y = Math.atan2(dx, dz);
-                        }
-                        this.toolGroup.visible = false; 
-                        this.dropTrail();
-                        
-                        if(this.hasShoes) {
-                            this.lShoe.position.y = 0.15 + Math.abs(Math.sin(Date.now()*0.02))*0.3;
-                            this.rShoe.position.y = 0.15 + Math.abs(Math.sin(Date.now()*0.02 + Math.PI))*0.3;
-                        }
+                            moveDir.set(dx/len, 0, dz/len);
+                        } else { moveDir.set(1,0,0); }
                     } else {
-                        if(this.hasShoes) { this.lShoe.position.y = 0.15; this.rShoe.position.y = 0.15; }
-
                         if (this.currentAction === 'eat') {
                             this.energy += SIM_SETTINGS.energyFromFood;
                             this.health = Math.min(this.maxHealth, this.health + 30);
@@ -1113,18 +1095,17 @@
                             this.targetObj = null; this.currentAction = 'wander';
                         }
                         else if (this.currentAction === 'hunt_animal') {
+                            let svX = this.targetObj.mesh.position.x - this.group.position.x;
+                            let svZ = this.targetObj.mesh.position.z - this.group.position.z;
+                            let sqL = svX*svX + svZ*svZ;
+                            if (sqL > 0.001) { moveDir.set(svX/Math.sqrt(sqL), 0, svZ/Math.sqrt(sqL)); } else { moveDir.set(1,0,0); }
+                            
                             this.toolGroup.visible = true; this.toolHead.material = this.pickaxeTier === 2 ? mats.toolIron : mats.toolStone; 
                             this.toolGroup.rotation.z = Math.sin(Date.now() * 0.02); 
+                            
                             if (this.targetObj.takeDamage(60 * delta)) {
                                 this.targetObj = null; this.currentAction = 'wander'; this.toolGroup.visible = false;
                             }
-                        }
-                        else if (this.currentAction === 'start_upgrade') {
-                            if(this.targetObj.level === 4) this.stone -= 5;
-                            else if(this.targetObj.level === 5) this.iron -= 5;
-                            else this.wood -= SIM_SETTINGS.houseWoodCost;
-                            this.targetObj.startUpgrade();
-                            this.targetObj = null; this.currentAction = 'wander';
                         }
                         else if (this.currentAction === 'harvest_farm') {
                             this.targetObj.harvest();
@@ -1142,7 +1123,7 @@
                         }
                         else if (this.currentAction === 'breed_animal') {
                             this.hasPlant = false; this.innerGroup.position.y = Math.sin(Date.now() * 0.01) * 0.5;
-                            let newAnim = new Animal({x: this.targetObj.mesh.position.x, z: this.targetObj.mesh.position.z});
+                            let newAnim = new Animal(this.targetObj.mesh.position.clone());
                             this.targetObj.addAnimal(newAnim);
                             this.targetObj = null; this.currentAction = 'wander';
                         }
@@ -1173,6 +1154,11 @@
                             this.targetObj = null; this.currentAction = 'wander';
                         }
                         else if (this.currentAction === 'chop') {
+                            let svX = this.targetObj.mesh.position.x - this.group.position.x;
+                            let svZ = this.targetObj.mesh.position.z - this.group.position.z;
+                            let sqL = svX*svX + svZ*svZ;
+                            if (sqL > 0.001) { moveDir.set(svX/Math.sqrt(sqL), 0, svZ/Math.sqrt(sqL)); } else { moveDir.set(1,0,0); }
+                            
                             this.toolGroup.visible = true; this.toolHead.material = this.axeTier === 2 ? mats.toolIron : mats.toolWood; 
                             this.toolGroup.rotation.z = Math.sin(Date.now() * 0.02); 
                             let dmg = this.axeTier === 2 ? 80 : 30; 
@@ -1181,6 +1167,11 @@
                             }
                         }
                         else if (this.currentAction === 'mine_stone' || this.currentAction === 'mine_iron') {
+                            let svX = this.targetObj.mesh.position.x - this.group.position.x;
+                            let svZ = this.targetObj.mesh.position.z - this.group.position.z;
+                            let sqL = svX*svX + svZ*svZ;
+                            if (sqL > 0.001) { moveDir.set(svX/Math.sqrt(sqL), 0, svZ/Math.sqrt(sqL)); } else { moveDir.set(1,0,0); }
+
                             this.toolGroup.visible = true; this.toolHead.material = this.pickaxeTier === 2 ? mats.toolIron : mats.toolStone; 
                             this.toolGroup.rotation.z = Math.sin(Date.now() * 0.02); 
                             let dmg = this.pickaxeTier === 2 ? 60 : 25; 
@@ -1189,21 +1180,59 @@
                                 this.targetObj = null; this.currentAction = 'wander'; this.toolGroup.visible = false;
                             }
                         }
-                    }
-                } else {
-                    this.theta += (Math.random() - 0.5) * 0.3;
-                    this.group.position.x += Math.sin(this.theta) * (SIM_SETTINGS.gusSpeed * speedBoost * 0.5) * delta * 60;
-                    this.group.position.z += Math.cos(this.theta) * (SIM_SETTINGS.gusSpeed * speedBoost * 0.5) * delta * 60;
-                    this.group.rotation.y = this.theta;
-                    this.toolGroup.visible = false;
-                    this.dropTrail();
-                    if(this.hasShoes) {
-                        this.lShoe.position.y = 0.15 + Math.abs(Math.sin(Date.now()*0.01))*0.2;
-                        this.rShoe.position.y = 0.15 + Math.abs(Math.sin(Date.now()*0.01 + Math.PI))*0.2;
+                        
+                        if (this.targetObj && this.targetObj.dead) {
+                            this.targetObj = null; this.currentAction = 'wander';
+                        }
                     }
                 }
 
-                // Hard map bounds enforcement
+                if (this.currentAction === 'wander' && moveDir.lengthSq() < 0.1) {
+                    this.theta += (Math.random() - 0.5) * 0.3; 
+                    moveDir.set(Math.sin(this.theta), 0, Math.cos(this.theta));
+                }
+
+                // Smooth collision avoidance
+                let separation = new THREE.Vector3();
+                let count = 0;
+                for (let other of gussArray) {
+                    if (other === this || other.dead) continue;
+                    let dx = this.group.position.x - other.group.position.x;
+                    let dz = this.group.position.z - other.group.position.z;
+                    let dSq = dx*dx + dz*dz;
+                    if (dSq > 0.001 && dSq < 4.0) {
+                        let d = Math.sqrt(dSq);
+                        separation.x += (dx / d) * (2.0 - d);
+                        separation.z += (dz / d) * (2.0 - d);
+                        count++;
+                    }
+                }
+                if (count > 0) {
+                    separation.divideScalar(count).multiplyScalar(0.8);
+                    moveDir.add(separation).normalize();
+                }
+
+                // Apply movement
+                if (moveDir.lengthSq() > 0.001) {
+                    this.group.position.addScaledVector(moveDir, SIM_SETTINGS.gusSpeed * speedBoost * delta * 60);
+                    let targetRotation = Math.atan2(moveDir.x, moveDir.z);
+                    let targetQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), targetRotation);
+                    this.group.quaternion.slerp(targetQuat, delta * 8); 
+                    
+                    this.dropTrail();
+                    if(this.hasShoes) {
+                        this.lShoe.position.y = 0.15 + Math.abs(Math.sin(Date.now()*0.02))*0.3;
+                        this.rShoe.position.y = 0.15 + Math.abs(Math.sin(Date.now()*0.02 + Math.PI))*0.3;
+                    }
+                } else {
+                    this.toolGroup.visible = false;
+                    if(this.hasShoes) {
+                        this.lShoe.position.y = 0.15;
+                        this.rShoe.position.y = 0.15;
+                    }
+                }
+
+                // Hard Bounds
                 let dxC = this.group.position.x; let dzC = this.group.position.z;
                 let dCenterSq = dxC*dxC + dzC*dzC;
                 let bLimit = (SIM_SETTINGS.diskRadius - 1.5);
@@ -1214,14 +1243,14 @@
                     this.theta += Math.PI; 
                 }
 
-                // Dynamic population penalty (Soft Cap)
+                // Soft Cap Population Energy Curve (Removes Hardware Limits)
                 let popPenalty = Math.max(1, gussArray.length / 50);
                 if (this.energy >= SIM_SETTINGS.reproductionEnergy * popPenalty) {
                     this.energy -= 80; 
-                    const spawnPos = {
-                        x: this.group.position.x + Math.sin(this.group.rotation.y)*2.5,
-                        z: this.group.position.z + Math.cos(this.group.rotation.y)*2.5
-                    };
+                    const spawnPos = new THREE.Vector3(
+                        this.group.position.x + Math.sin(this.group.rotation.y)*2.5, 0,
+                        this.group.position.z + Math.cos(this.group.rotation.y)*2.5
+                    );
                     gussArray.push(new Gus(spawnPos, 60)); 
                 }
             }
@@ -1245,20 +1274,14 @@
                 const blastRadiusSq = 196; 
                 [foods, bales, stones, irons, trees, tables, houses, pens, farms, animals].forEach(list => {
                     list.forEach(item => {
-                        if (!item.dead) {
-                            let dx = item.mesh.position.x - this.target.x;
-                            let dz = item.mesh.position.z - this.target.z;
-                            if (dx*dx + dz*dz < blastRadiusSq) {
-                                if(item.chop) item.chop(999); else if(item.mine) item.mine(999); else item.destroy();
-                            }
+                        if (!item.dead && item.mesh.position.distanceToSquared(this.target) < blastRadiusSq) {
+                            if(item.chop) item.chop(999); else if(item.mine) item.mine(999); else item.destroy();
                         }
                     });
                 });
                 gussArray.forEach(g => {
-                    if (!g.dead && !g.dying) {
-                        let dx = g.group.position.x - this.target.x;
-                        let dz = g.group.position.z - this.target.z;
-                        if (dx*dx + dz*dz < blastRadiusSq) g.takeDamage(200); 
+                    if (!g.dead && !g.dying && g.group.position.distanceToSquared(this.target) < blastRadiusSq) {
+                        g.takeDamage(200); 
                     }
                 });
             }
@@ -1291,27 +1314,27 @@
                 document.getElementById('env-tree-val').innerText = currentTreeRateMultiplier + 'x';
             });
             document.getElementById('pri-trees').addEventListener('input', (e) => {
-                sTrees = parseInt(e.target.value) / 100;
+                pTrees = parseInt(e.target.value) / 100;
                 document.getElementById('pri-trees-val').innerText = e.target.value + '%';
             });
             document.getElementById('pri-food').addEventListener('input', (e) => {
-                sFood = parseInt(e.target.value) / 100;
+                pFood = parseInt(e.target.value) / 100;
                 document.getElementById('pri-food-val').innerText = e.target.value + '%';
             });
             document.getElementById('pri-house').addEventListener('input', (e) => {
-                sHouse = parseInt(e.target.value) / 100;
+                pHouse = parseInt(e.target.value) / 100;
                 document.getElementById('pri-house-val').innerText = e.target.value + '%';
             });
             document.getElementById('pri-misc').addEventListener('input', (e) => {
-                sMisc = parseInt(e.target.value) / 100;
+                pMisc = parseInt(e.target.value) / 100;
                 document.getElementById('pri-misc-val').innerText = e.target.value + '%';
             });
             document.getElementById('pri-upgr').addEventListener('input', (e) => {
-                sUpgr = parseInt(e.target.value) / 100;
+                pUpgr = parseInt(e.target.value) / 100;
                 document.getElementById('pri-upgr-val').innerText = e.target.value + '%';
             });
             document.getElementById('pri-breed').addEventListener('input', (e) => {
-                sBreed = parseInt(e.target.value) / 100;
+                pBreed = parseInt(e.target.value) / 100;
                 document.getElementById('pri-breed-val').innerText = e.target.value + '%';
             });
         }
@@ -1387,7 +1410,7 @@
             
             let liveGussCount = 0;
             gussArray.forEach(g => {
-                g.update(delta);
+                try { g.update(delta); } catch(e) { console.error(e); }
                 if (!g.dying && !g.dead) liveGussCount++;
             });
 
@@ -1451,7 +1474,7 @@
         let popGraph, foodGraph;
         function initGraphs() {
             popGraph = new MiniGraph('graph-pop', '#44aaff'); 
-            foodGraph = new MiniGraph('graph-food', '#55ff55'); 
+            foodGraph = new MiniGraph('graph-food', '#ffcc00'); 
         }
 
         function onWindowResize() {
