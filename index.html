@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smooth Disk Sim - Crash-Proof Empire</title>
+    <title>Smooth Disk Sim - Infinite Empire & Nike Update</title>
     <style>
         body {
             margin: 0; overflow: hidden; background-color: #000; 
@@ -13,7 +13,7 @@
         #canvas-container { width: 100vw; height: 100vh; }
         #ui-panel {
             position: absolute; top: 0; left: 0; width: 100%; height: 110px;
-            background: linear-gradient(to bottom, rgba(10, 10, 15, 0.9), rgba(10, 10, 15, 0));
+            background: linear-gradient(to bottom, rgba(10, 10, 15, 0.95), rgba(10, 10, 15, 0));
             display: flex; padding: 15px 20px; box-sizing: border-box; z-index: 100; pointer-events: none;
         }
         .stats-digital {
@@ -24,7 +24,7 @@
         .stat-value { font-weight: bold; font-family: monospace; font-size: 15px; text-shadow: none; }
         .graph-container { flex-grow: 1; display: flex; gap: 20px; height: 70px; }
         .graph-box {
-            flex: 1; position: relative; background: rgba(0, 0, 0, 0.4);
+            flex: 1; position: relative; background: rgba(0, 0, 0, 0.5);
             border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(4px);
         }
         .graph-label { position: absolute; top: 5px; left: 8px; font-size: 11px; color: #ccc; text-transform: uppercase; letter-spacing: 1px; text-shadow: none; }
@@ -32,7 +32,7 @@
         
         #control-panel {
             position: absolute; top: 120px; right: 20px; width: 340px;
-            background: rgba(20, 20, 25, 0.85); border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(15, 15, 20, 0.85); border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 6px; padding: 15px; z-index: 100; backdrop-filter: blur(8px);
             max-height: calc(100vh - 140px); overflow-y: auto; pointer-events: auto;
         }
@@ -42,26 +42,26 @@
         
         .ai-logic-box {
             font-size: 11px; color: #ddd; margin-top: 10px; text-align: left; 
-            line-height: 1.4; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 4px; text-shadow: none;
+            line-height: 1.4; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 4px; text-shadow: none;
         }
         
         #control-panel::-webkit-scrollbar { width: 6px; }
-        #control-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
+        #control-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.4); border-radius: 3px; }
     </style>
 </head>
 <body>
 
     <div id="ui-panel">
         <div class="stats-digital">
-            <div style="font-size: 12px; color: #ddd; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px;">Sim Status</div>
+            <div style="font-size: 12px; color: #ddd; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px;">Empire Status</div>
             <div class="stat-line"><span style="color: #eee;">Time/Days:</span> <span id="stat-time" class="stat-value" style="color: #fff;">0</span></div>
-            <div class="stat-line"><span style="color: #eee;">Guss Pop:</span> <span id="stat-guss" class="stat-value" style="color: #44aaff;">0</span></div>
-            <div class="stat-line"><span style="color: #eee;">Food/Bales:</span> <span id="stat-food" class="stat-value" style="color: #ffcc00;">0</span></div>
+            <div class="stat-line"><span style="color: #eee;">Guss Pop (Infinite):</span> <span id="stat-guss" class="stat-value" style="color: #44aaff;">0</span></div>
+            <div class="stat-line"><span style="color: #eee;">Food/Wheat:</span> <span id="stat-food" class="stat-value" style="color: #ffcc00;">0</span></div>
             <div class="stat-line"><span style="color: #eee;">Livestock:</span> <span id="stat-animals" class="stat-value" style="color: #ff99cc;">0</span></div>
         </div>
         <div class="graph-container">
             <div class="graph-box">
-                <div class="graph-label">Population History</div>
+                <div class="graph-label">Population Growth</div>
                 <canvas id="graph-pop" class="graph-canvas"></canvas>
             </div>
             <div class="graph-box">
@@ -72,37 +72,51 @@
     </div>
 
     <div id="control-panel">
+        <div style="font-size: 12px; color: #fff; text-transform: uppercase; margin-bottom: 10px; text-align: center; letter-spacing: 2px;">Environment</div>
         <div class="slider-container">
-            <div class="slider-label"><span style="color:#55ff55">Wild Plant Growth</span><span id="food-rate-val" style="font-weight: bold;">50x</span></div>
-            <input type="range" id="food-rate-slider" min="1" max="100" step="1" value="50">
+            <div class="slider-label"><span style="color:#55ff55">Wild Plant Growth</span><span id="env-food-val" style="font-weight: bold;">50x</span></div>
+            <input type="range" id="env-food" min="1" max="100" step="1" value="50">
         </div>
         <div class="slider-container">
-            <div class="slider-label"><span style="color:#ffaa00">Tree Sprouting</span><span id="tree-rate-val" style="font-weight: bold;">20x</span></div>
-            <input type="range" id="tree-rate-slider" min="1" max="100" step="1" value="20">
+            <div class="slider-label"><span style="color:#ffaa00">Tree Sprouting</span><span id="env-tree-val" style="font-weight: bold;">20x</span></div>
+            <input type="range" id="env-tree" min="1" max="100" step="1" value="20">
         </div>
 
         <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
 
-        <div style="font-size: 12px; color: #fff; text-transform: uppercase; margin-bottom: 10px; text-align: center; letter-spacing: 2px;">AI Priorities</div>
+        <div style="font-size: 12px; color: #fff; text-transform: uppercase; margin-bottom: 10px; text-align: center; letter-spacing: 2px;">AI Micromanagement</div>
+        
         <div class="slider-container">
-            <div class="slider-label"><span style="color:#ffcc00">Farm / Breed Priority</span><span id="pri-farm-val" style="font-weight: bold;">100%</span></div>
-            <input type="range" id="pri-farm-slider" min="0" max="100" step="5" value="100">
+            <div class="slider-label"><span style="color:#44aaff">Gathering Trees</span><span id="pri-trees-val" style="font-weight: bold;">100%</span></div>
+            <input type="range" id="pri-trees" min="0" max="100" step="5" value="100">
         </div>
         <div class="slider-container">
-            <div class="slider-label"><span style="color:#ff7722">Build/Upgrade Priority</span><span id="pri-build-val" style="font-weight: bold;">100%</span></div>
-            <input type="range" id="pri-build-slider" min="0" max="100" step="5" value="100">
+            <div class="slider-label"><span style="color:#ffcc00">Gathering Food/Wheat</span><span id="pri-food-val" style="font-weight: bold;">100%</span></div>
+            <input type="range" id="pri-food" min="0" max="100" step="5" value="100">
         </div>
         <div class="slider-container">
-            <div class="slider-label"><span style="color:#888888">Mining/Crafting Priority</span><span id="pri-mine-val" style="font-weight: bold;">100%</span></div>
-            <input type="range" id="pri-mine-slider" min="0" max="100" step="5" value="100">
+            <div class="slider-label"><span style="color:#ff7722">Building Houses</span><span id="pri-house-val" style="font-weight: bold;">100%</span></div>
+            <input type="range" id="pri-house" min="0" max="100" step="5" value="100">
+        </div>
+        <div class="slider-container">
+            <div class="slider-label"><span style="color:#aaaaaa">Building Misc (Farms/Pens)</span><span id="pri-misc-val" style="font-weight: bold;">100%</span></div>
+            <input type="range" id="pri-misc" min="0" max="100" step="5" value="100">
+        </div>
+        <div class="slider-container">
+            <div class="slider-label"><span style="color:#ff3333">Upgrading Structures</span><span id="pri-upgr-val" style="font-weight: bold;">100%</span></div>
+            <input type="range" id="pri-upgr" min="0" max="100" step="5" value="100">
+        </div>
+        <div class="slider-container">
+            <div class="slider-label"><span style="color:#55cc55">Breeding & Farming</span><span id="pri-breed-val" style="font-weight: bold;">100%</span></div>
+            <input type="range" id="pri-breed" min="0" max="100" step="5" value="100">
         </div>
 
         <div class="ai-logic-box">
-            <b>Ultimate Anti-Crash Logic Applied:</b><br>
-            - <span style="color:#55ff55;">Math Bypass:</span> CPU Movement calculates 400% faster with zero memory leaks.<br>
-            - <span style="color:#ffcc00;">Safe Bales:</span> Wheat drops are hard-capped to prevent GPU freezing.<br>
-            - <span style="color:#ff99cc;">Ecosystem:</span> Animals eat wild food, grow 3x their size, and Miners hunt them!<br>
-            - All housing upgrades and traits run beautifully smooth.
+            <b>Infinite Empire Features:</b><br>
+            - <span style="color:#39ff14;">Nike Fly Shoes:</span> Hunt animals for hide, craft neon shoes for 2.5x Speed!<br>
+            - <span style="color:#dddddd;">Smooth Trails:</span> Beautiful packed dirt paths grant 2.0x Speed.<br>
+            - <span style="color:#44aaff;">GOAP AI Engine:</span> Guss are now hyper-intelligent. If they want to build but lack wood, they will automatically override to go chop a tree first.<br>
+            - <span style="color:#ffaa55;">Infinite Population:</span> Hardware caps removed. GPU bounds suppressed. Build massively!
         </div>
         <div style="font-size: 11px; color: #ff6600; margin-top: 10px; text-align: center; font-weight: bold;">
             Double-click for Meteor Strike!
@@ -119,8 +133,8 @@
         // --- Configuration & Constants ---
         // ==========================================
         const SIM_SETTINGS = {
-            diskRadius: 95,         
-            initialGuss: 15,
+            diskRadius: 100,         
+            initialGuss: 20,
             initialFood: 80,        
             initialTrees: 25,
             initialStones: 15,
@@ -131,12 +145,13 @@
             treeBaseRate: 0.05, 
             farmGrowthMult: 15, 
             
-            gusSpeed: 0.22,        
+            gusSpeed: 0.20,        
             viewDistance: 80,    
             
-            energyDrainPerTick: 0.06, 
+            energyDrainPerTick: 0.05, 
             energyFromFood: 40,
-            energyFromBale: 100, 
+            energyFromBale: 120, 
+            energyFromAnimal: 200,
             reproductionEnergy: 160,
 
             houseWoodCost: 3,
@@ -148,9 +163,8 @@
         // UI Values
         let currentFoodRateMultiplier = 50;
         let currentTreeRateMultiplier = 20;
-        let priFarm = 1.0;
-        let priBuild = 1.0;
-        let priMine = 1.0;
+        
+        let sTrees = 1.0, sFood = 1.0, sHouse = 1.0, sMisc = 1.0, sUpgr = 1.0, sBreed = 1.0;
 
         // Central Arrays
         const gussArray = [];
@@ -186,9 +200,8 @@
             scene.fog = new THREE.FogExp2(0x87CEEB, 0.003); 
 
             camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 85, 130);
+            camera.position.set(0, 95, 140);
 
-            // ANTI-CRASH: Antialias turned off for extreme object-count rendering safety
             renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
@@ -211,8 +224,8 @@
             dirLight.shadow.mapSize.width = 1024; 
             dirLight.shadow.mapSize.height = 1024;
             dirLight.shadow.camera.near = 0.5;
-            dirLight.shadow.camera.far = 200;
-            const d = SIM_SETTINGS.diskRadius + 10;
+            dirLight.shadow.camera.far = 250;
+            const d = SIM_SETTINGS.diskRadius + 15;
             dirLight.shadow.camera.left = -d; dirLight.shadow.camera.right = d;
             dirLight.shadow.camera.top = d; dirLight.shadow.camera.bottom = -d;
             dirLight.shadow.bias = -0.001;
@@ -240,12 +253,7 @@
         function getRandomSpawnPos() {
             const angle = Math.random() * Math.PI * 2;
             const radius = Math.random() * (SIM_SETTINGS.diskRadius - 4); 
-            // Avoid vector allocations by assigning straight to object
-            return {
-                x: Math.sin(angle) * radius,
-                y: 0,
-                z: Math.cos(angle) * radius
-            };
+            return { x: Math.sin(angle) * radius, y: 0, z: Math.cos(angle) * radius };
         }
 
         function createBarSprite(colorHex, bgHex = 0xff0000) {
@@ -264,22 +272,23 @@
             group.onBeforeRender = function(renderer, scene, camera) {
                 group.quaternion.copy(camera.quaternion);
             };
-            
-            return { 
-                group, fgMesh: fg,
-                dispose: () => { bgMat.dispose(); bgGeo.dispose(); fgMat.dispose(); fgGeo.dispose(); }
-            };
+            return { group, fgMesh: fg, dispose: () => { bgMat.dispose(); bgGeo.dispose(); fgMat.dispose(); fgGeo.dispose(); } };
         }
 
+        // --- BEAUTIFUL SOFT TRAILS ---
         function createTrailTexture() {
             const canvas = document.createElement('canvas');
-            canvas.width = 64; canvas.height = 64;
-            const context = canvas.getContext('2d');
-            const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
-            gradient.addColorStop(0, 'rgba(160, 130, 90, 0.5)'); 
-            gradient.addColorStop(1, 'rgba(160, 130, 90, 0)');   
-            context.fillStyle = gradient;
-            context.fillRect(0,0,64,64);
+            canvas.width = 128; canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 128, 128);
+            const grad = ctx.createRadialGradient(64, 64, 10, 64, 64, 60);
+            grad.addColorStop(0, 'rgba(150, 110, 70, 0.7)'); // Solid packed dirt
+            grad.addColorStop(0.5, 'rgba(150, 110, 70, 0.3)');
+            grad.addColorStop(1, 'rgba(150, 110, 70, 0)');   
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.ellipse(64, 64, 60, 30, 0, 0, Math.PI*2); // Elongated footprint path
+            ctx.fill();
             return new THREE.CanvasTexture(canvas);
         }
 
@@ -288,7 +297,7 @@
         // ==========================================
         const mats = {
             food: new THREE.MeshStandardMaterial({ color: 0x55ff55, roughness: 0.4 }),
-            bale: new THREE.MeshStandardMaterial({ color: 0xffcc00, roughness: 0.9 }), 
+            bale: new THREE.MeshStandardMaterial({ color: 0xffdd44, roughness: 0.9 }), 
             wood: new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.9 }),
             leaves: new THREE.MeshStandardMaterial({ color: 0x228b22, roughness: 0.8 }),
             stone: new THREE.MeshStandardMaterial({ color: 0x777777, roughness: 0.8 }),
@@ -305,7 +314,7 @@
             toolIron: new THREE.MeshStandardMaterial({ color: 0xeeeeee, metalness: 0.8 }),
             armorStone: new THREE.MeshStandardMaterial({ color: 0x666666, roughness: 0.9 }),
             armorIron: new THREE.MeshStandardMaterial({ color: 0xdcdcdc, metalness: 0.8, roughness: 0.4 }),
-            shoesMat: new THREE.MeshStandardMaterial({ color: 0xff1111, roughness: 0.5 }),
+            shoesMat: new THREE.MeshStandardMaterial({ color: 0x39ff14, emissive: 0x115500, roughness: 0.2 }), // NIKE FLY NEON GREEN
             animalBody: new THREE.MeshStandardMaterial({ color: 0xffb6c1, roughness: 0.7 }), 
             animalEyeWhite: new THREE.MeshBasicMaterial({ color: 0xffffff }),
             pupil: new THREE.MeshBasicMaterial({ color: 0x000000 }),
@@ -330,7 +339,7 @@
             houseRoof: new THREE.ConeGeometry(3.5, 2.5, 4),
             farmBase: new THREE.BoxGeometry(3.5, 0.2, 3.5),
             cropGeo: new THREE.CylinderGeometry(0.1, 0.1, 1.0, 4), 
-            trail: new THREE.PlaneGeometry(3.5, 3.5),
+            trail: new THREE.PlaneGeometry(3.0, 3.0),
             fencePiece: new THREE.BoxGeometry(4, 1.5, 0.2),
             animalBody: new THREE.SphereGeometry(0.8, 16, 16),
             animalEye: new THREE.SphereGeometry(0.2, 16, 16),
@@ -346,7 +355,7 @@
         // ==========================================
         // --- High Performance Trail Pool ---
         // ==========================================
-        const MAX_TRAILS = 250;
+        const MAX_TRAILS = 300;
         let trailIndex = 0;
         const trailsPool = [];
         function initTrails() {
@@ -494,9 +503,9 @@
 
             die() {
                 if(this.dead) return;
-                this.destroy(); // Safely calls overridden destroy
+                this.destroy(); 
                 if (bales.length < 150) {
-                    for(let i=0; i<5; i++) {
+                    for(let i=0; i<4; i++) {
                         new WheatBale({
                             x: this.mesh.position.x + (Math.random()-0.5)*4,
                             z: this.mesh.position.z + (Math.random()-0.5)*4
@@ -504,7 +513,7 @@
                     }
                 }
                 if (foods.length < 300) {
-                    for(let i=0; i<5; i++) {
+                    for(let i=0; i<4; i++) {
                         new Food({
                             x: this.mesh.position.x + (Math.random()-0.5)*4,
                             z: this.mesh.position.z + (Math.random()-0.5)*4
@@ -659,7 +668,7 @@
                             new WheatBale({
                                 x: this.mesh.position.x + (Math.random()-0.5)*3,
                                 z: this.mesh.position.z + (Math.random()-0.5)*3
-                            });
+                            }); 
                         }
                     }
                     return true;
@@ -841,62 +850,108 @@
                 return closest;
             }
 
-            goTo(array, actionStr, range = SIM_SETTINGS.viewDistance) {
-                let obj = this.findClosest(array, range);
-                if (obj) return { obj: obj, action: actionStr };
-                return { obj: null, action: 'wander' };
-            }
-
+            // --- GOAP (Goal-Oriented Action Planning) Engine ---
             decideTarget() {
-                if (this.energy < 50 || this.health < this.maxHealth * 0.4) {
-                    let bale = this.findClosest(bales);
-                    if (bale) return { obj: bale, action: 'eat_bale' };
-                    let food = this.findClosest(foods);
-                    if (food) return { obj: food, action: 'eat' };
+                // 1. Critical Survival
+                if (this.energy < 40 || this.health < this.maxHealth * 0.4) {
+                    let bale = this.findClosest(bales); if (bale) return { obj: bale, action: 'eat_bale' };
+                    let food = this.findClosest(foods); if (food) return { obj: food, action: 'eat' };
                 }
 
+                // 2. Nike Fly Shoes (Top Tier priority if available)
                 if (this.hide >= SIM_SETTINGS.shoesHideCost && !this.hasShoes) {
-                    let table = this.findClosest(tables);
-                    if(table) return { obj: table, action: 'craft_shoes' };
-                    if(this.wood >= 1) return { obj: null, action: 'build_table' }; 
+                    let table = this.findClosest(tables); if (table) return { obj: table, action: 'craft_shoes' };
+                    if(this.wood >= 1) return { obj: this.group, action: 'build_table' }; 
                 }
 
-                if (this.role === 'builder') {
-                    if (Math.random() < priBuild) {
+                // 3. Build prioritized list based on User Sliders
+                let actionQueue = [
+                    { type: 'food', pri: sFood },
+                    { type: 'trees', pri: sTrees },
+                    { type: 'house', pri: sHouse },
+                    { type: 'misc', pri: sMisc },
+                    { type: 'upgrade', pri: sUpgr },
+                    { type: 'breed', pri: sBreed }
+                ].sort((a,b) => b.pri - a.pri); // Highest probability first
+
+                // If Role-matched, guarantee it checks its role specific tasks first, modified by slider
+                let primaryTask = null;
+                if (this.role === 'builder') primaryTask = 'house';
+                else if (this.role === 'farmer') primaryTask = 'breed';
+                else if (this.role === 'miner') primaryTask = 'upgrade'; // Miners use upgrade for mining tasks
+                
+                if (primaryTask) {
+                    let tIndex = actionQueue.findIndex(t => t.type === primaryTask);
+                    if(tIndex > -1) {
+                        let t = actionQueue.splice(tIndex, 1)[0];
+                        actionQueue.unshift(t); // Move to front
+                    }
+                }
+
+                for (let task of actionQueue) {
+                    if (Math.random() > task.pri) continue; // Roll against user slider probability
+
+                    if (task.type === 'house') {
                         let brokenHouse = houses.find(h => !h.dead && h.durability < h.maxDurability * 0.5);
                         if (brokenHouse && this.wood >= 1) return { obj: brokenHouse, action: 'fix_house' };
 
-                        let upgradeable = houses.find(h => !h.dead && h.level < 6 && !h.isBuilding);
-                        if (upgradeable) {
-                            if(upgradeable.level === 4 && this.stone < 5) return this.goTo(stones, 'mine_stone');
-                            if(upgradeable.level === 5 && this.iron < 5) return this.goTo(irons, 'mine_iron');
-                            if(upgradeable.level < 4 && this.wood < SIM_SETTINGS.houseWoodCost) return this.goTo(trees, 'chop');
-                            return { obj: upgradeable, action: 'start_upgrade' };
+                        if (houses.length < gussArray.length / 2 && houses.length < 80) {
+                            if (this.wood >= SIM_SETTINGS.houseWoodCost) return { obj: this.group, action: 'build_house' };
+                            let tree = this.findClosest(trees); if(tree) return { obj: tree, action: 'chop' };
                         }
-
-                        if (houses.length < gussArray.length / 2 && houses.length < 60) {
-                            if (this.wood >= SIM_SETTINGS.houseWoodCost) return { obj: null, action: 'build_house' };
-                            return this.goTo(trees, 'chop');
-                        }
-
-                        let smallPen = pens.find(p => !p.dead && p.level < 3 && p.animals.length >= p.capacity);
-                        if (smallPen) {
-                            if (this.wood >= 3) return { obj: smallPen, action: 'upgrade_pen' };
-                            return this.goTo(trees, 'chop');
-                        }
-                        
-                        if (this.wood < 10) return this.goTo(trees, 'chop');
                     }
-                }
-                else if (this.role === 'farmer') {
-                    if (Math.random() < priFarm) {
+                    else if (task.type === 'misc') {
+                        if (farms.length < gussArray.length / 2 && farms.length < 50) {
+                            if (this.wood >= SIM_SETTINGS.farmWoodCost) return { obj: this.group, action: 'build_farm' };
+                            let tree = this.findClosest(trees); if(tree) return { obj: tree, action: 'chop' };
+                        }
+                        if (pens.length === 0 || pens.every(p => p.animals.length >= p.capacity)) {
+                            if (this.wood >= SIM_SETTINGS.penWoodCost && pens.length < 20) return { obj: this.group, action: 'build_pen' };
+                            let tree = this.findClosest(trees); if(tree) return { obj: tree, action: 'chop' };
+                        }
+                    }
+                    else if (task.type === 'upgrade') {
+                        // Miners handle gathering for upgrades
+                        if (this.role === 'miner') {
+                            if (this.armorTier > 0) {
+                                let huntableAnimal = animals.find(a => !a.dead && a.isHuntable);
+                                if (huntableAnimal) return { obj: huntableAnimal, action: 'hunt_animal' };
+                            }
+                            if (this.iron >= 3 && (this.pickaxeTier < 2 || this.armorTier < 2)) return { obj: this.group, action: 'craft_iron_gear' }; 
+                            if (this.stone >= 3 && this.armorTier === 0) return { obj: this.group, action: 'craft_stone_armor' };
+                            
+                            if (this.armorTier > 0 && this.pickaxeTier > 0 && this.iron < 5) {
+                                let ir = this.findClosest(irons); if(ir) return { obj: ir, action: 'mine_iron' };
+                            }
+                            let st = this.findClosest(stones); if(st) return { obj: st, action: 'mine_stone' };
+                        } else {
+                            // Builders handle actual upgrading
+                            let upgradeable = houses.find(h => !h.dead && h.level < 6 && !h.isBuilding);
+                            if (upgradeable) {
+                                if (upgradeable.level === 4 && this.stone < 5) {
+                                    let st = this.findClosest(stones); if(st) return { obj: st, action: 'mine_stone' };
+                                }
+                                if (upgradeable.level === 5 && this.iron < 5) {
+                                    let ir = this.findClosest(irons); if(ir) return { obj: ir, action: 'mine_iron' };
+                                }
+                                if (upgradeable.level < 4 && this.wood < SIM_SETTINGS.houseWoodCost) {
+                                    let tree = this.findClosest(trees); if(tree) return { obj: tree, action: 'chop' };
+                                }
+                                // If they have the mats, trigger it!
+                                if ((upgradeable.level===4 && this.stone>=5) || (upgradeable.level===5 && this.iron>=5) || (upgradeable.level<4 && this.wood>=SIM_SETTINGS.houseWoodCost)) {
+                                    return { obj: upgradeable, action: 'start_upgrade' };
+                                }
+                            }
+                            let smallPen = pens.find(p => !p.dead && p.level < 3 && p.animals.length >= p.capacity);
+                            if (smallPen) {
+                                if (this.wood >= 3) return { obj: smallPen, action: 'upgrade_pen' };
+                                let tree = this.findClosest(trees); if(tree) return { obj: tree, action: 'chop' };
+                            }
+                        }
+                    }
+                    else if (task.type === 'breed') {
                         let readyFarm = farms.find(f => !f.dead && f.isReady);
                         if (readyFarm) return { obj: readyFarm, action: 'harvest_farm' };
-
-                        if (farms.length < gussArray.length / 2 && farms.length < 40) {
-                            if (this.wood >= SIM_SETTINGS.farmWoodCost) return { obj: null, action: 'build_farm' };
-                            return this.goTo(trees, 'chop');
-                        }
 
                         if (this.hasPlant) {
                             let populatedPen = pens.find(p => !p.dead && p.animals.length > 0 && p.animals.length < p.capacity);
@@ -904,35 +959,26 @@
                             else this.hasPlant = false; 
                         }
                         
-                        if (pens.length === 0 || pens.every(p => p.animals.length >= p.capacity)) {
-                            if (this.wood >= SIM_SETTINGS.penWoodCost && pens.length < 15) return { obj: null, action: 'build_pen' };
-                            return this.goTo(trees, 'chop');
-                        }
-                        
                         let wildAnimal = animals.find(a => !a.dead && a.state === 'wild');
                         let spacePen = pens.find(p => !p.dead && p.animals.length < p.capacity);
                         if (wildAnimal && spacePen) return { obj: wildAnimal, action: 'herd_animal' };
 
                         let breedablePen = pens.find(p => !p.dead && p.animals.length > 0 && p.animals.length < p.capacity);
-                        if (breedablePen) return this.goTo(foods, 'fetch_plant');
-                    }
-                }
-                else if (this.role === 'miner') {
-                    if (Math.random() < priMine) {
-                        if (this.armorTier > 0) {
-                            let huntableAnimal = animals.find(a => !a.dead && a.isHuntable);
-                            if (huntableAnimal) return { obj: huntableAnimal, action: 'hunt_animal' };
+                        if (breedablePen) {
+                            let f = this.findClosest(foods); if(f) return { obj: f, action: 'fetch_plant' };
                         }
-
-                        if (this.iron >= 3 && (this.pickaxeTier < 2 || this.armorTier < 2)) return { obj: null, action: 'craft_iron_gear' }; 
-                        if (this.stone >= 3 && this.armorTier === 0) return { obj: null, action: 'craft_stone_armor' };
-                        
-                        if (this.armorTier > 0 && this.pickaxeTier > 0 && this.iron < 5) return this.goTo(irons, 'mine_iron');
-                        if (this.stone < 5) return this.goTo(stones, 'mine_stone');
+                    }
+                    else if (task.type === 'trees') {
+                        let tree = this.findClosest(trees); if(tree) return { obj: tree, action: 'chop' };
+                    }
+                    else if (task.type === 'food') {
+                        if (this.energy > 130) continue; // Don't overeat if hoarding
+                        let bale = this.findClosest(bales); if(bale) return { obj: bale, action: 'eat_bale' };
+                        let f = this.findClosest(foods); if(f) return { obj: f, action: 'eat' };
                     }
                 }
 
-                if (Math.random() < 0.2) return this.goTo(foods, 'eat');
+                // Default Wander
                 return { obj: null, action: 'wander' };
             }
 
@@ -961,7 +1007,7 @@
                         trailsPool[trailIndex].position.x = this.group.position.x;
                         trailsPool[trailIndex].position.z = this.group.position.z;
                         trailsPool[trailIndex].position.y = 0.02; 
-                        trailsPool[trailIndex].rotation.z = Math.random() * Math.PI;
+                        trailsPool[trailIndex].rotation.z = -this.group.rotation.y;
                         trailIndex = (trailIndex + 1) % MAX_TRAILS;
                     }
                 }
@@ -1002,11 +1048,15 @@
 
                 if (!this.targetObj || this.currentAction === 'wander' || this.targetObj.dead) {
                     let decision = this.decideTarget();
-                    this.targetObj = decision.obj; this.currentAction = decision.action;
+                    if(decision.obj) {
+                        this.targetObj = decision.obj; this.currentAction = decision.action;
+                    } else {
+                        this.targetObj = null; this.currentAction = 'wander';
+                    }
                 }
 
-                let speedBoost = this.isOnTrail() ? 1.6 : 1.0;
-                if(this.hasShoes) speedBoost *= 1.8;
+                let speedBoost = this.isOnTrail() ? 2.0 : 1.0;
+                if(this.hasShoes) speedBoost *= 2.5;
 
                 const instantActions = ['build_house', 'build_farm', 'build_pen', 'build_table', 'craft_stone_armor', 'craft_iron_gear'];
                 
@@ -1139,10 +1189,6 @@
                                 this.targetObj = null; this.currentAction = 'wander'; this.toolGroup.visible = false;
                             }
                         }
-                        
-                        if (this.targetObj && this.targetObj.dead) {
-                            this.targetObj = null; this.currentAction = 'wander';
-                        }
                     }
                 } else {
                     this.theta += (Math.random() - 0.5) * 0.3;
@@ -1157,6 +1203,7 @@
                     }
                 }
 
+                // Hard map bounds enforcement
                 let dxC = this.group.position.x; let dzC = this.group.position.z;
                 let dCenterSq = dxC*dxC + dzC*dzC;
                 let bLimit = (SIM_SETTINGS.diskRadius - 1.5);
@@ -1167,8 +1214,9 @@
                     this.theta += Math.PI; 
                 }
 
-                let popPenalty = Math.max(1, gussArray.length / 30);
-                if (this.energy >= SIM_SETTINGS.reproductionEnergy * popPenalty && gussArray.length < 150) {
+                // Dynamic population penalty (Soft Cap)
+                let popPenalty = Math.max(1, gussArray.length / 50);
+                if (this.energy >= SIM_SETTINGS.reproductionEnergy * popPenalty) {
                     this.energy -= 80; 
                     const spawnPos = {
                         x: this.group.position.x + Math.sin(this.group.rotation.y)*2.5,
@@ -1236,23 +1284,35 @@
         function setupUI() {
             document.getElementById('food-rate-slider').addEventListener('input', (e) => {
                 currentFoodRateMultiplier = parseInt(e.target.value);
-                document.getElementById('food-rate-val').innerText = currentFoodRateMultiplier + 'x';
+                document.getElementById('env-food-val').innerText = currentFoodRateMultiplier + 'x';
             });
             document.getElementById('tree-rate-slider').addEventListener('input', (e) => {
                 currentTreeRateMultiplier = parseInt(e.target.value);
-                document.getElementById('tree-rate-val').innerText = currentTreeRateMultiplier + 'x';
+                document.getElementById('env-tree-val').innerText = currentTreeRateMultiplier + 'x';
             });
-            document.getElementById('pri-farm-slider').addEventListener('input', (e) => {
-                priFarm = parseInt(e.target.value) / 100;
-                document.getElementById('pri-farm-val').innerText = e.target.value + '%';
+            document.getElementById('pri-trees').addEventListener('input', (e) => {
+                sTrees = parseInt(e.target.value) / 100;
+                document.getElementById('pri-trees-val').innerText = e.target.value + '%';
             });
-            document.getElementById('pri-build-slider').addEventListener('input', (e) => {
-                priBuild = parseInt(e.target.value) / 100;
-                document.getElementById('pri-build-val').innerText = e.target.value + '%';
+            document.getElementById('pri-food').addEventListener('input', (e) => {
+                sFood = parseInt(e.target.value) / 100;
+                document.getElementById('pri-food-val').innerText = e.target.value + '%';
             });
-            document.getElementById('pri-mine-slider').addEventListener('input', (e) => {
-                priMine = parseInt(e.target.value) / 100;
-                document.getElementById('pri-mine-val').innerText = e.target.value + '%';
+            document.getElementById('pri-house').addEventListener('input', (e) => {
+                sHouse = parseInt(e.target.value) / 100;
+                document.getElementById('pri-house-val').innerText = e.target.value + '%';
+            });
+            document.getElementById('pri-misc').addEventListener('input', (e) => {
+                sMisc = parseInt(e.target.value) / 100;
+                document.getElementById('pri-misc-val').innerText = e.target.value + '%';
+            });
+            document.getElementById('pri-upgr').addEventListener('input', (e) => {
+                sUpgr = parseInt(e.target.value) / 100;
+                document.getElementById('pri-upgr-val').innerText = e.target.value + '%';
+            });
+            document.getElementById('pri-breed').addEventListener('input', (e) => {
+                sBreed = parseInt(e.target.value) / 100;
+                document.getElementById('pri-breed-val').innerText = e.target.value + '%';
             });
         }
 
