@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smooth Disk Sim - Agriculture & Efficiency</title>
+    <title>Smooth Disk Sim - Ultimate Stability Edition</title>
     <style>
         body {
             margin: 0; overflow: hidden; background-color: #000; 
@@ -99,10 +99,11 @@
         </div>
 
         <div class="ai-logic-box">
-            <b>Agriculture & Efficiency Update:</b><br>
+            <b>Agriculture & Efficiency Features:</b><br>
             - <span style="color:#ffcc00;">Wheat Farming:</span> Farm plots grow golden Wheat. Harvest to get Wheat Bales (Super-food!).<br>
             - <span style="color:#ffaa55;">Speed Trails:</span> Guss pack dirt down into Trails. Walking on trails gives +60% Speed!<br>
-            - <span style="color:#ff99cc;">Micromanagement:</span> Control the civilization's priorities directly. (E.g. Set Farming to 0% to force them to build).<br>
+            - <span style="color:#ff99cc;">Micromanagement:</span> Control the civilization's priorities directly using the sliders above.<br>
+            - <span style="color:#55ff55;">Bulletproof:</span> Zero memory leaks, proper state machine resetting, and Object Pooling for extreme stability!
         </div>
         <div style="font-size: 11px; color: #ff6600; margin-top: 10px; text-align: center; font-weight: bold;">
             Double-click for Meteor Strike!
@@ -166,7 +167,6 @@
         const farms = [];
         const pens = [];
         const animals = [];
-        const trails = []; // Trail objects
         const meteors = [];
         const explosions = [];
 
@@ -233,6 +233,7 @@
             ring.position.y = 0.01; 
             scene.add(ring);
 
+            initTrails(); // Initialize the high-performance trail pool
             setupUI();
             setupInteractions();
             window.addEventListener('resize', onWindowResize);
@@ -272,7 +273,7 @@
         // ==========================================
         const mats = {
             food: new THREE.MeshStandardMaterial({ color: 0x55ff55, roughness: 0.4 }),
-            bale: new THREE.MeshStandardMaterial({ color: 0xffcc00, roughness: 0.9 }), // Golden Wheat Bale
+            bale: new THREE.MeshStandardMaterial({ color: 0xffcc00, roughness: 0.9 }), 
             wood: new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.9 }),
             leaves: new THREE.MeshStandardMaterial({ color: 0x228b22, roughness: 0.8 }),
             stone: new THREE.MeshStandardMaterial({ color: 0x777777, roughness: 0.8 }),
@@ -282,8 +283,8 @@
             houseStone: new THREE.MeshStandardMaterial({ color: 0x666666, roughness: 0.9 }), 
             houseIron: new THREE.MeshStandardMaterial({ color: 0xaabbcc, metalness: 0.7, roughness: 0.4 }), 
             farmDirt: new THREE.MeshStandardMaterial({ color: 0x3d2817, roughness: 1.0 }),
-            cropMat: new THREE.MeshStandardMaterial({ color: 0xffdd44, roughness: 0.8 }), // Wheat Color
-            trailMat: new THREE.MeshBasicMaterial({ color: 0xdddddd }), // Packed dirt/path
+            cropMat: new THREE.MeshStandardMaterial({ color: 0xffdd44, roughness: 0.8 }), 
+            trailMat: new THREE.MeshBasicMaterial({ color: 0xdddddd }), 
             toolWood: new THREE.MeshStandardMaterial({ color: 0x8b5a2b }),
             toolStone: new THREE.MeshStandardMaterial({ color: 0x777777 }),
             toolIron: new THREE.MeshStandardMaterial({ color: 0xeeeeee, metalness: 0.8 }),
@@ -302,7 +303,7 @@
 
         const geos = {
             food: new THREE.SphereGeometry(0.4, 16, 16),
-            bale: new THREE.BoxGeometry(0.8, 0.6, 0.8), // Wheat Bale Shape
+            bale: new THREE.BoxGeometry(0.8, 0.6, 0.8), 
             stone: new THREE.DodecahedronGeometry(0.8),
             iron: new THREE.IcosahedronGeometry(0.7),
             table: new THREE.BoxGeometry(1.5, 1.2, 1.5),
@@ -313,7 +314,7 @@
             houseStory: new THREE.BoxGeometry(3.2, 2, 3.2),
             houseRoof: new THREE.ConeGeometry(3.5, 2.5, 4),
             farmBase: new THREE.BoxGeometry(3.5, 0.2, 3.5),
-            cropGeo: new THREE.CylinderGeometry(0.1, 0.1, 1.0, 4), // Wheat stalks
+            cropGeo: new THREE.CylinderGeometry(0.1, 0.1, 1.0, 4), 
             trail: new THREE.PlaneGeometry(2.5, 2.5),
             fencePiece: new THREE.BoxGeometry(4, 1.5, 0.2),
             animalBody: new THREE.SphereGeometry(0.8, 16, 16),
@@ -326,7 +327,24 @@
             meteor: new THREE.SphereGeometry(2.5, 12, 12)
         };
 
-        geos.trail.rotateX(-Math.PI / 2); // Lay flat
+        geos.trail.rotateX(-Math.PI / 2); // Lay flat for the ground
+
+        // ==========================================
+        // --- High Performance Trail Pool ---
+        // ==========================================
+        const MAX_TRAILS = 300;
+        let trailIndex = 0;
+        const trailsPool = [];
+
+        function initTrails() {
+            for(let i=0; i<MAX_TRAILS; i++) {
+                let m = new THREE.Mesh(geos.trail, mats.trailMat);
+                m.position.y = -100; // Hidden under the map
+                m.receiveShadow = true;
+                scene.add(m);
+                trailsPool.push(m);
+            }
+        }
 
         // ==========================================
         // --- World Object Classes ---
@@ -358,15 +376,6 @@
                 mesh.position.copy(pos); mesh.position.y = 0.3;
                 mesh.castShadow = true; mesh.receiveShadow = true;
                 super(mesh, bales);
-            }
-        }
-
-        class Trail extends WorldObject {
-            constructor(pos) {
-                const mesh = new THREE.Mesh(geos.trail, mats.trailMat);
-                mesh.position.copy(pos); mesh.position.y = 0.02; // Just above ground
-                mesh.receiveShadow = true;
-                super(mesh, trails);
             }
         }
 
@@ -541,10 +550,10 @@
                 if(this.isReady) {
                     this.growth = 0; this.isReady = false;
                     this.crops.forEach(c => c.scale.setScalar(0.01));
-                    // Drop 2 Wheat Bales
+                    // Drop 2 Wheat Bales (CRASH FIX: using `new WheatBale` directly, NO Array Push)
                     for(let i=0; i<2; i++) {
                         let balePos = this.mesh.position.clone().add(new THREE.Vector3((Math.random()-0.5)*3, 0, (Math.random()-0.5)*3));
-                        bales.push(new WheatBale(balePos));
+                        new WheatBale(balePos); 
                     }
                     return true;
                 }
@@ -713,7 +722,6 @@
             }
 
             decideTarget() {
-                // 1. Survival First (Efficiency: Prefer Bales over Wild Food)
                 if (this.energy < 50 || this.health < this.maxHealth * 0.4) {
                     let bale = this.findClosest(bales);
                     if (bale) return { obj: bale, action: 'eat_bale' };
@@ -729,87 +737,75 @@
                     if(this.wood >= 1) return { obj: this.group, action: 'build_table' }; 
                 }
 
-                // --- PRIORITY SLIDER LOGIC ---
-                // Random check against slider probability
-                
-                if (this.role === 'builder') {
-                    if (Math.random() < priBuild) {
-                        if (this.wood < 5) {
-                            let tree = this.findClosest(trees);
-                            if (tree) return { obj: tree, action: 'chop' };
-                        } else {
-                            let upgradeable = houses.find(h => !h.dead && h.level < 6 && !h.isBuilding);
-                            if (upgradeable) {
-                                if(upgradeable.level === 4 && this.stone < 5) {
-                                    let stoneNode = this.findClosest(stones);
-                                    if (stoneNode) return { obj: stoneNode, action: 'mine_stone' };
-                                    return { obj: null, action: 'wander' };
-                                }
-                                if(upgradeable.level === 5 && this.iron < 5) {
-                                    let ironNode = this.findClosest(irons);
-                                    if (ironNode) return { obj: ironNode, action: 'mine_iron' };
-                                    return { obj: null, action: 'wander' };
-                                }
-                                return { obj: upgradeable, action: 'start_upgrade' };
+                // Slider Micromanagement Logic
+                if (this.role === 'builder' && Math.random() < priBuild) {
+                    if (this.wood < 5) {
+                        let tree = this.findClosest(trees);
+                        if (tree) return { obj: tree, action: 'chop' };
+                    } else {
+                        let upgradeable = houses.find(h => !h.dead && h.level < 6 && !h.isBuilding);
+                        if (upgradeable) {
+                            if(upgradeable.level === 4 && this.stone < 5) {
+                                let stoneNode = this.findClosest(stones);
+                                if (stoneNode) return { obj: stoneNode, action: 'mine_stone' };
+                                return { obj: null, action: 'wander' };
                             }
-                            
-                            let brokenHouse = houses.find(h => !h.dead && h.durability < h.maxDurability * 0.5);
-                            if (brokenHouse) return { obj: brokenHouse, action: 'fix_house' };
-
-                            if(houses.length < gussArray.length / 2) {
-                                return { obj: this.group, action: 'start_house' };
+                            if(upgradeable.level === 5 && this.iron < 5) {
+                                let ironNode = this.findClosest(irons);
+                                if (ironNode) return { obj: ironNode, action: 'mine_iron' };
+                                return { obj: null, action: 'wander' };
                             }
-
-                            let smallPen = pens.find(p => !p.dead && p.level < 3 && p.animals.length >= p.capacity);
-                            if (smallPen) return { obj: smallPen, action: 'upgrade_pen' };
+                            return { obj: upgradeable, action: 'start_upgrade' };
                         }
+                        let brokenHouse = houses.find(h => !h.dead && h.durability < h.maxDurability * 0.5);
+                        if (brokenHouse) return { obj: brokenHouse, action: 'fix_house' };
+
+                        if(houses.length < gussArray.length / 2) return { obj: this.group, action: 'build_house' };
+
+                        let smallPen = pens.find(p => !p.dead && p.level < 3 && p.animals.length >= p.capacity);
+                        if (smallPen) return { obj: smallPen, action: 'upgrade_pen' };
                     }
                 }
-                else if (this.role === 'farmer') {
-                    if (Math.random() < priFarm) {
-                        let readyFarm = farms.find(f => !f.dead && f.isReady);
-                        if (readyFarm) return { obj: readyFarm, action: 'harvest_farm' };
+                else if (this.role === 'farmer' && Math.random() < priFarm) {
+                    let readyFarm = farms.find(f => !f.dead && f.isReady);
+                    if (readyFarm) return { obj: readyFarm, action: 'harvest_farm' };
 
-                        if (farms.length < gussArray.length / 2) {
-                            if (this.wood >= SIM_SETTINGS.farmWoodCost) return { obj: this.group, action: 'build_farm' };
-                            let tree = this.findClosest(trees);
-                            if (tree) return { obj: tree, action: 'chop' }; 
-                        }
+                    if (farms.length < gussArray.length / 2) {
+                        if (this.wood >= SIM_SETTINGS.farmWoodCost) return { obj: this.group, action: 'build_farm' };
+                        let tree = this.findClosest(trees);
+                        if (tree) return { obj: tree, action: 'chop' }; 
+                    }
 
-                        if (this.hasPlant) {
-                            let populatedPen = pens.find(p => !p.dead && p.animals.length > 0 && p.animals.length < p.capacity);
-                            if (populatedPen) return { obj: populatedPen, action: 'breed_animal' };
-                            else this.hasPlant = false; 
-                        }
-                        if (pens.length === 0 || pens.every(p => p.animals.length >= p.capacity)) {
-                            if (this.wood >= SIM_SETTINGS.penWoodCost) return { obj: this.group, action: 'build_pen' };
-                            let tree = this.findClosest(trees);
-                            if (tree) return { obj: tree, action: 'chop' }; 
-                        }
-                        
-                        let wildAnimal = animals.find(a => !a.dead && a.state === 'wild');
-                        let spacePen = pens.find(p => !p.dead && p.animals.length < p.capacity);
-                        if (wildAnimal && spacePen) return { obj: wildAnimal, action: 'herd_animal' };
+                    if (this.hasPlant) {
+                        let populatedPen = pens.find(p => !p.dead && p.animals.length > 0 && p.animals.length < p.capacity);
+                        if (populatedPen) return { obj: populatedPen, action: 'breed_animal' };
+                        else this.hasPlant = false; 
+                    }
+                    if (pens.length === 0 || pens.every(p => p.animals.length >= p.capacity)) {
+                        if (this.wood >= SIM_SETTINGS.penWoodCost) return { obj: this.group, action: 'build_pen' };
+                        let tree = this.findClosest(trees);
+                        if (tree) return { obj: tree, action: 'chop' }; 
+                    }
+                    
+                    let wildAnimal = animals.find(a => !a.dead && a.state === 'wild');
+                    let spacePen = pens.find(p => !p.dead && p.animals.length < p.capacity);
+                    if (wildAnimal && spacePen) return { obj: wildAnimal, action: 'herd_animal' };
 
-                        let breedablePen = pens.find(p => !p.dead && p.animals.length > 0 && p.animals.length < p.capacity);
-                        if (breedablePen) {
-                            let food = this.findClosest(foods);
-                            if (food) return { obj: food, action: 'fetch_plant' };
-                        }
+                    let breedablePen = pens.find(p => !p.dead && p.animals.length > 0 && p.animals.length < p.capacity);
+                    if (breedablePen) {
+                        let food = this.findClosest(foods);
+                        if (food) return { obj: food, action: 'fetch_plant' };
                     }
                 }
-                else if (this.role === 'miner') {
-                    if (Math.random() < priMine) {
-                        if (this.iron >= 3 && (this.pickaxeTier < 2 || this.armorTier < 2)) return { obj: this.group, action: 'craft_iron_gear' }; 
-                        if (this.stone >= 3 && this.armorTier === 0) return { obj: this.group, action: 'craft_stone_armor' };
-                        let ironNode = this.findClosest(irons);
-                        if (ironNode) return { obj: ironNode, action: 'mine_iron' };
-                        let stoneNode = this.findClosest(stones);
-                        if (stoneNode) return { obj: stoneNode, action: 'mine_stone' };
-                    }
+                else if (this.role === 'miner' && Math.random() < priMine) {
+                    if (this.iron >= 3 && (this.pickaxeTier < 2 || this.armorTier < 2)) return { obj: this.group, action: 'craft_iron_gear' }; 
+                    if (this.stone >= 3 && this.armorTier === 0) return { obj: this.group, action: 'craft_stone_armor' };
+                    let ironNode = this.findClosest(irons);
+                    if (ironNode) return { obj: ironNode, action: 'mine_iron' };
+                    let stoneNode = this.findClosest(stones);
+                    if (stoneNode) return { obj: stoneNode, action: 'mine_stone' };
                 }
 
-                // Default Eat or Wander
                 if (Math.random() < 0.2) {
                     let f = this.findClosest(foods);
                     if (f) return { obj: f, action: 'eat' };
@@ -818,24 +814,22 @@
             }
 
             isOnTrail() {
-                for(let i=0; i<trails.length; i++) {
-                    if (this.group.position.distanceToSquared(trails[i].mesh.position) < 4) return true;
+                for(let i=0; i<MAX_TRAILS; i++) {
+                    if (trailsPool[i].position.y > 0 && this.group.position.distanceToSquared(trailsPool[i].position) < 4) return true;
                 }
                 return false;
             }
 
             dropTrail() {
-                // Drop trail occasionally if not near another one
                 if (Math.random() < 0.05) {
                     let near = false;
-                    for(let i=0; i<trails.length; i++) {
-                        if (this.group.position.distanceToSquared(trails[i].mesh.position) < 8) { near = true; break; }
+                    for(let i=0; i<MAX_TRAILS; i++) {
+                        if (trailsPool[i].position.y > 0 && this.group.position.distanceToSquared(trailsPool[i].position) < 8) { near = true; break; }
                     }
                     if (!near) {
-                        let t = new Trail(this.group.position.clone());
-                        if (trails.length > 300) { // Limit trails to prevent crashes
-                            let old = trails.shift(); old.destroy();
-                        }
+                        trailsPool[trailIndex].position.copy(this.group.position);
+                        trailsPool[trailIndex].position.y = 0.02; // Visible on ground
+                        trailIndex = (trailIndex + 1) % MAX_TRAILS;
                     }
                 }
             }
@@ -878,38 +872,34 @@
                 }
 
                 let moveDir = new THREE.Vector3();
-                
-                // Trail checking for speed boost
                 let speedBoost = this.isOnTrail() ? 1.6 : 1.0;
                 if(this.hasShoes) speedBoost *= 1.8;
 
-                // --- Instant Actions ---
+                // --- CRASH FIX: Instant Actions without NaN matrix ---
                 if (this.currentAction === 'build_house') {
                     this.wood -= SIM_SETTINGS.houseWoodCost;
-                    this.house = new House(this.group.position.clone(), this);
-                    this.targetObj = this.house; this.currentAction = 'build_house'; 
+                    new House(this.group.position.clone(), this); 
+                    this.targetObj = null; this.currentAction = 'wander'; 
                 } 
                 else if (this.currentAction === 'build_farm') {
                     this.wood -= SIM_SETTINGS.farmWoodCost;
-                    farms.push(new Farm(this.group.position.clone()));
+                    new Farm(this.group.position.clone());
                     this.currentAction = 'wander'; this.targetObj = null;
                 }
                 else if (this.currentAction === 'build_pen') {
-                    this.wood -= SIM_SETTINGS.penWoodCost; pens.push(new Pen(this.group.position.clone()));
+                    this.wood -= SIM_SETTINGS.penWoodCost; new Pen(this.group.position.clone());
                     this.currentAction = 'wander'; this.targetObj = null;
                 }
                 else if (this.currentAction === 'build_table') {
-                    this.wood -= 1; tables.push(new CraftingTable(this.group.position.clone()));
+                    this.wood -= 1; new CraftingTable(this.group.position.clone());
                     this.currentAction = 'wander'; this.targetObj = null;
                 }
                 else if (this.currentAction === 'start_upgrade') {
                     if(this.targetObj.level === 4) this.stone -= 5;
                     else if(this.targetObj.level === 5) this.iron -= 5;
                     else this.wood -= SIM_SETTINGS.houseWoodCost;
-                    
-                    this.house = this.targetObj; 
-                    this.house.startUpgrade();
-                    this.currentAction = 'build_house'; 
+                    this.targetObj.startUpgrade();
+                    this.currentAction = 'wander'; this.targetObj = null;
                 }
                 else if (this.currentAction === 'craft_stone_armor') {
                     this.stone -= 3; this.armorTier = 1; this.pickaxeTier = 1; this.axeTier = 1; this.updateArmorVisuals();
@@ -925,7 +915,7 @@
                 // --- Travel Actions ---
                 else if (this.targetObj && !this.targetObj.dead) {
                     let dist = this.group.position.distanceTo(this.targetObj.mesh.position);
-                    let reach = (this.currentAction === 'fix_house' || this.currentAction === 'build_house' || this.currentAction === 'lead_to_pen' || this.currentAction === 'breed_animal' || this.currentAction === 'upgrade_pen' || this.currentAction === 'craft_shoes' || this.currentAction === 'harvest_farm') ? 4.0 : 1.8;
+                    let reach = (this.currentAction === 'fix_house' || this.currentAction === 'lead_to_pen' || this.currentAction === 'breed_animal' || this.currentAction === 'upgrade_pen' || this.currentAction === 'craft_shoes' || this.currentAction === 'harvest_farm') ? 4.0 : 1.8;
                     
                     if (dist > reach) {
                         moveDir.subVectors(this.targetObj.mesh.position, this.group.position).normalize();
@@ -941,59 +931,80 @@
                     } else {
                         if(this.hasShoes) { this.lShoe.position.y = 0.15; this.rShoe.position.y = 0.15; }
 
+                        // --- CRASH FIX: Proper Action Resets ---
                         if (this.currentAction === 'eat') {
                             this.energy += SIM_SETTINGS.energyFromFood;
                             this.health = Math.min(this.maxHealth, this.health + 30);
                             this.targetObj.destroy();
+                            this.targetObj = null; this.currentAction = 'wander';
                         } 
                         else if (this.currentAction === 'eat_bale') {
                             this.energy += SIM_SETTINGS.energyFromBale;
                             this.health = Math.min(this.maxHealth, this.health + 80);
                             this.targetObj.destroy();
+                            this.targetObj = null; this.currentAction = 'wander';
                         }
                         else if (this.currentAction === 'eat_animal') {
                             this.energy += SIM_SETTINGS.energyFromAnimal;
-                            this.health = this.maxHealth; 
-                            this.hide++;
+                            this.health = this.maxHealth; this.hide++;
                             this.targetObj.destroy();
+                            this.targetObj = null; this.currentAction = 'wander';
                         }
                         else if (this.currentAction === 'harvest_farm') {
                             this.targetObj.harvest();
                             this.innerGroup.position.y = Math.sin(Date.now() * 0.01) * 0.5; // Happy Hop
+                            this.targetObj = null; this.currentAction = 'wander';
                         }
                         else if (this.currentAction === 'craft_shoes') {
                             this.hide--; this.hasShoes = true;
                             this.lShoe.visible = true; this.rShoe.visible = true;
+                            this.targetObj = null; this.currentAction = 'wander';
                         }
                         else if (this.currentAction === 'fetch_plant') {
                             this.hasPlant = true; this.targetObj.destroy(); 
+                            this.targetObj = null; this.currentAction = 'wander';
                         }
                         else if (this.currentAction === 'breed_animal') {
                             this.hasPlant = false; this.innerGroup.position.y = Math.sin(Date.now() * 0.01) * 0.5;
                             let newAnim = new Animal(this.targetObj.mesh.position.clone());
                             this.targetObj.addAnimal(newAnim);
+                            this.targetObj = null; this.currentAction = 'wander';
                         }
                         else if (this.currentAction === 'herd_animal') {
                             this.followingAnimal = this.targetObj; this.followingAnimal.state = 'following';
                             let spacePen = pens.find(p => !p.dead && p.animals.length < p.capacity);
-                            if (spacePen) { this.targetObj = spacePen; this.currentAction = 'lead_to_pen'; } 
-                            else { this.followingAnimal.state = 'wild'; this.followingAnimal = null; this.targetObj = null; this.currentAction = 'wander'; }
+                            if (spacePen) { 
+                                this.targetObj = spacePen; this.currentAction = 'lead_to_pen'; 
+                            } 
+                            else { 
+                                this.followingAnimal.state = 'wild'; this.followingAnimal = null; 
+                                this.targetObj = null; this.currentAction = 'wander'; 
+                            }
                         }
                         else if (this.currentAction === 'lead_to_pen') {
                             if (this.followingAnimal) {
                                 if (this.targetObj.addAnimal(this.followingAnimal)) this.followingAnimal = null;
                                 else { this.followingAnimal.state = 'wild'; this.followingAnimal = null; }
                             }
+                            this.targetObj = null; this.currentAction = 'wander';
                         }
                         else if (this.currentAction === 'upgrade_pen') {
                             this.wood -= 3; this.targetObj.upgrade();
+                            this.targetObj = null; this.currentAction = 'wander';
+                        }
+                        else if (this.currentAction === 'fix_house') {
+                            this.wood -= 1; this.targetObj.repair(50);
+                            this.innerGroup.position.y = Math.sin(Date.now() * 0.01) * 0.5;
+                            this.targetObj = null; this.currentAction = 'wander';
                         }
                         else if (this.currentAction === 'chop') {
                             moveDir.subVectors(this.targetObj.mesh.position, this.group.position).normalize();
                             this.toolGroup.visible = true; this.toolHead.material = this.axeTier === 2 ? mats.toolIron : mats.toolWood; 
                             this.toolGroup.rotation.z = Math.sin(Date.now() * 0.02); 
                             let dmg = this.axeTier === 2 ? 80 : 30; 
-                            if (this.targetObj.chop(dmg * delta)) this.wood += 2;
+                            if (this.targetObj.chop(dmg * delta)) {
+                                this.wood += 2; this.targetObj = null; this.currentAction = 'wander'; this.toolGroup.visible = false;
+                            }
                         }
                         else if (this.currentAction === 'mine_stone' || this.currentAction === 'mine_iron') {
                             moveDir.subVectors(this.targetObj.mesh.position, this.group.position).normalize();
@@ -1002,20 +1013,13 @@
                             let dmg = this.pickaxeTier === 2 ? 60 : 25; 
                             if (this.targetObj.mine(dmg * delta)) {
                                 if (this.currentAction === 'mine_iron') this.iron += 2; else this.stone += 2;
+                                this.targetObj = null; this.currentAction = 'wander'; this.toolGroup.visible = false;
                             }
                         }
-                        else if (this.currentAction === 'build_house') {
-                            moveDir.subVectors(this.targetObj.mesh.position, this.group.position).normalize();
-                            this.toolGroup.visible = true; this.toolHead.material = mats.toolWood; this.toolGroup.rotation.z = Math.sin(Date.now() * 0.02);
-                            if (this.targetObj.addBuildProgress(40 * delta)) { this.targetObj = null; this.currentAction = 'wander'; }
-                        }
-                        else if (this.currentAction === 'fix_house') {
-                            this.wood -= 1; this.targetObj.repair(50);
-                            this.innerGroup.position.y = Math.sin(Date.now() * 0.01) * 0.5;
-                        }
-                        
-                        if (!['chop', 'mine_stone', 'mine_iron', 'build_house'].includes(this.currentAction) || (this.targetObj && this.targetObj.dead)) {
-                            this.targetObj = null; this.currentAction = 'wander'; this.innerGroup.position.y = 0;
+
+                        // Safety catch for dead targets
+                        if (this.targetObj && this.targetObj.dead) {
+                            this.targetObj = null; this.currentAction = 'wander';
                         }
                     }
                 } else {
@@ -1043,8 +1047,9 @@
                     this.theta += Math.PI; 
                 }
 
+                // Prevent infinite population spawning by hard-capping at 150
                 let popPenalty = Math.max(1, gussArray.length / 30);
-                if (this.energy >= SIM_SETTINGS.reproductionEnergy * popPenalty) {
+                if (this.energy >= SIM_SETTINGS.reproductionEnergy * popPenalty && gussArray.length < 150) {
                     this.energy -= 80; 
                     const spawnPos = this.group.position.clone();
                     const forwardVector = new THREE.Vector3(Math.sin(this.group.rotation.y), 0, Math.cos(this.group.rotation.y));
@@ -1104,7 +1109,6 @@
         // --- Core Simulation Mechanics ---
         // ==========================================
         function setupUI() {
-            // Environment
             document.getElementById('food-rate-slider').addEventListener('input', (e) => {
                 currentFoodRateMultiplier = parseInt(e.target.value);
                 document.getElementById('food-rate-val').innerText = currentFoodRateMultiplier + 'x';
@@ -1113,8 +1117,6 @@
                 currentTreeRateMultiplier = parseInt(e.target.value);
                 document.getElementById('tree-rate-val').innerText = currentTreeRateMultiplier + 'x';
             });
-            
-            // Priorities
             document.getElementById('pri-farm-slider').addEventListener('input', (e) => {
                 priFarm = parseInt(e.target.value) / 100;
                 document.getElementById('pri-farm-val').innerText = e.target.value + '%';
@@ -1142,14 +1144,12 @@
         }
 
         function initPopulation() {
-            for (let i = 0; i < SIM_SETTINGS.initialTrees; i++) {
-                let t = new Tree(getRandomSpawnPos()); t.sprouting = false; t.mesh.scale.set(1,1,1); 
-            }
-            for (let i = 0; i < SIM_SETTINGS.initialStones; i++) stones.push(new StoneNode(getRandomSpawnPos()));
-            for (let i = 0; i < SIM_SETTINGS.initialIrons; i++) irons.push(new IronNode(getRandomSpawnPos()));
-            for (let i = 0; i < SIM_SETTINGS.initialAnimals; i++) animals.push(new Animal(getRandomSpawnPos()));
+            for (let i = 0; i < SIM_SETTINGS.initialTrees; i++) { new Tree(getRandomSpawnPos()); }
+            for (let i = 0; i < SIM_SETTINGS.initialStones; i++) { new StoneNode(getRandomSpawnPos()); }
+            for (let i = 0; i < SIM_SETTINGS.initialIrons; i++) { new IronNode(getRandomSpawnPos()); }
+            for (let i = 0; i < SIM_SETTINGS.initialAnimals; i++) { new Animal(getRandomSpawnPos()); }
             for (let i = 0; i < SIM_SETTINGS.initialGuss; i++) gussArray.push(new Gus(getRandomSpawnPos()));
-            for (let i = 0; i < SIM_SETTINGS.initialFood; i++) foods.push(new Food(getRandomSpawnPos()));
+            for (let i = 0; i < SIM_SETTINGS.initialFood; i++) { new Food(getRandomSpawnPos()); }
         }
 
         let timers = { food: 0, tree: 0, stone: 0, iron: 0, animal: 0 };
@@ -1179,16 +1179,17 @@
             let actualFoodRate = SIM_SETTINGS.foodBaseRate * currentFoodRateMultiplier;
             let actualTreeRate = SIM_SETTINGS.treeBaseRate * currentTreeRateMultiplier;
 
+            // CRASH FIX: Spawning uses `new Class` safely without Array.push
             timers.food += delta;
-            if (actualFoodRate > 0 && timers.food > (1 / actualFoodRate) && foods.length < 300) { foods.push(new Food(getRandomSpawnPos())); timers.food = 0; }
+            if (actualFoodRate > 0 && timers.food > (1 / actualFoodRate) && foods.length < 300) { new Food(getRandomSpawnPos()); timers.food = 0; }
             timers.tree += delta;
-            if (actualTreeRate > 0 && timers.tree > (1 / actualTreeRate) && trees.length < 50) { trees.push(new Tree(getRandomSpawnPos())); timers.tree = 0; }
+            if (actualTreeRate > 0 && timers.tree > (1 / actualTreeRate) && trees.length < 50) { new Tree(getRandomSpawnPos()); timers.tree = 0; }
             timers.stone += delta;
-            if (timers.stone > 3.0 && stones.length < 20) { stones.push(new StoneNode(getRandomSpawnPos())); timers.stone = 0; }
+            if (timers.stone > 3.0 && stones.length < 20) { new StoneNode(getRandomSpawnPos()); timers.stone = 0; }
             timers.iron += delta;
-            if (timers.iron > 6.0 && irons.length < 10) { irons.push(new IronNode(getRandomSpawnPos())); timers.iron = 0; }
+            if (timers.iron > 6.0 && irons.length < 10) { new IronNode(getRandomSpawnPos()); timers.iron = 0; }
             timers.animal += delta;
-            if (timers.animal > 10.0 && animals.length < 15) { animals.push(new Animal(getRandomSpawnPos())); timers.animal = 0; }
+            if (timers.animal > 10.0 && animals.length < 15) { new Animal(getRandomSpawnPos()); timers.animal = 0; }
 
             const cleanup = (arr) => { for (let i = arr.length - 1; i >= 0; i--) { if (arr[i].dead) arr.splice(i, 1); } };
 
@@ -1208,7 +1209,7 @@
 
             cleanup(gussArray); cleanup(foods); cleanup(bales); cleanup(trees); cleanup(animals);
             cleanup(stones); cleanup(irons); cleanup(tables); cleanup(houses); 
-            cleanup(farms); cleanup(pens); cleanup(trails); cleanup(meteors); cleanup(explosions);
+            cleanup(farms); cleanup(pens); cleanup(meteors); cleanup(explosions);
 
             frameCount++;
             if (frameCount % 10 === 0) {
@@ -1243,10 +1244,12 @@
             draw() {
                 this.ctx.clearRect(0, 0, this.w, this.h);
                 if (this.dataInfo.length < 2) return;
+                
                 let max = 10;
                 for (let i = 0; i < this.dataInfo.length; i++) {
                     if (this.dataInfo[i] > max) max = this.dataInfo[i];
                 }
+                
                 let grad = this.ctx.createLinearGradient(0, 0, 0, this.h);
                 grad.addColorStop(0, this.color + '88'); grad.addColorStop(1, this.color + '00'); 
                 this.ctx.strokeStyle = this.color; this.ctx.lineWidth = 2; this.ctx.beginPath();
