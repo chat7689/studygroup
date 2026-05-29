@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smooth Disk Sim - The Ultimate Society</title>
+    <title>Smooth Disk Sim - Agriculture & Efficiency</title>
     <style>
         body {
             margin: 0; overflow: hidden; background-color: #000; 
@@ -29,18 +29,25 @@
         }
         .graph-label { position: absolute; top: 5px; left: 8px; font-size: 11px; color: #ccc; text-transform: uppercase; letter-spacing: 1px; text-shadow: none; }
         canvas.graph-canvas { width: 100%; height: 100%; border-radius: 6px; }
+        
         #control-panel {
             position: absolute; top: 120px; right: 20px; width: 340px;
             background: rgba(20, 20, 25, 0.85); border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 6px; padding: 15px; z-index: 100; backdrop-filter: blur(8px);
+            max-height: calc(100vh - 140px); overflow-y: auto;
         }
-        .slider-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
-        .slider-label { font-size: 12px; color: #eee; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; }
+        .slider-container { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+        .slider-label { font-size: 11px; color: #eee; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; }
         input[type=range] { width: 100%; cursor: pointer; accent-color: #55ff55; }
+        
         .ai-logic-box {
             font-size: 11px; color: #ddd; margin-top: 10px; text-align: left; 
             line-height: 1.4; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 4px; text-shadow: none;
         }
+        
+        /* Custom scrollbar for control panel */
+        #control-panel::-webkit-scrollbar { width: 6px; }
+        #control-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
     </style>
 </head>
 <body>
@@ -50,7 +57,7 @@
             <div style="font-size: 12px; color: #ddd; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px;">Sim Status</div>
             <div class="stat-line"><span style="color: #eee;">Time/Days:</span> <span id="stat-time" class="stat-value" style="color: #fff;">0</span></div>
             <div class="stat-line"><span style="color: #eee;">Guss Pop:</span> <span id="stat-guss" class="stat-value" style="color: #44aaff;">0</span></div>
-            <div class="stat-line"><span style="color: #eee;">Total Food:</span> <span id="stat-food" class="stat-value" style="color: #55ff55;">0</span></div>
+            <div class="stat-line"><span style="color: #eee;">Food/Bales:</span> <span id="stat-food" class="stat-value" style="color: #ffcc00;">0</span></div>
             <div class="stat-line"><span style="color: #eee;">Livestock:</span> <span id="stat-animals" class="stat-value" style="color: #ff99cc;">0</span></div>
         </div>
         <div class="graph-container">
@@ -67,21 +74,35 @@
 
     <div id="control-panel">
         <div class="slider-container">
-            <div class="slider-label"><span>Wild Plant Growth</span><span id="food-rate-val" style="color: #55ff55; font-weight: bold;">50x</span></div>
+            <div class="slider-label"><span style="color:#55ff55">Wild Plant Growth</span><span id="food-rate-val" style="font-weight: bold;">50x</span></div>
             <input type="range" id="food-rate-slider" min="1" max="100" step="1" value="50">
         </div>
-        
         <div class="slider-container">
-            <div class="slider-label"><span>Tree Sprouting</span><span id="tree-rate-val" style="color: #ffaa00; font-weight: bold;">20x</span></div>
+            <div class="slider-label"><span style="color:#ffaa00">Tree Sprouting</span><span id="tree-rate-val" style="font-weight: bold;">20x</span></div>
             <input type="range" id="tree-rate-slider" min="1" max="100" step="1" value="20">
         </div>
 
+        <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
+
+        <div style="font-size: 12px; color: #fff; text-transform: uppercase; margin-bottom: 10px; text-align: center; letter-spacing: 2px;">AI Priorities</div>
+        <div class="slider-container">
+            <div class="slider-label"><span style="color:#ffcc00">Farm / Breed Priority</span><span id="pri-farm-val" style="font-weight: bold;">100%</span></div>
+            <input type="range" id="pri-farm-slider" min="0" max="100" step="5" value="100">
+        </div>
+        <div class="slider-container">
+            <div class="slider-label"><span style="color:#ff7722">Build/Upgrade Priority</span><span id="pri-build-val" style="font-weight: bold;">100%</span></div>
+            <input type="range" id="pri-build-slider" min="0" max="100" step="5" value="100">
+        </div>
+        <div class="slider-container">
+            <div class="slider-label"><span style="color:#888888">Mining/Crafting Priority</span><span id="pri-mine-val" style="font-weight: bold;">100%</span></div>
+            <input type="range" id="pri-mine-slider" min="0" max="100" step="5" value="100">
+        </div>
+
         <div class="ai-logic-box">
-            <b>The Ultimate Update Features:</b><br>
-            - <span style="color:#55ff55;">Agriculture:</span> Farmers build crop plots. Crops grow, get harvested, and drop food!<br>
-            - <span style="color:#ffaa55;">Architecture:</span> Builders make houses and upgrade them up to Level 6 (Stone/Iron Fortresses).<br>
-            - <span style="color:#ff99cc;">Livestock:</span> Cute animals with eyes. Farmers build pens and herd them.<br>
-            - <span style="color:#44aaff;">Crash Fixes:</span> Re-written graph logic and shared WebGL materials ensure 0% freeze rate!
+            <b>Agriculture & Efficiency Update:</b><br>
+            - <span style="color:#ffcc00;">Wheat Farming:</span> Farm plots grow golden Wheat. Harvest to get Wheat Bales (Super-food!).<br>
+            - <span style="color:#ffaa55;">Speed Trails:</span> Guss pack dirt down into Trails. Walking on trails gives +60% Speed!<br>
+            - <span style="color:#ff99cc;">Micromanagement:</span> Control the civilization's priorities directly. (E.g. Set Farming to 0% to force them to build).<br>
         </div>
         <div style="font-size: 11px; color: #ff6600; margin-top: 10px; text-align: center; font-weight: bold;">
             Double-click for Meteor Strike!
@@ -98,7 +119,7 @@
         // --- Configuration & Constants ---
         // ==========================================
         const SIM_SETTINGS = {
-            diskRadius: 85,         
+            diskRadius: 90,         
             initialGuss: 15,
             initialFood: 80,        
             initialTrees: 25,
@@ -108,13 +129,14 @@
 
             foodBaseRate: 0.1, 
             treeBaseRate: 0.05, 
-            farmGrowthMult: 15, // Speed at which crops grow
+            farmGrowthMult: 15, 
             
             gusSpeed: 0.22,        
             viewDistance: 60,    
             
             energyDrainPerTick: 0.06, 
-            energyFromFood: 45,
+            energyFromFood: 40,
+            energyFromBale: 100, // Super Food
             energyFromAnimal: 150,
             reproductionEnergy: 160,
 
@@ -125,12 +147,17 @@
             shoesHideCost: 1
         };
 
+        // UI Values
         let currentFoodRateMultiplier = 50;
         let currentTreeRateMultiplier = 20;
+        let priFarm = 1.0;
+        let priBuild = 1.0;
+        let priMine = 1.0;
 
         // Central Arrays
         const gussArray = [];
         const foods = [];
+        const bales = []; // Wheat bales
         const trees = [];
         const stones = [];
         const irons = [];
@@ -139,6 +166,7 @@
         const farms = [];
         const pens = [];
         const animals = [];
+        const trails = []; // Trail objects
         const meteors = [];
         const explosions = [];
 
@@ -161,7 +189,7 @@
             scene.fog = new THREE.FogExp2(0x87CEEB, 0.003); 
 
             camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 75, 115);
+            camera.position.set(0, 80, 120);
 
             renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -216,7 +244,6 @@
             return new THREE.Vector3(Math.sin(angle) * radius, 0, Math.cos(angle) * radius);
         }
 
-        // Optimized UI Bar Creation
         function createBarSprite(colorHex, bgHex = 0xff0000) {
             const group = new THREE.Group();
             const bgMat = new THREE.MeshBasicMaterial({ color: bgHex, depthTest: false });
@@ -235,17 +262,17 @@
             };
             
             return { 
-                group, 
-                fgMesh: fg,
+                group, fgMesh: fg,
                 dispose: () => { bgMat.dispose(); bgGeo.dispose(); fgMat.dispose(); fgGeo.dispose(); }
             };
         }
 
         // ==========================================
-        // --- Global Shared Materials/Geometries ---
+        // --- Shared Materials/Geometries ---
         // ==========================================
         const mats = {
             food: new THREE.MeshStandardMaterial({ color: 0x55ff55, roughness: 0.4 }),
+            bale: new THREE.MeshStandardMaterial({ color: 0xffcc00, roughness: 0.9 }), // Golden Wheat Bale
             wood: new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.9 }),
             leaves: new THREE.MeshStandardMaterial({ color: 0x228b22, roughness: 0.8 }),
             stone: new THREE.MeshStandardMaterial({ color: 0x777777, roughness: 0.8 }),
@@ -255,14 +282,15 @@
             houseStone: new THREE.MeshStandardMaterial({ color: 0x666666, roughness: 0.9 }), 
             houseIron: new THREE.MeshStandardMaterial({ color: 0xaabbcc, metalness: 0.7, roughness: 0.4 }), 
             farmDirt: new THREE.MeshStandardMaterial({ color: 0x3d2817, roughness: 1.0 }),
-            cropMat: new THREE.MeshStandardMaterial({ color: 0x88ff44, roughness: 0.5 }),
+            cropMat: new THREE.MeshStandardMaterial({ color: 0xffdd44, roughness: 0.8 }), // Wheat Color
+            trailMat: new THREE.MeshBasicMaterial({ color: 0xdddddd }), // Packed dirt/path
             toolWood: new THREE.MeshStandardMaterial({ color: 0x8b5a2b }),
             toolStone: new THREE.MeshStandardMaterial({ color: 0x777777 }),
             toolIron: new THREE.MeshStandardMaterial({ color: 0xeeeeee, metalness: 0.8 }),
             armorStone: new THREE.MeshStandardMaterial({ color: 0x666666, roughness: 0.9 }),
             armorIron: new THREE.MeshStandardMaterial({ color: 0xdcdcdc, metalness: 0.8, roughness: 0.4 }),
             shoesMat: new THREE.MeshStandardMaterial({ color: 0xff1111, roughness: 0.5 }),
-            animalBody: new THREE.MeshStandardMaterial({ color: 0xffb6c1, roughness: 0.7 }), // Pinkish
+            animalBody: new THREE.MeshStandardMaterial({ color: 0xffb6c1, roughness: 0.7 }), 
             animalEyeWhite: new THREE.MeshBasicMaterial({ color: 0xffffff }),
             pupil: new THREE.MeshBasicMaterial({ color: 0x000000 }),
             meteor: new THREE.MeshStandardMaterial({ color: 0xff4400, emissive: 0xff2200 }),
@@ -274,6 +302,7 @@
 
         const geos = {
             food: new THREE.SphereGeometry(0.4, 16, 16),
+            bale: new THREE.BoxGeometry(0.8, 0.6, 0.8), // Wheat Bale Shape
             stone: new THREE.DodecahedronGeometry(0.8),
             iron: new THREE.IcosahedronGeometry(0.7),
             table: new THREE.BoxGeometry(1.5, 1.2, 1.5),
@@ -284,7 +313,8 @@
             houseStory: new THREE.BoxGeometry(3.2, 2, 3.2),
             houseRoof: new THREE.ConeGeometry(3.5, 2.5, 4),
             farmBase: new THREE.BoxGeometry(3.5, 0.2, 3.5),
-            cropGeo: new THREE.SphereGeometry(0.4, 8, 8),
+            cropGeo: new THREE.CylinderGeometry(0.1, 0.1, 1.0, 4), // Wheat stalks
+            trail: new THREE.PlaneGeometry(2.5, 2.5),
             fencePiece: new THREE.BoxGeometry(4, 1.5, 0.2),
             animalBody: new THREE.SphereGeometry(0.8, 16, 16),
             animalEye: new THREE.SphereGeometry(0.2, 16, 16),
@@ -295,6 +325,8 @@
             pupil: new THREE.SphereGeometry(0.18, 8, 8),
             meteor: new THREE.SphereGeometry(2.5, 12, 12)
         };
+
+        geos.trail.rotateX(-Math.PI / 2); // Lay flat
 
         // ==========================================
         // --- World Object Classes ---
@@ -317,6 +349,24 @@
                 mesh.position.copy(pos); mesh.position.y = 0.4;
                 mesh.castShadow = true; mesh.receiveShadow = true;
                 super(mesh, foods);
+            }
+        }
+
+        class WheatBale extends WorldObject {
+            constructor(pos) {
+                const mesh = new THREE.Mesh(geos.bale, mats.bale);
+                mesh.position.copy(pos); mesh.position.y = 0.3;
+                mesh.castShadow = true; mesh.receiveShadow = true;
+                super(mesh, bales);
+            }
+        }
+
+        class Trail extends WorldObject {
+            constructor(pos) {
+                const mesh = new THREE.Mesh(geos.trail, mats.trailMat);
+                mesh.position.copy(pos); mesh.position.y = 0.02; // Just above ground
+                mesh.receiveShadow = true;
+                super(mesh, trails);
             }
         }
 
@@ -384,47 +434,36 @@
             }
         }
 
-        // --- CUTE LIVESTOCK WITH EYES ---
         class Animal extends WorldObject {
             constructor(pos) {
                 const group = new THREE.Group();
                 group.position.copy(pos); group.position.y = 0.8;
-
                 const body = new THREE.Mesh(geos.animalBody, mats.animalBody);
                 body.castShadow = true; body.receiveShadow = true;
                 group.add(body);
-
-                // Cute Eyes
                 const eye1 = new THREE.Mesh(geos.animalEye, mats.animalEyeWhite); eye1.position.set(0.3, 0.2, 0.7);
                 const eye2 = new THREE.Mesh(geos.animalEye, mats.animalEyeWhite); eye2.position.set(-0.3, 0.2, 0.7);
                 const pup1 = new THREE.Mesh(geos.animalPupil, mats.pupil); pup1.position.set(0.3, 0.2, 0.85);
                 const pup2 = new THREE.Mesh(geos.animalPupil, mats.pupil); pup2.position.set(-0.3, 0.2, 0.85);
-                
                 group.add(eye1, eye2, pup1, pup2);
-
                 super(group, animals);
-                this.state = 'wild'; 
-                this.theta = Math.random() * Math.PI * 2;
-                this.myPen = null;
-                this.scaleTime = 0;
+                this.state = 'wild'; this.theta = Math.random() * Math.PI * 2;
+                this.myPen = null; this.scaleTime = 0;
             }
             update(delta) {
                 this.scaleTime += delta * 10;
                 this.mesh.scale.y = 1 + Math.sin(this.scaleTime) * 0.1;
-
                 if (this.state === 'wild') {
                     if (Math.random() < 0.02) this.theta += (Math.random() - 0.5);
                     this.mesh.position.x += Math.sin(this.theta) * delta * 2;
                     this.mesh.position.z += Math.cos(this.theta) * delta * 2;
                     this.mesh.rotation.y = Math.atan2(Math.sin(this.theta), Math.cos(this.theta));
-                    
                     const dist = Math.sqrt(this.mesh.position.x**2 + this.mesh.position.z**2);
                     if(dist > SIM_SETTINGS.diskRadius - 2) this.theta += Math.PI;
                 } else if (this.state === 'penned' && this.myPen && !this.myPen.dead) {
                     if (Math.random() < 0.05) this.theta += (Math.random() - 0.5) * 2;
                     let nextX = this.mesh.position.x + Math.sin(this.theta) * delta * 1.5;
                     let nextZ = this.mesh.position.z + Math.cos(this.theta) * delta * 1.5;
-                    
                     let px = this.myPen.mesh.position.x; let pz = this.myPen.mesh.position.z;
                     let bound = this.myPen.level * 1.8; 
                     if (Math.abs(nextX - px) > bound) this.theta += Math.PI;
@@ -439,25 +478,19 @@
 
         class Pen extends WorldObject {
             constructor(pos) {
-                const group = new THREE.Group();
-                group.position.copy(pos);
-                
+                const group = new THREE.Group(); group.position.copy(pos);
                 this.fences = [];
                 const f1 = new THREE.Mesh(geos.fencePiece, mats.wood); f1.position.set(0, 0.75, 2);
                 const f2 = new THREE.Mesh(geos.fencePiece, mats.wood); f2.position.set(0, 0.75, -2);
                 const f3 = new THREE.Mesh(geos.fencePiece, mats.wood); f3.position.set(2, 0.75, 0); f3.rotation.y = Math.PI/2;
                 const f4 = new THREE.Mesh(geos.fencePiece, mats.wood); f4.position.set(-2, 0.75, 0); f4.rotation.y = Math.PI/2;
-                
                 [f1,f2,f3,f4].forEach(f => { f.castShadow = true; f.receiveShadow = true; group.add(f); this.fences.push(f); });
                 super(group, pens);
-                this.animals = [];
-                this.level = 1;
-                this.capacity = 4;
+                this.animals = []; this.level = 1; this.capacity = 4;
             }
             upgrade() {
                 if(this.level >= 3) return;
-                this.level++;
-                this.capacity = this.level * 4;
+                this.level++; this.capacity = this.level * 4;
                 this.mesh.scale.set(this.level, 1, this.level); 
             }
             addAnimal(animal) {
@@ -475,19 +508,16 @@
             }
         }
 
-        // --- NEW: FULL AGRICULTURE SYSTEM ---
         class Farm extends WorldObject {
             constructor(pos) {
                 const group = new THREE.Group(); group.position.copy(pos);
-                
                 const dirt = new THREE.Mesh(geos.farmBase, mats.farmDirt);
                 dirt.position.y = 0.1; dirt.receiveShadow = true;
                 group.add(dirt);
-                
                 super(group, farms);
                 
                 this.crops = [];
-                const positions = [[-1, 0.4, -1], [1, 0.4, -1], [-1, 0.4, 1], [1, 0.4, 1]];
+                const positions = [[-1, 0.5, -1], [1, 0.5, -1], [-1, 0.5, 1], [1, 0.5, 1], [0, 0.5, 0]];
                 for(let p of positions) {
                     let crop = new THREE.Mesh(geos.cropGeo, mats.cropMat);
                     crop.position.set(p[0], p[1], p[2]);
@@ -495,30 +525,26 @@
                     group.add(crop);
                     this.crops.push(crop);
                 }
-
-                this.growth = 0; 
-                this.isReady = false;
+                this.growth = 0; this.isReady = false;
             }
             update(delta) {
                 if (this.growth < 100) {
                     this.growth += delta * SIM_SETTINGS.farmGrowthMult;
                     let scale = Math.max(0.01, this.growth / 100);
-                    this.crops.forEach(c => c.scale.setScalar(scale));
+                    this.crops.forEach(c => { c.scale.y = scale * 1.5; c.scale.x = scale; c.scale.z = scale; });
                     if (this.growth >= 100) {
-                        this.growth = 100;
-                        this.isReady = true;
+                        this.growth = 100; this.isReady = true;
                     }
                 }
             }
             harvest() {
                 if(this.isReady) {
-                    this.growth = 0;
-                    this.isReady = false;
+                    this.growth = 0; this.isReady = false;
                     this.crops.forEach(c => c.scale.setScalar(0.01));
-                    // Spawn 5 foods around it
-                    for(let i=0; i<5; i++) {
-                        let foodPos = this.mesh.position.clone().add(new THREE.Vector3((Math.random()-0.5)*4, 0, (Math.random()-0.5)*4));
-                        foods.push(new Food(foodPos));
+                    // Drop 2 Wheat Bales
+                    for(let i=0; i<2; i++) {
+                        let balePos = this.mesh.position.clone().add(new THREE.Vector3((Math.random()-0.5)*3, 0, (Math.random()-0.5)*3));
+                        bales.push(new WheatBale(balePos));
                     }
                     return true;
                 }
@@ -526,7 +552,6 @@
             }
         }
 
-        // --- NEW: 6 LEVEL ARCHITECTURE ---
         class House extends WorldObject {
             constructor(pos, owner) {
                 const group = new THREE.Group(); group.position.copy(pos);
@@ -576,13 +601,10 @@
                 this.progressBarData.group.position.y = 2.5 + (Math.min(this.level,4) * 1.5);
             }
             repair(amount) { this.durability = Math.min(this.durability + amount, this.maxDurability); }
-            
             destroy() {
-                this.barData.dispose();
-                this.progressBarData.dispose();
+                this.barData.dispose(); this.progressBarData.dispose();
                 super.destroy();
             }
-
             update(delta) {
                 if (!this.isBuilding) {
                     this.durability -= delta * 1.0; this.progressBarData.group.visible = false;
@@ -690,102 +712,101 @@
                 return closest;
             }
 
-            // --- ROLE SPECIFIC ARCHITECTURE AND FARMING AI ---
             decideTarget() {
-                // Survival
-                if (this.energy < 40 || this.health < this.maxHealth * 0.4) {
+                // 1. Survival First (Efficiency: Prefer Bales over Wild Food)
+                if (this.energy < 50 || this.health < this.maxHealth * 0.4) {
+                    let bale = this.findClosest(bales);
+                    if (bale) return { obj: bale, action: 'eat_bale' };
                     let food = this.findClosest(foods);
                     if (food) return { obj: food, action: 'eat' };
                     let animal = this.findClosest(animals);
                     if (animal) return { obj: animal, action: 'eat_animal' };
                 }
 
-                // Shoes Crafting
                 if (this.hide >= SIM_SETTINGS.shoesHideCost && !this.hasShoes) {
                     let table = this.findClosest(tables);
                     if(table) return { obj: table, action: 'craft_shoes' };
                     if(this.wood >= 1) return { obj: this.group, action: 'build_table' }; 
                 }
 
+                // --- PRIORITY SLIDER LOGIC ---
+                // Random check against slider probability
+                
                 if (this.role === 'builder') {
-                    // Builders focus entirely on Architecture and Pens
-                    if (this.wood < 5) {
-                        let tree = this.findClosest(trees);
-                        if (tree) return { obj: tree, action: 'chop' };
-                    } else {
-                        // 1. Upgrade existing houses up to max level
-                        let upgradeable = houses.find(h => !h.dead && h.level < 6 && !h.isBuilding);
-                        if (upgradeable) {
-                            if(upgradeable.level === 4 && this.stone < 5) {
-                                let stoneNode = this.findClosest(stones);
-                                if (stoneNode) return { obj: stoneNode, action: 'mine_stone' };
-                                return { obj: null, action: 'wander' };
+                    if (Math.random() < priBuild) {
+                        if (this.wood < 5) {
+                            let tree = this.findClosest(trees);
+                            if (tree) return { obj: tree, action: 'chop' };
+                        } else {
+                            let upgradeable = houses.find(h => !h.dead && h.level < 6 && !h.isBuilding);
+                            if (upgradeable) {
+                                if(upgradeable.level === 4 && this.stone < 5) {
+                                    let stoneNode = this.findClosest(stones);
+                                    if (stoneNode) return { obj: stoneNode, action: 'mine_stone' };
+                                    return { obj: null, action: 'wander' };
+                                }
+                                if(upgradeable.level === 5 && this.iron < 5) {
+                                    let ironNode = this.findClosest(irons);
+                                    if (ironNode) return { obj: ironNode, action: 'mine_iron' };
+                                    return { obj: null, action: 'wander' };
+                                }
+                                return { obj: upgradeable, action: 'start_upgrade' };
                             }
-                            if(upgradeable.level === 5 && this.iron < 5) {
-                                let ironNode = this.findClosest(irons);
-                                if (ironNode) return { obj: ironNode, action: 'mine_iron' };
-                                return { obj: null, action: 'wander' };
+                            
+                            let brokenHouse = houses.find(h => !h.dead && h.durability < h.maxDurability * 0.5);
+                            if (brokenHouse) return { obj: brokenHouse, action: 'fix_house' };
+
+                            if(houses.length < gussArray.length / 2) {
+                                return { obj: this.group, action: 'start_house' };
                             }
-                            return { obj: upgradeable, action: 'start_upgrade' };
-                        }
-                        
-                        // 2. Fix broken houses
-                        let brokenHouse = houses.find(h => !h.dead && h.durability < h.maxDurability * 0.5);
-                        if (brokenHouse) return { obj: brokenHouse, action: 'fix_house' };
 
-                        // 3. Build new houses (if few exist)
-                        if(houses.length < gussArray.length / 2) {
-                            return { obj: this.group, action: 'start_house' };
+                            let smallPen = pens.find(p => !p.dead && p.level < 3 && p.animals.length >= p.capacity);
+                            if (smallPen) return { obj: smallPen, action: 'upgrade_pen' };
                         }
-
-                        // 4. Upgrade Pens
-                        let smallPen = pens.find(p => !p.dead && p.level < 3 && p.animals.length >= p.capacity);
-                        if (smallPen) return { obj: smallPen, action: 'upgrade_pen' };
                     }
                 }
                 else if (this.role === 'farmer') {
-                    // Farmers focus entirely on Farms and Animals
-                    let readyFarm = farms.find(f => !f.dead && f.isReady);
-                    if (readyFarm) return { obj: readyFarm, action: 'harvest_farm' };
+                    if (Math.random() < priFarm) {
+                        let readyFarm = farms.find(f => !f.dead && f.isReady);
+                        if (readyFarm) return { obj: readyFarm, action: 'harvest_farm' };
 
-                    // Build Farms
-                    if (farms.length < gussArray.length / 2) {
-                        if (this.wood >= SIM_SETTINGS.farmWoodCost) {
-                            return { obj: this.group, action: 'build_farm' };
-                        } else {
+                        if (farms.length < gussArray.length / 2) {
+                            if (this.wood >= SIM_SETTINGS.farmWoodCost) return { obj: this.group, action: 'build_farm' };
                             let tree = this.findClosest(trees);
                             if (tree) return { obj: tree, action: 'chop' }; 
                         }
-                    }
 
-                    // Breed/Herd Animals
-                    if (this.hasPlant) {
-                        let populatedPen = pens.find(p => !p.dead && p.animals.length > 0 && p.animals.length < p.capacity);
-                        if (populatedPen) return { obj: populatedPen, action: 'breed_animal' };
-                        else this.hasPlant = false; 
-                    }
-                    if (pens.length === 0 || pens.every(p => p.animals.length >= p.capacity)) {
-                        if (this.wood >= SIM_SETTINGS.penWoodCost) return { obj: this.group, action: 'build_pen' };
-                        let tree = this.findClosest(trees);
-                        if (tree) return { obj: tree, action: 'chop' }; 
-                    }
-                    let wildAnimal = animals.find(a => !a.dead && a.state === 'wild');
-                    let spacePen = pens.find(p => !p.dead && p.animals.length < p.capacity);
-                    if (wildAnimal && spacePen) return { obj: wildAnimal, action: 'herd_animal' };
+                        if (this.hasPlant) {
+                            let populatedPen = pens.find(p => !p.dead && p.animals.length > 0 && p.animals.length < p.capacity);
+                            if (populatedPen) return { obj: populatedPen, action: 'breed_animal' };
+                            else this.hasPlant = false; 
+                        }
+                        if (pens.length === 0 || pens.every(p => p.animals.length >= p.capacity)) {
+                            if (this.wood >= SIM_SETTINGS.penWoodCost) return { obj: this.group, action: 'build_pen' };
+                            let tree = this.findClosest(trees);
+                            if (tree) return { obj: tree, action: 'chop' }; 
+                        }
+                        
+                        let wildAnimal = animals.find(a => !a.dead && a.state === 'wild');
+                        let spacePen = pens.find(p => !p.dead && p.animals.length < p.capacity);
+                        if (wildAnimal && spacePen) return { obj: wildAnimal, action: 'herd_animal' };
 
-                    let breedablePen = pens.find(p => !p.dead && p.animals.length > 0 && p.animals.length < p.capacity);
-                    if (breedablePen) {
-                        let food = this.findClosest(foods);
-                        if (food) return { obj: food, action: 'fetch_plant' };
+                        let breedablePen = pens.find(p => !p.dead && p.animals.length > 0 && p.animals.length < p.capacity);
+                        if (breedablePen) {
+                            let food = this.findClosest(foods);
+                            if (food) return { obj: food, action: 'fetch_plant' };
+                        }
                     }
                 }
                 else if (this.role === 'miner') {
-                    if (this.iron >= 3 && (this.pickaxeTier < 2 || this.armorTier < 2)) return { obj: this.group, action: 'craft_iron_gear' }; 
-                    if (this.stone >= 3 && this.armorTier === 0) return { obj: this.group, action: 'craft_stone_armor' };
-                    let ironNode = this.findClosest(irons);
-                    if (ironNode) return { obj: ironNode, action: 'mine_iron' };
-                    let stoneNode = this.findClosest(stones);
-                    if (stoneNode) return { obj: stoneNode, action: 'mine_stone' };
+                    if (Math.random() < priMine) {
+                        if (this.iron >= 3 && (this.pickaxeTier < 2 || this.armorTier < 2)) return { obj: this.group, action: 'craft_iron_gear' }; 
+                        if (this.stone >= 3 && this.armorTier === 0) return { obj: this.group, action: 'craft_stone_armor' };
+                        let ironNode = this.findClosest(irons);
+                        if (ironNode) return { obj: ironNode, action: 'mine_iron' };
+                        let stoneNode = this.findClosest(stones);
+                        if (stoneNode) return { obj: stoneNode, action: 'mine_stone' };
+                    }
                 }
 
                 // Default Eat or Wander
@@ -794,6 +815,29 @@
                     if (f) return { obj: f, action: 'eat' };
                 }
                 return { obj: null, action: 'wander' };
+            }
+
+            isOnTrail() {
+                for(let i=0; i<trails.length; i++) {
+                    if (this.group.position.distanceToSquared(trails[i].mesh.position) < 4) return true;
+                }
+                return false;
+            }
+
+            dropTrail() {
+                // Drop trail occasionally if not near another one
+                if (Math.random() < 0.05) {
+                    let near = false;
+                    for(let i=0; i<trails.length; i++) {
+                        if (this.group.position.distanceToSquared(trails[i].mesh.position) < 8) { near = true; break; }
+                    }
+                    if (!near) {
+                        let t = new Trail(this.group.position.clone());
+                        if (trails.length > 300) { // Limit trails to prevent crashes
+                            let old = trails.shift(); old.destroy();
+                        }
+                    }
+                }
             }
 
             update(delta) {
@@ -834,9 +878,13 @@
                 }
 
                 let moveDir = new THREE.Vector3();
+                
+                // Trail checking for speed boost
+                let speedBoost = this.isOnTrail() ? 1.6 : 1.0;
+                if(this.hasShoes) speedBoost *= 1.8;
 
-                // Actions
-                if (this.currentAction === 'start_house') {
+                // --- Instant Actions ---
+                if (this.currentAction === 'build_house') {
                     this.wood -= SIM_SETTINGS.houseWoodCost;
                     this.house = new House(this.group.position.clone(), this);
                     this.targetObj = this.house; this.currentAction = 'build_house'; 
@@ -874,7 +922,7 @@
                     this.currentAction = 'wander'; this.targetObj = null;
                 }
 
-                // Travel Actions
+                // --- Travel Actions ---
                 else if (this.targetObj && !this.targetObj.dead) {
                     let dist = this.group.position.distanceTo(this.targetObj.mesh.position);
                     let reach = (this.currentAction === 'fix_house' || this.currentAction === 'build_house' || this.currentAction === 'lead_to_pen' || this.currentAction === 'breed_animal' || this.currentAction === 'upgrade_pen' || this.currentAction === 'craft_shoes' || this.currentAction === 'harvest_farm') ? 4.0 : 1.8;
@@ -882,9 +930,9 @@
                     if (dist > reach) {
                         moveDir.subVectors(this.targetObj.mesh.position, this.group.position).normalize();
                         moveDir.y = 0;
-                        let speedMult = this.hasShoes ? 1.8 : 1.0;
-                        this.group.position.addScaledVector(moveDir, SIM_SETTINGS.gusSpeed * speedMult * delta * 60);
+                        this.group.position.addScaledVector(moveDir, SIM_SETTINGS.gusSpeed * speedBoost * delta * 60);
                         this.toolGroup.visible = false; 
+                        this.dropTrail();
                         
                         if(this.hasShoes) {
                             this.lShoe.position.y = 0.15 + Math.abs(Math.sin(Date.now()*0.02))*0.3;
@@ -898,6 +946,11 @@
                             this.health = Math.min(this.maxHealth, this.health + 30);
                             this.targetObj.destroy();
                         } 
+                        else if (this.currentAction === 'eat_bale') {
+                            this.energy += SIM_SETTINGS.energyFromBale;
+                            this.health = Math.min(this.maxHealth, this.health + 80);
+                            this.targetObj.destroy();
+                        }
                         else if (this.currentAction === 'eat_animal') {
                             this.energy += SIM_SETTINGS.energyFromAnimal;
                             this.health = this.maxHealth; 
@@ -967,9 +1020,9 @@
                     }
                 } else {
                     this.theta += (Math.random() - 0.5) * 0.3; moveDir.set(Math.sin(this.theta), 0, Math.cos(this.theta));
-                    let speedMult = this.hasShoes ? 1.8 : 1.0;
-                    this.group.position.addScaledVector(moveDir, (SIM_SETTINGS.gusSpeed * speedMult * 0.5) * delta * 60);
+                    this.group.position.addScaledVector(moveDir, (SIM_SETTINGS.gusSpeed * speedBoost * 0.5) * delta * 60);
                     this.toolGroup.visible = false;
+                    this.dropTrail();
                     if(this.hasShoes) {
                         this.lShoe.position.y = 0.15 + Math.abs(Math.sin(Date.now()*0.01))*0.2;
                         this.rShoe.position.y = 0.15 + Math.abs(Math.sin(Date.now()*0.01 + Math.PI))*0.2;
@@ -1017,7 +1070,7 @@
             explode() {
                 this.dead = true; scene.remove(this.group); explosions.push(new Explosion(this.target));
                 const blastRadius = 14; 
-                [foods, stones, irons, trees, tables, houses, pens, farms, animals].forEach(list => {
+                [foods, bales, stones, irons, trees, tables, houses, pens, farms, animals].forEach(list => {
                     list.forEach(item => {
                         if (!item.dead && item.mesh.position.distanceTo(this.target) < blastRadius) {
                             if(item.chop) item.chop(999); else if(item.mine) item.mine(999); else item.destroy();
@@ -1051,6 +1104,7 @@
         // --- Core Simulation Mechanics ---
         // ==========================================
         function setupUI() {
+            // Environment
             document.getElementById('food-rate-slider').addEventListener('input', (e) => {
                 currentFoodRateMultiplier = parseInt(e.target.value);
                 document.getElementById('food-rate-val').innerText = currentFoodRateMultiplier + 'x';
@@ -1058,6 +1112,20 @@
             document.getElementById('tree-rate-slider').addEventListener('input', (e) => {
                 currentTreeRateMultiplier = parseInt(e.target.value);
                 document.getElementById('tree-rate-val').innerText = currentTreeRateMultiplier + 'x';
+            });
+            
+            // Priorities
+            document.getElementById('pri-farm-slider').addEventListener('input', (e) => {
+                priFarm = parseInt(e.target.value) / 100;
+                document.getElementById('pri-farm-val').innerText = e.target.value + '%';
+            });
+            document.getElementById('pri-build-slider').addEventListener('input', (e) => {
+                priBuild = parseInt(e.target.value) / 100;
+                document.getElementById('pri-build-val').innerText = e.target.value + '%';
+            });
+            document.getElementById('pri-mine-slider').addEventListener('input', (e) => {
+                priMine = parseInt(e.target.value) / 100;
+                document.getElementById('pri-mine-val').innerText = e.target.value + '%';
             });
         }
 
@@ -1138,24 +1206,23 @@
                 if (!g.dying && !g.dead) liveGussCount++;
             });
 
-            cleanup(gussArray); cleanup(foods); cleanup(trees); cleanup(animals);
+            cleanup(gussArray); cleanup(foods); cleanup(bales); cleanup(trees); cleanup(animals);
             cleanup(stones); cleanup(irons); cleanup(tables); cleanup(houses); 
-            cleanup(farms); cleanup(pens); cleanup(meteors); cleanup(explosions);
+            cleanup(farms); cleanup(pens); cleanup(trails); cleanup(meteors); cleanup(explosions);
 
             frameCount++;
             if (frameCount % 10 === 0) {
                 elTime.innerText = Math.floor(totalTime / 10); 
                 elGuss.innerText = liveGussCount;
-                elFood.innerText = foods.length;
+                elFood.innerText = foods.length + bales.length;
                 elAnimals.innerText = animals.length;
             }
             if (frameCount % 15 === 0) {
                 popGraph.addValue(liveGussCount);
-                foodGraph.addValue(foods.length);
+                foodGraph.addValue(foods.length + bales.length);
             }
         }
 
-        // Bulletproof Graph that won't crash
         class MiniGraph {
             constructor(canvasId, color) {
                 this.canvas = document.getElementById(canvasId); this.ctx = this.canvas.getContext('2d');
@@ -1176,12 +1243,10 @@
             draw() {
                 this.ctx.clearRect(0, 0, this.w, this.h);
                 if (this.dataInfo.length < 2) return;
-                
                 let max = 10;
                 for (let i = 0; i < this.dataInfo.length; i++) {
                     if (this.dataInfo[i] > max) max = this.dataInfo[i];
                 }
-                
                 let grad = this.ctx.createLinearGradient(0, 0, 0, this.h);
                 grad.addColorStop(0, this.color + '88'); grad.addColorStop(1, this.color + '00'); 
                 this.ctx.strokeStyle = this.color; this.ctx.lineWidth = 2; this.ctx.beginPath();
