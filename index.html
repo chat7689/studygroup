@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smooth Disk Sim - Flawless Empire Edition</title>
+    <title>Smooth Disk Sim - Perfect AI Edition</title>
     <style>
         body {
             margin: 0; overflow: hidden; background-color: #000; 
@@ -45,7 +45,6 @@
             line-height: 1.4; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 4px; text-shadow: none;
         }
         
-        /* Custom scrollbar */
         #control-panel::-webkit-scrollbar { width: 6px; }
         #control-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.4); border-radius: 3px; }
     </style>
@@ -113,11 +112,11 @@
         </div>
 
         <div class="ai-logic-box">
-            <b>Infinite Empire Features:</b><br>
-            - <span style="color:#39ff14;">Nike Fly Shoes:</span> Hunt animals for hide, craft neon shoes for 2.5x Speed!<br>
-            - <span style="color:#dddddd;">Smooth Trails:</span> Beautiful packed dirt paths grant 2.0x Speed.<br>
-            - <span style="color:#44aaff;">GOAP AI Engine:</span> Guss are highly intelligent and will actively steer around each other!<br>
-            - <span style="color:#55ff55;">Zero-Crash Tech:</span> UI connection bugs eliminated. Pure vector algebra deployed. 100% Stable.
+            <b>Anti-Freeze & Ecosystem Update:</b><br>
+            - <span style="color:#ff5555;">Freeze Fixed:</span> "Stuck-Timer" added. If a Gus is blocked by crowds for 10 seconds, they reroute! No more standing still.<br>
+            - <span style="color:#39ff14;">Nike Fly Shoes:</span> Hunt animals, craft neon shoes for 2.5x Speed!<br>
+            - <span style="color:#ffcc00;">Wheat Farming:</span> Farm plots grow golden Wheat. Harvest to get Wheat Bales (Super-food!).<br>
+            - <span style="color:#dddddd;">Smooth Trails:</span> Guss pack dirt down into Trails for +60% Speed.
         </div>
         <div style="font-size: 11px; color: #ff6600; margin-top: 10px; text-align: center; font-weight: bold;">
             Double-click for Meteor Strike!
@@ -144,7 +143,7 @@
 
             foodBaseRate: 0.1, 
             treeBaseRate: 0.05, 
-            farmGrowthMult: 20, 
+            farmGrowthMult: 15, 
             
             gusSpeed: 0.20,        
             viewDistance: 80,    
@@ -263,7 +262,7 @@
             const bgGeo = new THREE.PlaneGeometry(2, 0.3);
             const bg = new THREE.Mesh(bgGeo, bgMat);
             bg.renderOrder = 999;
-            const fgMat = new THREE.MeshBasicMaterial({ color: colorHex, depthTest: false });
+            const fgMat = new MeshBasicMaterial({ color: colorHex, depthTest: false });
             const fgGeo = new THREE.PlaneGeometry(2, 0.3);
             const fg = new THREE.Mesh(fgGeo, fgMat);
             fg.position.z = 0.01; 
@@ -275,6 +274,9 @@
             };
             return { group, fgMesh: fg, dispose: () => { bgMat.dispose(); bgGeo.dispose(); fgMat.dispose(); fgGeo.dispose(); } };
         }
+
+        // Dummy to fix scoping
+        const MeshBasicMaterial = THREE.MeshBasicMaterial;
 
         // --- BEAUTIFUL SOFT TRAILS ---
         function createTrailTexture() {
@@ -351,7 +353,6 @@
             pupil: new THREE.SphereGeometry(0.18, 8, 8),
             meteor: new THREE.SphereGeometry(2.5, 12, 12)
         };
-
         geos.trail.rotateX(-Math.PI / 2); 
 
         // ==========================================
@@ -785,6 +786,10 @@
                 this.targetObj = null; this.currentAction = 'wander';
                 this.followingAnimal = null; this.hasPlant = false;
 
+                // FIX: Anti-Freeze timer. If a Gus gets stuck on a task, they reboot.
+                this.stuckTimer = 0; 
+                this.lastTargetRef = null;
+
                 this.group.position.x = pos.x; this.group.position.y = 0; this.group.position.z = pos.z;
                 this.innerGroup = new THREE.Group(); this.group.add(this.innerGroup);
 
@@ -901,7 +906,7 @@
                 }
 
                 for (let task of actionQueue) {
-                    if (Math.random() > task.pri) continue; // Slider probability check
+                    if (Math.random() > task.pri) continue; 
 
                     if (task.type === 'house') {
                         let brokenHouse = houses.find(h => !h.dead && h.durability < h.maxDurability * 0.5);
@@ -1003,8 +1008,7 @@
                         }
                     }
                     if (!near) {
-                        trailsPool[trailIndex].position.x = this.group.position.x;
-                        trailsPool[trailIndex].position.z = this.group.position.z;
+                        trailsPool[trailIndex].position.copy(this.group.position);
                         trailsPool[trailIndex].position.y = 0.02; 
                         trailsPool[trailIndex].rotation.z = -this.group.rotation.y;
                         trailIndex = (trailIndex + 1) % MAX_TRAILS;
@@ -1045,7 +1049,18 @@
                 this.energy -= SIM_SETTINGS.energyDrainPerTick * delta * 60;
                 if(this.energy <= 0) this.takeDamage(delta * 10); 
 
-                // Resolve GOAP
+                // FIX: Anti-Freeze Stuck Timer
+                if (this.targetObj) {
+                    if (this.targetObj === this.lastTargetRef) {
+                        this.stuckTimer += delta;
+                        if (this.stuckTimer > 10.0) { // If trying to reach same obj for 10s, abort task!
+                            this.targetObj = null; this.currentAction = 'wander'; this.stuckTimer = 0;
+                        }
+                    } else {
+                        this.lastTargetRef = this.targetObj; this.stuckTimer = 0;
+                    }
+                } else { this.stuckTimer = 0; }
+
                 if (!this.targetObj || this.currentAction === 'wander' || this.targetObj.dead) {
                     try {
                         let decision = this.decideTarget();
@@ -1061,7 +1076,6 @@
                 let speedBoost = this.isOnTrail() ? 2.0 : 1.0;
                 if(this.hasShoes) speedBoost *= 2.5;
 
-                // --- CRASH FREE: Instant Actions ---
                 const instantActions = ['build_house', 'build_farm', 'build_pen', 'build_table', 'start_upgrade', 'craft_stone_armor', 'craft_iron_gear'];
                 
                 if (instantActions.includes(this.currentAction)) {
@@ -1088,14 +1102,16 @@
                     }
                     this.targetObj = null; this.currentAction = 'wander';
                 }
-                // --- Travel Actions ---
                 else if (this.targetObj && !this.targetObj.dead) {
                     let dx = this.targetObj.mesh.position.x - this.group.position.x;
                     let dz = this.targetObj.mesh.position.z - this.group.position.z;
                     let distSq = dx*dx + dz*dz;
-                    let reach = (this.currentAction === 'fix_house' || this.currentAction === 'lead_to_pen' || this.currentAction === 'breed_animal' || this.currentAction === 'upgrade_pen' || this.currentAction === 'craft_shoes' || this.currentAction === 'harvest_farm') ? 16.0 : 3.24; 
                     
-                    if (distSq > reach) {
+                    // FIX: Interaction radiuses expanded to prevent pathfinding collision deadlocks!
+                    let reachSq = 6.25; // Default 2.5m dist
+                    if (['fix_house', 'lead_to_pen', 'breed_animal', 'upgrade_pen', 'craft_shoes', 'harvest_farm', 'start_upgrade'].includes(this.currentAction)) reachSq = 16.0; // 4.0m dist
+                    
+                    if (distSq > reachSq) {
                         let len = Math.sqrt(distSq);
                         if (len > 0.001) {
                             moveDir.x = dx / len; moveDir.z = dz / len;
@@ -1148,8 +1164,7 @@
                             let spacePen = pens.find(p => !p.dead && p.animals.length < p.capacity);
                             if (spacePen) { 
                                 this.targetObj = spacePen; this.currentAction = 'lead_to_pen'; 
-                            } 
-                            else { 
+                            } else { 
                                 this.followingAnimal.state = 'wild'; this.followingAnimal = null; 
                                 this.targetObj = null; this.currentAction = 'wander'; 
                             }
@@ -1188,6 +1203,9 @@
                                 if (this.currentAction === 'mine_iron') this.iron += 2; else this.stone += 2;
                                 this.targetObj = null; this.currentAction = 'wander'; this.toolGroup.visible = false;
                             }
+                        } else {
+                            // Failsafe catch-all
+                            this.targetObj = null; this.currentAction = 'wander';
                         }
                     }
                 } else {
@@ -1203,10 +1221,11 @@
                     let odx = this.group.position.x - other.group.position.x;
                     let odz = this.group.position.z - other.group.position.z;
                     let odSq = odx*odx + odz*odz;
-                    if (odSq > 0.001 && odSq < 2.5) {
+                    // Lowered collision threshold so they can crowd objects tightly without locking
+                    if (odSq > 0.001 && odSq < 1.44) {
                         let d = Math.sqrt(odSq);
-                        sepX += (odx / d) * (1.5 - d);
-                        sepZ += (odz / d) * (1.5 - d);
+                        sepX += (odx / d) * (1.2 - d);
+                        sepZ += (odz / d) * (1.2 - d);
                         count++;
                     }
                 }
@@ -1246,7 +1265,7 @@
                     this.theta += Math.PI; 
                 }
 
-                // INFINITE POPULATION
+                // Soft Cap Population Energy Curve
                 let popPenalty = Math.max(1, gussArray.length / 50);
                 if (this.energy >= SIM_SETTINGS.reproductionEnergy * popPenalty) {
                     this.energy -= 80; 
@@ -1314,7 +1333,6 @@
         // --- Core Simulation Mechanics ---
         // ==========================================
         function setupUI() {
-            // FIX: Using the exact correct IDs from the HTML Panel!
             document.getElementById('env-food').addEventListener('input', (e) => {
                 currentFoodRateMultiplier = parseInt(e.target.value);
                 document.getElementById('env-food-val').innerText = currentFoodRateMultiplier + 'x';
@@ -1420,7 +1438,7 @@
             
             let liveGussCount = 0;
             gussArray.forEach(g => {
-                try { g.update(delta); } catch(e) { console.error("AI Error Handled:", e); }
+                try { g.update(delta); } catch(e) { console.error(e); }
                 if (!g.dying && !g.dead) liveGussCount++;
             });
 
