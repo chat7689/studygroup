@@ -3,49 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Smooth Disk Sim - Mega Build</title>
+    <title>God-Mode Sim - Neural AI Edition</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
     <div id="ui-panel">
         <div class="stats-digital">
-            <div style="font-size: 12px; color: #ddd; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px;">Empire Status</div>
-            <div class="stat-line"><span style="color: #eee;">Time/Days:</span> <span id="stat-time" class="stat-value" style="color: #fff;">0</span></div>
+            <div style="font-size: 12px; color: #ddd; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px;">World Status</div>
             <div class="stat-line"><span style="color: #eee;">Guss Pop:</span> <span id="stat-guss" class="stat-value" style="color: #44aaff;">0</span></div>
-            <div class="stat-line"><span style="color: #eee;">Weather:</span> <span id="weather-status" class="stat-value">CLEAR</span></div>
             <div class="stat-line"><span style="color: #eee;">Livestock:</span> <span id="stat-animals" class="stat-value" style="color: #ff99cc;">0</span></div>
+            <div class="stat-line"><span style="color: #eee;">Weather:</span> <span id="weather-status" class="stat-value">CLEAR</span></div>
         </div>
-        <div class="graph-container">
-            <div class="graph-box">
-                <div class="graph-label">Population Growth</div>
-                <canvas id="graph-pop" class="graph-canvas"></canvas>
+        
+        <div class="god-powers">
+            <div style="font-size: 12px; color: #fff; text-transform: uppercase; margin-bottom: 5px; text-align: center; letter-spacing: 2px;">God Powers (Click to Arm)</div>
+            <div style="display: flex; gap: 10px;">
+                <button id="btn-meteor" class="power-btn" style="background: rgba(255, 50, 50, 0.4);">☄️ Meteor Strike</button>
+                <button id="btn-thunder" class="power-btn" style="background: rgba(200, 200, 50, 0.4);">⚡ Lightning</button>
+                <button id="btn-drag" class="power-btn active" style="background: rgba(50, 200, 255, 0.4);">🖐️ Hand (Drag Guss)</button>
             </div>
-            <div class="graph-box">
-                <div class="graph-label">Food Supply</div>
-                <canvas id="graph-food" class="graph-canvas"></canvas>
-            </div>
+            <div id="power-hint" style="font-size: 11px; margin-top: 5px; color: #aaa; text-align: center;">Active: Click a Gus to drag them!</div>
         </div>
     </div>
 
     <div id="control-panel">
-        <div style="font-size: 12px; color: #fff; text-transform: uppercase; margin-bottom: 10px; text-align: center; letter-spacing: 2px;">Environment</div>
-        <div class="slider-container">
-            <div class="slider-label"><span style="color:#55ff55">Wild Plant Growth</span><span id="env-food-val" style="font-weight: bold;">50x</span></div>
-            <input type="range" id="env-food" min="1" max="100" step="1" value="50">
-        </div>
-        <div class="slider-container">
-            <div class="slider-label"><span style="color:#ffaa00">Tree Sprouting</span><span id="env-tree-val" style="font-weight: bold;">20x</span></div>
-            <input type="range" id="env-tree" min="1" max="100" step="1" value="20">
-        </div>
-
+        <div style="font-size: 12px; color: #fff; text-transform: uppercase; margin-bottom: 10px; text-align: center; letter-spacing: 2px;">Neural AI Overrides</div>
+        <div class="slider-container"><div class="slider-label"><span style="color:#55ff55">Gathering Bias</span><span id="ai-gather-val">1.0</span></div><input type="range" id="ai-gather" min="0" max="3" step="0.1" value="1.0"></div>
+        <div class="slider-container"><div class="slider-label"><span style="color:#ff7722">Building Bias</span><span id="ai-build-val">1.0</span></div><input type="range" id="ai-build" min="0" max="3" step="0.1" value="1.0"></div>
+        <div class="slider-container"><div class="slider-label"><span style="color:#ff5555">Hunting Bias</span><span id="ai-hunt-val">1.0</span></div><input type="range" id="ai-hunt" min="0" max="3" step="0.1" value="1.0"></div>
+        <div class="slider-container"><div class="slider-label"><span style="color:#55cc55">Farming/Breed Bias</span><span id="ai-farm-val">1.0</span></div><input type="range" id="ai-farm" min="0" max="3" step="0.1" value="1.0"></div>
+        
         <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
-
-        <div style="font-size: 12px; color: #fff; text-transform: uppercase; margin-bottom: 10px; text-align: center; letter-spacing: 2px;">AI Priorities</div>
-        <div class="slider-container"><div class="slider-label"><span style="color:#44aaff">Gathering Trees</span><span id="pri-trees-val">100%</span></div><input type="range" id="pri-trees" min="0" max="100" step="5" value="100"></div>
-        <div class="slider-container"><div class="slider-label"><span style="color:#ffcc00">Gathering Food</span><span id="pri-food-val">100%</span></div><input type="range" id="pri-food" min="0" max="100" step="5" value="100"></div>
-        <div class="slider-container"><div class="slider-label"><span style="color:#ff7722">Skyscrapers</span><span id="pri-house-val">100%</span></div><input type="range" id="pri-house" min="0" max="100" step="5" value="100"></div>
-        <div class="slider-container"><div class="slider-label"><span style="color:#55cc55">Breeding & Farming</span><span id="pri-breed-val">100%</span></div><input type="range" id="pri-breed" min="0" max="100" step="5" value="100"></div>
+        <div style="font-size: 12px; color: #fff; text-transform: uppercase; margin-bottom: 10px; text-align: center; letter-spacing: 2px;">Environment</div>
+        <button id="btn-rain" style="width: 100%; padding: 8px; background: rgba(100,150,255,0.3); color: white; border: 1px solid #aaa; border-radius: 4px; cursor: pointer;">Toggle Rain</button>
     </div>
 
     <div id="canvas-container"></div>
