@@ -1,7 +1,7 @@
 body {
     margin: 0; overflow: hidden; background-color: #000; 
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #fff; text-shadow: 1px 1px 2px #000;
+    color: #fff; text-shadow: 1px 1px 2px #000; user-select: none;
 }
 #canvas-container { width: 100vw; height: 100vh; }
 #ui-panel {
@@ -10,26 +10,26 @@ body {
     display: flex; padding: 15px 20px; box-sizing: border-box; z-index: 100; pointer-events: none;
 }
 .stats-digital {
-    width: 250px; display: flex; flex-direction: column; justify-content: center;
+    width: 200px; display: flex; flex-direction: column; justify-content: center;
     border-right: 1px solid rgba(255,255,255,0.2); padding-right: 20px; margin-right: 20px;
 }
 .stat-line { display: flex; justify-content: space-between; font-size: 14px; margin: 2px 0; letter-spacing: 1px; }
 .stat-value { font-weight: bold; font-family: monospace; font-size: 15px; text-shadow: none; }
-.graph-container { flex-grow: 1; display: flex; gap: 20px; height: 70px; }
-.graph-box {
-    flex: 1; position: relative; background: rgba(0, 0, 0, 0.5);
-    border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(4px);
+
+.god-powers { pointer-events: auto; display: flex; flex-direction: column; justify-content: center; }
+.power-btn { 
+    border: 2px solid transparent; padding: 8px 12px; color: white; 
+    font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s;
 }
-.graph-label { position: absolute; top: 5px; left: 8px; font-size: 11px; color: #ccc; text-transform: uppercase; letter-spacing: 1px; text-shadow: none; }
-canvas.graph-canvas { width: 100%; height: 100%; border-radius: 6px; }
+.power-btn:hover { border-color: rgba(255,255,255,0.5); }
+.power-btn.active { border-color: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.5); transform: scale(1.05); }
 
 #control-panel {
-    position: absolute; top: 120px; right: 20px; width: 340px;
+    position: absolute; top: 120px; right: 20px; width: 300px;
     background: rgba(15, 15, 20, 0.85); border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 6px; padding: 15px; z-index: 100; backdrop-filter: blur(8px);
-    max-height: calc(100vh - 140px); overflow-y: auto; pointer-events: auto;
+    pointer-events: auto;
 }
 .slider-container { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
 .slider-label { font-size: 11px; color: #eee; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; }
-input[type=range] { width: 100%; cursor: pointer; accent-color: #55ff55; }
-#weather-status { color: #44aaff; font-weight: bold; }
+input[type=range] { width: 100%; cursor: pointer; }
