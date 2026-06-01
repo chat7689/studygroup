@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smooth Disk Sim - Modular & Fluid Edition</title>
+    <title>Ultimate Smooth Disk Sim - Mega Build</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -11,19 +11,41 @@
     <div id="ui-panel">
         <div class="stats-digital">
             <div style="font-size: 12px; color: #ddd; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px;">Empire Status</div>
+            <div class="stat-line"><span style="color: #eee;">Time/Days:</span> <span id="stat-time" class="stat-value" style="color: #fff;">0</span></div>
             <div class="stat-line"><span style="color: #eee;">Guss Pop:</span> <span id="stat-guss" class="stat-value" style="color: #44aaff;">0</span></div>
             <div class="stat-line"><span style="color: #eee;">Weather:</span> <span id="weather-status" class="stat-value">CLEAR</span></div>
             <div class="stat-line"><span style="color: #eee;">Livestock:</span> <span id="stat-animals" class="stat-value" style="color: #ff99cc;">0</span></div>
         </div>
+        <div class="graph-container">
+            <div class="graph-box">
+                <div class="graph-label">Population Growth</div>
+                <canvas id="graph-pop" class="graph-canvas"></canvas>
+            </div>
+            <div class="graph-box">
+                <div class="graph-label">Food Supply</div>
+                <canvas id="graph-food" class="graph-canvas"></canvas>
+            </div>
+        </div>
     </div>
 
     <div id="control-panel">
-        <div class="ai-logic-box">
-            <b>Fluid AI & Building Update:</b><br>
-            - <span style="color:#44aaff;">Fluid Steering:</span> Guss now accelerate, decelerate, and physically repel each other to avoid clipping.<br>
-            - <span style="color:#55ff55;">Dynamic Environment:</span> Trees visually fall over when chopped before despawning.<br>
-            - <span style="color:#ff7722;">Skyscrapers:</span> Houses can now be upgraded infinitely into tall towers!
+        <div style="font-size: 12px; color: #fff; text-transform: uppercase; margin-bottom: 10px; text-align: center; letter-spacing: 2px;">Environment</div>
+        <div class="slider-container">
+            <div class="slider-label"><span style="color:#55ff55">Wild Plant Growth</span><span id="env-food-val" style="font-weight: bold;">50x</span></div>
+            <input type="range" id="env-food" min="1" max="100" step="1" value="50">
         </div>
+        <div class="slider-container">
+            <div class="slider-label"><span style="color:#ffaa00">Tree Sprouting</span><span id="env-tree-val" style="font-weight: bold;">20x</span></div>
+            <input type="range" id="env-tree" min="1" max="100" step="1" value="20">
+        </div>
+
+        <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
+
+        <div style="font-size: 12px; color: #fff; text-transform: uppercase; margin-bottom: 10px; text-align: center; letter-spacing: 2px;">AI Priorities</div>
+        <div class="slider-container"><div class="slider-label"><span style="color:#44aaff">Gathering Trees</span><span id="pri-trees-val">100%</span></div><input type="range" id="pri-trees" min="0" max="100" step="5" value="100"></div>
+        <div class="slider-container"><div class="slider-label"><span style="color:#ffcc00">Gathering Food</span><span id="pri-food-val">100%</span></div><input type="range" id="pri-food" min="0" max="100" step="5" value="100"></div>
+        <div class="slider-container"><div class="slider-label"><span style="color:#ff7722">Skyscrapers</span><span id="pri-house-val">100%</span></div><input type="range" id="pri-house" min="0" max="100" step="5" value="100"></div>
+        <div class="slider-container"><div class="slider-label"><span style="color:#55cc55">Breeding & Farming</span><span id="pri-breed-val">100%</span></div><input type="range" id="pri-breed" min="0" max="100" step="5" value="100"></div>
     </div>
 
     <div id="canvas-container"></div>
